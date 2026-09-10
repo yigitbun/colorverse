@@ -86,7 +86,7 @@ export function createAtlas(canvas, { onSelect, onHover, onReady }) {
   function tick(time) {
     const delta = Math.min(time - last, 40); last = time;
     if (visible && !document.hidden) {
-      if (!paused && !dragging && time > idleUntil) { targetRotation += delta * .000045; needsDraw = true; }
+      if (!paused && !dragging && time > idleUntil) { targetRotation += delta * .000024; needsDraw = true; }
       if (Math.abs(rotation - targetRotation) > .00005 || Math.abs(tilt - targetTilt) > .00005 || Math.abs(zoom - targetZoom) > .00005) {
         const damping = reduced.matches ? 1 : 1 - Math.exp(-delta / 75);
         rotation += (targetRotation - rotation) * damping; tilt += (targetTilt - tilt) * damping; zoom += (targetZoom - zoom) * damping; needsDraw = true;

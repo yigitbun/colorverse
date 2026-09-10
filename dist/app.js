@@ -11,7 +11,7 @@ let context = 'landing', format = 'css', extracted = null, imageURL = null, toas
 const route = location.pathname.replace(/\/+$/, '') || '/';
 const page = ({ '/explore': 'explore', '/extract': 'extract', '/about': 'about' })[route] || 'home';
 document.body.dataset.page = page;
-const titles = { home: 'ColorVerse — Color you can feel.', explore: 'The Color Studio — ColorVerse', extract: 'Your world. Your palette. — ColorVerse', about: 'A note from Yigit — ColorVerse' };
+const titles = { home: 'ColorVerse — Palettes for your next project', explore: 'Palette library — ColorVerse', extract: 'Image to palette — ColorVerse', about: 'About ColorVerse' };
 document.title = titles[page];
 $$('.desktop-nav a').forEach(link => { if (link.pathname.replace(/\/+$/, '') === route) link.setAttribute('aria-current', 'page'); });
 
@@ -19,7 +19,7 @@ function toast(message) {
   $('#toast').textContent = message; $('#toast').classList.add('is-visible');
   clearTimeout(toastTimer); toastTimer = setTimeout(() => $('#toast').classList.remove('is-visible'), 2600);
 }
-async function copy(text, message = 'Copied. Make something good.') {
+async function copy(text, message = 'Copied to clipboard.') {
   try {
     if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(text);
     else {
@@ -38,7 +38,7 @@ const rail = $('#paletteRail');
 rail.innerHTML = palettes.map((p, i) => `<article class="palette-card" data-palette="${p.id}" style="--cover:${p.colors[1]}">
   <div class="palette-card-image"><img src="${p.image}" alt="${escape(p.name)} inspiration" width="900" height="450" loading="${i < 3 ? 'eager' : 'lazy'}" decoding="async" draggable="false"><span class="palette-number">${String(i + 1).padStart(2, '0')}</span><span class="palette-category">${p.category}</span></div>
   <div class="palette-card-colors" aria-label="Five palette colors">${p.colors.map(hex => swatch(hex)).join('')}</div>
-  <button class="palette-card-select" data-select="${p.id}" aria-label="Use ${escape(p.name)} palette"><span>${escape(p.name)}</span><span>Try this feeling ↗</span></button>
+  <button class="palette-card-select" data-select="${p.id}" aria-label="Use ${escape(p.name)} palette"><span>${escape(p.name)}</span><span>Use palette</span></button>
 </article>`).join('');
 $$('.palette-card-image img').forEach(img => img.addEventListener('error', () => { img.hidden = true; const note = document.createElement('span'); note.className = 'image-fallback'; note.textContent = 'Color study'; img.parentElement.append(note); }));
 
@@ -56,7 +56,7 @@ function renderSelection(updateURL = false) {
 
 function choosePalette(palette, notify = true) {
   current = palette; renderSelection(true);
-  if (notify) toast(`${palette.name} is in the studio.`);
+  if (notify) toast(`${palette.name} selected.`);
 }
 
 function renderMockup() {
@@ -70,9 +70,9 @@ function renderMockup() {
   const browser = '<div class="mock-browser" aria-hidden="true"><i></i><i></i><i></i><span>forma.studio</span></div>';
   const nav = '<div class="mock-nav"><b>forma.</b><span>Our work <span>About us</span></span><span class="mock-cta">Let’s talk ↗</span></div>';
   const layouts = {
-    landing: `<div class="mockup landing-mockup">${browser}${nav}<div class="landing-layout"><div class="landing-copy"><span class="mock-kicker">Independent by nature.</span><h4>Good things<br>take <em>shape.</em></h4><p>A small studio for big ideas. Thoughtful design, made to mean something.</p><span class="mock-cta">Explore our work <span>↗</span></span></div><div class="landing-photo">${img()}<span class="photo-tag">A new perspective / 2026</span></div></div><div class="mock-features"><span><i>01</i>Built with intention.</span><span><i>02</i>Made to be felt.</span><span><i>03</i>Always a little different.</span></div></div>`,
-    presentation: `<div class="mockup slides-layout"><div class="slide-top"><span>FORMA / STUDIO NOTES</span><span>2026 — 04</span></div><div class="slide-main"><div><span class="mock-kicker">The bigger picture</span><h4>Room for<br><em>what’s next.</em></h4><p>Good ideas make space for growth. Let’s see where this one takes us.</p></div><div class="slide-chart" role="img" aria-label="Illustrative bar chart with four sample values"><i style="--height:38%"></i><i style="--height:57%"></i><i style="--height:71%"></i><i style="--height:94%"></i></div></div><div class="slide-bottom"><span>Ideas worth sharing.</span><span>Illustrative data · 04 / 12</span></div></div>`,
-    social: `<div class="mockup social-layout"><div class="social-card"><div class="social-top"><i class="social-avatar"></i><span>forma.studio</span></div><div class="social-photo">${img()}<span>A fresh perspective.</span></div><div class="social-foot"><span>♡ &nbsp; ↗</span><span>Save for later</span></div></div><div class="social-card"><div class="social-top"><i class="social-avatar"></i><span>forma.studio</span></div><div class="social-quote">Make room<br>for a little<br>wonder.</div><div class="social-foot"><span>♡ &nbsp; ↗</span><span>Made to be felt.</span></div></div></div>`,
+    landing: `<div class="mockup landing-mockup">${browser}${nav}<div class="landing-layout"><div class="landing-copy"><span class="mock-kicker">Design & strategy</span><h4>Clear ideas.<br>Considered design.</h4><p>Brand identities and digital products for teams building their next chapter.</p><span class="mock-cta">View projects <span>→</span></span></div><div class="landing-photo">${img()}<span class="photo-tag">Selected work / 2026</span></div></div><div class="mock-features"><span><i>01</i>Research</span><span><i>02</i>Design systems</span><span><i>03</i>Digital products</span></div></div>`,
+    presentation: `<div class="mockup slides-layout"><div class="slide-top"><span>FORMA / QUARTERLY REVIEW</span><span>2026 — 04</span></div><div class="slide-main"><div><span class="mock-kicker">Progress at a glance</span><h4>A clearer<br>view of growth.</h4><p>A sample presentation showing your palette across text, surfaces, and data.</p></div><div class="slide-chart" role="img" aria-label="Illustrative bar chart with four sample values"><i style="--height:38%"></i><i style="--height:57%"></i><i style="--height:71%"></i><i style="--height:94%"></i></div></div><div class="slide-bottom"><span>Quarterly overview</span><span>Illustrative data · 04 / 12</span></div></div>`,
+    social: `<div class="mockup social-layout"><div class="social-card"><div class="social-top"><i class="social-avatar"></i><span>forma.studio</span></div><div class="social-photo">${img()}<span>Selected work.</span></div><div class="social-foot"><span>♡ &nbsp; ↗</span><span>Project journal</span></div></div><div class="social-card"><div class="social-top"><i class="social-avatar"></i><span>forma.studio</span></div><div class="social-quote">A new look.<br>The same<br>clear purpose.</div><div class="social-foot"><span>♡ &nbsp; ↗</span><span>Brand update</span></div></div></div>`,
     shop: `<div class="mockup">${browser}<div class="shop-layout"><div class="shop-heading"><h4>Everyday editions.</h4><span>Art for your space ↗</span></div><div class="shop-grid">${['The field study', 'Another perspective', 'The quiet moment'].map((title, i) => `<div class="shop-product"><div class="product-image">${img('Example art print')}<span class="photo-tag">${i === 0 ? 'NEW EDITION' : 'FINE ART PRINT'}</span></div><h5>${title}</h5><div class="shop-price"><span>€${[28, 36, 32][i]}.00</span><span>↗</span></div></div>`).join('')}</div><div class="shop-bottom">Small editions. Lasting impressions. &nbsp; • &nbsp; Example shop</div></div></div>`,
   };
   panel.innerHTML = layouts[context];
@@ -113,7 +113,7 @@ function updateRail() {
   $('#railProgress').style.width = `${max > 0 ? 15 + rail.scrollLeft / max * 85 : 100}%`;
   cards.forEach(card => {
     const distance = (card.offsetLeft - cards[0].offsetLeft - rail.scrollLeft) / rail.clientWidth;
-    card.style.setProperty('--turn', `${clamp(distance * -4, -5, 5)}deg`);
+    card.style.setProperty('--turn', `${clamp(distance * -1.2, -1.5, 1.5)}deg`);
   });
   railFrame = 0;
 }
@@ -141,15 +141,15 @@ let savedTheme; try { savedTheme = localStorage.getItem('colorverse-theme'); } c
 function setTheme(theme) {
   document.documentElement.dataset.theme = theme;
   $('#themeToggle').setAttribute('aria-label', theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme');
-  document.querySelector('meta[name="theme-color"]').content = theme === 'light' ? '#f2f1ee' : '#101112';
+  document.querySelector('meta[name="theme-color"]').content = theme === 'light' ? '#fafaf8' : '#1c1f22';
   try { localStorage.setItem('colorverse-theme', theme); } catch {}
 }
-setTheme(savedTheme === 'light' ? 'light' : 'dark');
+setTheme(savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
 $('#themeToggle').addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light'));
 
 if (page === 'home') {
   const globe = createAtlas($('#globe'), {
-    onSelect(hex) { choosePalette({ id: 'atlas-study', name: 'Your color, in orbit', description: 'A palette built around the color you discovered in the atlas.', colors: paletteFromColor(hex), image: null }); },
+    onSelect(hex) { choosePalette({ id: 'atlas-study', name: 'Custom color palette', description: 'Five colors built around your selection on the globe.', colors: paletteFromColor(hex), image: null }); },
     onHover(hex) { if (hex) { $('#hoverHex').textContent = hex; $('#hoverDot').style.background = hex; } },
   });
   $('#zoomIn').addEventListener('click', () => globe.zoom(.08)); $('#zoomOut').addEventListener('click', () => globe.zoom(-.08));
@@ -179,13 +179,13 @@ async function extract(file) {
     const result = extractColors(ctx.getImageData(0, 0, sample.width, sample.height).data);
     const replaceCurrent = current.image === imageURL && imageURL !== null;
     if (imageURL) URL.revokeObjectURL(imageURL); imageURL = nextURL;
-    extracted = { id: 'your-image', name: 'Your own perspective', description: 'Five colors from your image, arranged into background, surface, primary, accent, and text.', colors: result.colors, image: imageURL };
+    extracted = { id: 'your-image', name: 'Image palette', description: 'Five colors from your image, assigned to background, surface, primary, accent, and text.', colors: result.colors, image: imageURL };
     if (replaceCurrent) choosePalette(extracted, false);
     $('#extractedImage').src = imageURL;
     $('#extractedSwatches').innerHTML = extracted.colors.map(hex => swatch(hex)).join('');
-    $('#extractionInfo').textContent = result.sampled < 5 ? `${result.sampled} sampled · ${5 - result.sampled} tonal variations` : 'Five colors, found.';
+    $('#extractionInfo').textContent = result.sampled < 5 ? `${result.sampled} sampled · ${5 - result.sampled} tonal variations` : 'Five extracted colors';
     dropzone.classList.add('has-result'); $('#extractionResult').hidden = false;
-    status.textContent = 'Your palette is ready. Try it in a real layout below.';
+    status.textContent = 'Palette ready. Select “Use this palette” to preview it.';
   } catch (error) { URL.revokeObjectURL(nextURL); status.textContent = error.message?.includes('visible pixels') ? error.message : 'This image could not be read. Try another JPG, PNG, or WebP.'; }
   finally { input.value = ''; }
 }
@@ -197,7 +197,7 @@ for (const eventName of ['dragenter', 'dragover']) dropzone.addEventListener(eve
 for (const eventName of ['dragleave', 'drop']) dropzone.addEventListener(eventName, event => { event.preventDefault(); dropzone.classList.remove('is-over'); });
 dropzone.addEventListener('drop', event => extract(event.dataTransfer.files?.[0]));
 $('#useExtraction').addEventListener('click', () => {
-  if (!extracted) return; choosePalette(extracted, false); $('#studio').scrollIntoView({ behavior: reduceMotion.matches ? 'instant' : 'smooth', block: 'start' }); toast('Your image, reimagined in color.');
+  if (!extracted) return; choosePalette(extracted, false); $('#studio').scrollIntoView({ behavior: reduceMotion.matches ? 'instant' : 'smooth', block: 'start' }); toast('Image palette selected.');
 });
 
 renderSelection(); updateRail();
