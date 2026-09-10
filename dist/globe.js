@@ -1,7 +1,7 @@
 import { createHexSphere, dot, norm, mix } from './geometry.js';
 import { hsv, rgb, toHex, clamp } from './color.js';
 
-export function createAtlas(canvas, { onSelect, onHover, onReady }) {
+export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor }) {
   const ctx = canvas.getContext('2d', { alpha: true });
   const cells = createHexSphere(3);
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -16,6 +16,7 @@ export function createAtlas(canvas, { onSelect, onHover, onReady }) {
     const h = 16 + Math.sin(longitude) * 32 + (1 - Math.cos(longitude)) * 95 + cy * 14;
     cell.hex = hsv(h, .76, .98); cell.rgb = rgb(cell.hex);
   });
+  const payload = index => { const cell = cells[index], visual = imageFor?.(cell.hex, cell, index); return { index, hex: cell.hex, image: visual?.image || visual || null, name: visual?.name || '', category: visual?.category || '' }; };
   function path(points) {
     ctx.beginPath(); ctx.moveTo(points[0][0], points[0][1]);
     for (let i = 1; i < points.length; i++) ctx.lineTo(points[i][0], points[i][1]);
@@ -112,12 +113,12 @@ export function createAtlas(canvas, { onSelect, onHover, onReady }) {
       pointer.x = event.clientX; pointer.y = event.clientY; needsDraw = true;
     } else {
       const box = canvas.getBoundingClientRect(); const next = hit(event.clientX - box.left, event.clientY - box.top);
-      if (next !== hover) { hover = next; needsDraw = true; onHover?.(next < 0 ? null : cells[next].hex); }
+      if (next !== hover) { hover = next; needsDraw = true; onHover?.(next < 0 ? null : payload(next)); }
       idleUntil = performance.now() + 2200;
     }
   });
   canvas.addEventListener('pointerup', event => {
-    if (!moved) { const box = canvas.getBoundingClientRect(); selected = hit(event.clientX - box.left, event.clientY - box.top); if (selected >= 0) onSelect(cells[selected].hex); }
+    if (!moved) { const box = canvas.getBoundingClientRect(); selected = hit(event.clientX - box.left, event.clientY - box.top); if (selected >= 0) onSelect?.(payload(selected)); }
     dragging = false; pointer = null; idleUntil = performance.now() + 5000; needsDraw = true; canvas.classList.remove('is-dragging');
   });
   const cancel = () => { dragging = false; pointer = null; canvas.classList.remove('is-dragging'); };
@@ -129,7 +130,7 @@ export function createAtlas(canvas, { onSelect, onHover, onReady }) {
     if (event.key === 'ArrowRight') targetRotation += .13;
     if (event.key === 'ArrowUp') targetTilt = clamp(targetTilt + .13, -.85, .85);
     if (event.key === 'ArrowDown') targetTilt = clamp(targetTilt - .13, -.85, .85);
-    if (event.key === 'Enter' || event.key === ' ') { const index = hit(width / 2, height / 2); if (index >= 0) { selected = index; onSelect(cells[index].hex); } }
+    if (event.key === 'Enter' || event.key === ' ') { const index = hit(width / 2, height / 2); if (index >= 0) { selected = index; onSelect?.(payload(index)); } }
     idleUntil = performance.now() + 5000; needsDraw = true;
   });
   const observer = new ResizeObserver(resize); observer.observe(canvas);

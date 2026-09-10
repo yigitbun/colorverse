@@ -59,6 +59,72 @@ function choosePalette(palette, notify = true) {
   if (notify) toast(`${palette.name} selected.`);
 }
 
+const signatureSources = palettes.map(palette => ({ name: palette.name, image: palette.image, category: palette.category, colors: palette.colors }));
+function colorDistance(a, b) { const ar = rgb(a), br = rgb(b); return ar.reduce((sum, value, index) => sum + (value - br[index]) ** 2, 0); }
+function signatureFor(hex) {
+  return signatureSources.reduce((best, source) => {
+    const score = Math.min(...source.colors.map(color => colorDistance(hex, color)));
+    return score < best.score ? { source, score } : best;
+  }, { source: signatureSources[0], score: Infinity }).source;
+}
+
+let atlasHover = null, atlasPinned = null, atlasSelected = [];
+function setAtlasReadout(payload, selected = false) {
+  const hex = payload?.hex || '#FF7658';
+  $('#atlasReadoutLabel').textContent = selected ? 'Selected' : 'Hover';
+  $('#hoverHex').textContent = hex;
+  $('#hoverDot').style.background = hex;
+  $('#copyAtlasColor').textContent = selected ? 'Copy selected' : 'Copy';
+  $('#copyAtlasColor').disabled = !payload;
+  $('#copyAtlasColor').setAttribute('aria-label', selected ? `Copy selected color ${hex}` : `Copy hovered color ${hex}`);
+}
+function renderAtlasHover(payload) {
+  const card = $('#atlasHoverCard');
+  if (!payload) { card.hidden = true; return; }
+  const fallback = signatureFor(payload.hex);
+  const source = payload.image ? { image: payload.image, name: payload.name || fallback.name, category: payload.category || fallback.category } : fallback;
+  card.hidden = false;
+  $('#atlasHoverImage').src = source.image;
+  $('#atlasHoverImage').alt = `${source.name} visual reference`;
+  $('#atlasHoverMode').textContent = atlasPinned?.index === payload.index ? 'Selected' : 'Hover';
+  $('#atlasHoverLabel').textContent = source.category || 'Visual reference';
+  $('#atlasHoverName').textContent = source.name;
+  $('#atlasHoverHex').textContent = payload.hex;
+}
+function suggestedPalettes(hex) {
+  return palettes.map(palette => ({ palette, score: Math.min(...palette.colors.map(color => colorDistance(hex, color))) }))
+    .sort((a, b) => a.score - b.score).slice(0, 3).map(({ palette }) => palette);
+}
+function renderAtlasSelection() {
+  const panel = $('#atlasSelectionPanel');
+  panel.hidden = atlasSelected.length === 0;
+  $('#atlasSelectionCount').textContent = `${atlasSelected.length} / 5`;
+  $('#atlasSelectedSwatches').innerHTML = atlasSelected.map(({ hex }) => `<span class="atlas-selected-swatch" style="--swatch:${hex}" title="${hex}"><code>${hex}</code></span>`).join('');
+  const suggestions = atlasSelected.length === 1 ? suggestedPalettes(atlasSelected[0].hex) : [];
+  $('#atlasSuggestions').innerHTML = suggestions.length ? `<span class="atlas-suggestions-label">Suggested palettes</span>${suggestions.map(palette => `<button type="button" class="atlas-suggestion" data-atlas-suggestion="${palette.id}" aria-label="Try ${escape(palette.name)} palette"><span class="atlas-suggestion-swatches">${palette.colors.map(color => `<i style="--swatch:${color}"></i>`).join('')}</span><span>${escape(palette.name)}</span></button>`).join('')}` : '';
+  $('#useAtlasPalette').textContent = atlasSelected.length === 1 ? 'Build around this color' : 'Use selected colors';
+}
+function addAtlasSelection(payload) {
+  atlasHover = payload;
+  const existing = atlasSelected.findIndex(item => item.index === payload.index);
+  if (existing >= 0) atlasSelected.splice(existing, 1);
+  else if (atlasSelected.length >= 5) { toast('You can select up to five colors.'); return; }
+  else atlasSelected.push(payload);
+  atlasPinned = atlasSelected.at(-1) || null;
+  setAtlasReadout(atlasPinned, Boolean(atlasPinned));
+  renderAtlasSelection();
+  renderAtlasHover(payload);
+  toast(atlasPinned ? `${atlasSelected.length} color${atlasSelected.length === 1 ? '' : 's'} selected.` : 'Selection cleared.');
+}
+function buildAtlasPalette() {
+  if (!atlasSelected.length) return null;
+  const seed = atlasSelected[0].hex;
+  const generated = paletteFromColor(seed);
+  const colors = [...atlasSelected.map(item => item.hex)];
+  for (const color of generated) if (!colors.includes(color) && colors.length < 5) colors.push(color);
+  return { id: 'atlas-custom', name: 'Custom palette', description: `${atlasSelected.length} selected color${atlasSelected.length === 1 ? '' : 's'} with generated supporting tones.`, colors: colors.slice(0, 5), image: signatureFor(seed).image };
+}
+
 function renderMockup() {
   const panel = $('#mockup');
   const [bg, surface, primary, accent, ink] = current.colors;
@@ -149,9 +215,18 @@ $('#themeToggle').addEventListener('click', () => setTheme(document.documentElem
 
 if (page === 'home') {
   const globe = createAtlas($('#globe'), {
-    onSelect(hex) { choosePalette({ id: 'atlas-study', name: 'Custom color palette', description: 'Five colors built around your selection on the globe.', colors: paletteFromColor(hex), image: null }); },
-    onHover(hex) { if (hex) { $('#hoverHex').textContent = hex; $('#hoverDot').style.background = hex; } },
+    imageFor(hex) { const source = signatureFor(hex); return { image: source.image, name: source.name, category: source.category }; },
+    onSelect(payload) { addAtlasSelection(payload); },
+    onHover(payload) { atlasHover = payload; renderAtlasHover(payload); if (payload && !atlasPinned) setAtlasReadout(payload); },
   });
+  setAtlasReadout(null);
+  $('#copyAtlasColor').addEventListener('click', () => {
+    const colors = atlasPinned ? [atlasPinned.hex] : atlasHover ? [atlasHover.hex] : [];
+    if (colors.length) copy(colors.join(', '), `${colors[0]} copied.`);
+  });
+  $('#clearAtlasSelection').addEventListener('click', () => { atlasSelected = []; atlasPinned = null; renderAtlasSelection(); setAtlasReadout(atlasHover); renderAtlasHover(atlasHover); });
+  $('#useAtlasPalette').addEventListener('click', () => { const palette = buildAtlasPalette(); if (!palette) return; choosePalette(palette, false); $('#studio').scrollIntoView({ behavior: reduceMotion.matches ? 'instant' : 'smooth', block: 'start' }); toast('Custom palette selected.'); });
+  $('#atlasSuggestions').addEventListener('click', event => { const button = event.target.closest('[data-atlas-suggestion]'); if (!button) return; const palette = palettes.find(item => item.id === button.dataset.atlasSuggestion); if (palette) choosePalette(palette); });
   $('#zoomIn').addEventListener('click', () => globe.zoom(.08)); $('#zoomOut').addEventListener('click', () => globe.zoom(-.08));
   let paused = reduceMotion.matches;
   function updatePause() { $('#pauseAtlas').setAttribute('aria-pressed', String(paused)); $('#pauseAtlas').setAttribute('aria-label', paused ? 'Resume globe rotation' : 'Pause globe rotation'); $('#pauseAtlas').innerHTML = paused ? '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7 4 8 6-8 6Z"/></svg>' : '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5v10M13 5v10"/></svg>'; }

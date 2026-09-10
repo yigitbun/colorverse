@@ -39,8 +39,10 @@
       </div>
       <div class="atlas-scene">
         <canvas id="globe" tabindex="0" role="application" aria-label="Interactive color globe. Drag to rotate. Use arrow keys to rotate, and Enter to select the center color."></canvas>
-        <div class="atlas-guide">Drag to rotate <span class="guide-divider"></span> Select a color to build a palette</div>
-        <div class="atlas-readout" aria-live="off"><i id="hoverDot"></i><span id="hoverHex">#FF7658</span></div>
+        <div class="atlas-guide">Drag to rotate <span class="guide-divider"></span> Click colors to build a palette</div>
+        <div class="atlas-hover-card" id="atlasHoverCard" hidden aria-live="polite"><div class="atlas-hover-image"><img id="atlasHoverImage" alt=""><span id="atlasHoverMode">Hover</span></div><div class="atlas-hover-meta"><span id="atlasHoverLabel">Visual reference</span><strong id="atlasHoverName">Color study</strong><code id="atlasHoverHex">#FF7658</code></div></div>
+        <div class="atlas-readout" aria-live="polite"><span id="atlasReadoutLabel">Hover</span><i id="hoverDot"></i><code id="hoverHex">#FF7658</code><button id="copyAtlasColor" aria-label="Copy selected color">Copy</button></div>
+        <div class="atlas-selection-panel" id="atlasSelectionPanel" hidden aria-live="polite"><div class="atlas-selection-head"><span><strong id="atlasSelectionCount">0 / 5</strong> selected</span><button id="clearAtlasSelection" aria-label="Clear selected colors">Clear</button></div><div class="atlas-selected-swatches" id="atlasSelectedSwatches"></div><div class="atlas-suggestions" id="atlasSuggestions"></div><button class="button primary" id="useAtlasPalette">Use selected colors</button></div>
         <div class="atlas-controls"><button class="icon-button" id="zoomOut" aria-label="Zoom out">−</button><button class="icon-button" id="pauseAtlas" aria-label="Pause globe rotation" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5v10M13 5v10"/></svg></button><button class="icon-button" id="zoomIn" aria-label="Zoom in">+</button></div>
       </div>
       <div class="hero-baseline"><span>Explore color. Preview the result.</span><a href="#collection">Browse palettes <span aria-hidden="true">↓</span></a></div>
