@@ -7,13 +7,14 @@ const $$ = selector => [...document.querySelectorAll(selector)];
 const escape = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const route = location.pathname.replace(/\/+$/, '') || '/';
-const page = ({ '/explore': 'explore', '/extract': 'extract', '/studio': 'studio', '/about': 'about' })[route] || 'home';
+const page = ({ '/explore': 'explore', '/extract': 'extract', '/studio': 'studio', '/about': 'about', '/community': 'community' })[route] || 'home';
 const titles = {
   home: 'ColorVerse — Find color in context',
   explore: 'Palette library — ColorVerse',
   extract: 'Image to palette — ColorVerse',
   studio: 'Studio — ColorVerse',
   about: 'About ColorVerse',
+  community: 'Community — ColorVerse',
 };
 const params = new URLSearchParams(location.search);
 let toastTimer;
