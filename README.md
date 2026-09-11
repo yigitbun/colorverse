@@ -23,3 +23,10 @@ Serve the authored static output with `python3 -m http.server 4186 --directory d
 The earlier React component integration under `components/ui/` is retained and is independent of this static application. The v10 prototype is preserved in `docs/prototype-v10.html`.
 
 Hosting is configured by `.openai/hosting.json`. Private publication uses Sites; the original `colorverse.byigit.dev` deployment is not changed.
+
+## Backend infrastructure
+
+The workspace is linked through the Supabase CLI to the new **ColorVerse Studio**
+project (Free plan, Frankfurt). The website is not yet connected to it. See
+[Supabase setup](docs/supabase-setup.md) for project identity, credential storage,
+the preserved older project, and the remaining data-model work.
