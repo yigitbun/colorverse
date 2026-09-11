@@ -39,6 +39,30 @@ const worlds = [
       'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=900&q=80',
     ],
   },
+  {
+    id: 'deep-space', name: 'Deep Space', type: 'Cosmic study', code: 'CV / COSMOS 01', accent: '#8987FF',
+    description: 'Cold starlight, ion violet, solar gold, and the near-black between distant signals.',
+    tags: ['cosmic', 'luminous', 'infinite'],
+    palette: ['#E5EEFF', '#8CA7E8', '#4A5ECB', '#8058C8', '#C84D83', '#D5A653', '#080B17'],
+    reference: 'Light beyond the atmosphere',
+    images: [
+      'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1557682250-33bd709cbe85?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1500964757637-c85e8a162699?auto=format&fit=crop&w=900&q=80',
+    ],
+  },
+  {
+    id: 'animal-kingdom', name: 'Animal Kingdom', type: 'Living study', code: 'CV / FAUNA 01', accent: '#D8A457',
+    description: 'Plumage, fur, mineral eyes, and habitat tones gathered into one living field.',
+    tags: ['fauna', 'instinctive', 'earthbound'],
+    palette: ['#F2E7D0', '#D5AC63', '#C76534', '#667044', '#28505A', '#743B32', '#171C1E'],
+    reference: 'Color as adaptation',
+    images: [
+      'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80',
+    ],
+  },
 ];
 
 const canvas = $('#worldGlobe'), ctx = canvas.getContext('2d', { alpha: true });
@@ -85,6 +109,55 @@ cells.forEach((cell, index) => {
 function renderLensSwitch() {
   $('#lensSwitch').innerHTML = worlds.map((world, index) => `<button class="lens-button" type="button" role="tab" aria-selected="${index === activeIndex}" data-world="${index}"><span>${String(index + 1).padStart(2, '0')}</span><strong>${world.name}</strong><span class="lens-mini" aria-hidden="true">${world.palette.slice(0, 5).map(color => `<i style="--swatch:${color}"></i>`).join('')}</span></button>`).join('');
 }
+
+function orbitSlot(index) {
+  let slot = index - activeIndex;
+  if (slot > worlds.length / 2) slot -= worlds.length;
+  if (slot < -worlds.length / 2) slot += worlds.length;
+  return slot;
+}
+
+function drawMiniWorld(canvas, world, worldIndex) {
+  const mini = canvas.getContext('2d');
+  const size = 120, dpr = 2, radius = size * .405;
+  canvas.width = size * dpr; canvas.height = size * dpr;
+  mini.setTransform(dpr, 0, 0, dpr, 0, 0); mini.clearRect(0, 0, size, size);
+  const yaw = -.7 + worldIndex * .73, pitch = -.18;
+  const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+  const rotateMini = ([x, y, z]) => { const X = x * cy + z * sy, Z = z * cy - x * sy; return [X, y * cp - Z * sp, y * sp + Z * cp]; };
+  const projectMini = point => { const scale = 4.5 / (4.5 - point[2]); return [size / 2 + point[0] * radius * scale, size / 2 - point[1] * radius * scale]; };
+  const body = mini.createRadialGradient(size * .35, size * .28, 0, size * .5, size * .5, radius * 1.05);
+  body.addColorStop(0, '#30373b'); body.addColorStop(.72, '#101518'); body.addColorStop(1, '#050709');
+  mini.fillStyle = body; mini.beginPath(); mini.arc(size / 2, size / 2, radius * 1.015, 0, Math.PI * 2); mini.fill();
+  const visible = cells.map((cell, index) => ({ cell, index, normal: rotateMini(cell.center) })).filter(item => item.normal[2] > .025).sort((a, b) => a.normal[2] - b.normal[2]);
+  visible.forEach(({ cell, index, normal }) => {
+    const points = cell.face.map(point => projectMini(rotateMini(point)));
+    const diffuse = Math.max(0, dot(normal, light));
+    const base = rgb(themedColor(world, cell, index));
+    const faceColor = base.map(value => value * (.32 + diffuse * .72));
+    mini.beginPath(); mini.moveTo(points[0][0], points[0][1]);
+    for (let pointIndex = 1; pointIndex < points.length; pointIndex++) mini.lineTo(points[pointIndex][0], points[pointIndex][1]);
+    mini.closePath(); mini.fillStyle = toHex(faceColor); mini.fill();
+    mini.strokeStyle = '#070a0c99'; mini.lineWidth = .28; mini.stroke();
+  });
+  mini.strokeStyle = `${world.accent}58`; mini.lineWidth = .7; mini.beginPath(); mini.arc(size / 2, size / 2, radius * 1.025, 0, Math.PI * 2); mini.stroke();
+}
+
+function renderOrbitSystem() {
+  $('#orbitSystem').innerHTML = worlds.map((world, index) => `<button class="orbit-world" type="button" data-orbit-world="${index}" aria-label="Enter ${world.name}" style="--planet-accent:${world.accent}"><canvas aria-hidden="true"></canvas><span><b>${String(index + 1).padStart(2, '0')}</b>${world.name}</span></button>`).join('');
+  $$('.orbit-world').forEach((button, index) => drawMiniWorld(button.querySelector('canvas'), worlds[index], index));
+  updateOrbitPositions();
+}
+
+function updateOrbitPositions() {
+  $$('.orbit-world').forEach((button, index) => {
+    const slot = orbitSlot(index);
+    button.dataset.slot = String(slot);
+    button.disabled = slot === 0;
+    button.setAttribute('aria-current', slot === 0 ? 'true' : 'false');
+  });
+}
+
 function updateWorldText(world, index) {
   document.documentElement.style.setProperty('--field', world.accent);
   $('#worldNumber').textContent = String(index + 1).padStart(2, '0');
@@ -94,6 +167,7 @@ function updateWorldText(world, index) {
   $('#worldImage').src = world.images[0]; $('#worldImage').alt = `${world.name} visual reference`;
   $('#worldReference').textContent = world.reference;
   $$('.lens-button').forEach((button, buttonIndex) => button.setAttribute('aria-selected', String(buttonIndex === index)));
+  updateOrbitPositions();
 }
 function setWorld(index, initial = false) {
   if (!worlds[index] || (!initial && index === activeIndex)) return;
@@ -218,10 +292,12 @@ renderLensSwitch();
 let savedWorld; try { savedWorld = localStorage.getItem('colorverse-world'); } catch {}
 const savedIndex = worlds.findIndex(world => world.id === savedWorld);
 if (savedIndex >= 0) activeIndex = savedIndex;
+renderOrbitSystem();
 setWorld(activeIndex, true);
 $('#cellCount').textContent = String(cells.length);
 
 $('#lensSwitch').addEventListener('click', event => { const button = event.target.closest('[data-world]'); if (button) setWorld(Number(button.dataset.world)); });
+$('#orbitSystem').addEventListener('click', event => { const button = event.target.closest('[data-orbit-world]'); if (button && !button.disabled) setWorld(Number(button.dataset.orbitWorld)); });
 $('#lensSwitch').addEventListener('keydown', event => {
   if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
   event.preventDefault(); const buttons = $$('.lens-button'), current = buttons.findIndex(button => button === document.activeElement);
