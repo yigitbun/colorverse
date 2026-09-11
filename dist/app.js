@@ -1,4 +1,4 @@
-import { palettes } from './palettes.js';
+import { palettes } from './palettes.js?v=20';
 import { roles, clamp, contrast, textOn, paletteFromColor, exportPalette, extractPaletteVariants, oklabDistance } from './color.js';
 import { createAtlas, atlasWorlds } from './globe.js';
 
