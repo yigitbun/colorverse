@@ -1,7 +1,57 @@
 import { createHexSphere, dot, norm, mix } from './geometry.js';
-import { oklch, rgb, toHex, clamp } from './color.js';
+import { oklch, oklab, rgb, toHex, clamp } from './color.js';
 
-export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor }) {
+export const atlasWorlds = [
+  {
+    id: 'spectrum', name: 'Spectrum', shortName: 'Spectrum', type: 'Core field', accent: '#75D8DF',
+    palette: ['#F5F2EA', '#F2C94C', '#E5527D', '#4B88E8', '#172126'],
+  },
+  {
+    id: 'vintage-motion', name: 'Vintage Motion', shortName: 'Vintage', type: 'Archive study', accent: '#C77A51',
+    palette: ['#F1E4C4', '#B95E3F', '#2F5A58', '#C59B4C', '#6F3E2A', '#22282A', '#D6C1A2'],
+  },
+  {
+    id: 'botanical-nocturne', name: 'Botanical Nocturne', shortName: 'Botanical', type: 'Seasonal study', accent: '#8DBB9A',
+    palette: ['#E6E6C5', '#688C56', '#244C49', '#8E4D73', '#CF9B6B', '#101D1D', '#91B7A4'],
+  },
+];
+
+function labMix(a, b, amount) {
+  const aa = oklab(a), bb = oklab(b);
+  const lab = aa.map((value, index) => value + (bb[index] - value) * amount);
+  const chroma = Math.hypot(lab[1], lab[2]);
+  const hue = (Math.atan2(lab[2], lab[1]) * 180 / Math.PI + 360) % 360;
+  return oklch(lab[0], chroma, hue);
+}
+
+function themedColor(world, cell, index) {
+  const [x, y, z] = cell.center;
+  const angle = Math.atan2(x, z);
+  if (world.id === 'spectrum') {
+    const hue = (angle * 180 / Math.PI + 360) % 360;
+    const lightness = .18 + (y + 1) * .37;
+    const chroma = .012 + .235 * Math.max(0, 1 - y * y) ** .56;
+    return oklch(lightness, chroma, hue);
+  }
+  const longitude = (angle + Math.PI) / (Math.PI * 2);
+  const position = longitude * world.palette.length;
+  const left = Math.floor(position) % world.palette.length, right = (left + 1) % world.palette.length;
+  const fraction = position - Math.floor(position), eased = fraction * fraction * (3 - 2 * fraction);
+  const base = labMix(world.palette[left], world.palette[right], eased);
+  const [baseL, baseA, baseB] = oklab(base);
+  const baseC = Math.hypot(baseA, baseB), baseH = (Math.atan2(baseB, baseA) * 180 / Math.PI + 360) % 360;
+  const lightness = clamp(baseL + y * .25 + Math.sin(index * 2.17) * .008, .14, .94);
+  const chroma = baseC * (.68 + Math.max(0, 1 - y * y) * .42);
+  return oklch(lightness, chroma, baseH);
+}
+
+function colorSpace(hex) {
+  const [l, a, b] = oklab(hex);
+  const c = Math.hypot(a, b), h = (Math.atan2(b, a) * 180 / Math.PI + 360) % 360;
+  return { l: Math.round(l * 100), c: c.toFixed(3), h: Math.round(h) };
+}
+
+export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor, initialWorld = 'spectrum' }) {
   const ctx = canvas.getContext('2d', { alpha: true });
   const cells = createHexSphere(3);
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -9,17 +59,14 @@ export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor }) {
   let rotation = -.09, tilt = -.12, targetRotation = rotation, targetTilt = tilt;
   let zoom = 1, targetZoom = 1, pointer = null, dragging = false, moved = false;
   let hover = -1, selected = new Set(), visible = true, paused = reduced.matches, idleUntil = 0, pulseUntil = 0;
-  let painted = [], needsDraw = true;
+  let painted = [], needsDraw = true, transitioning = false, transitionStart = 0;
+  let activeWorld = atlasWorlds.find(world => world.id === initialWorld) || atlasWorlds[0];
   const light = norm([-.55, .8, 1.4]), halfLight = norm([-.28, .4, 2.2]);
-  cells.forEach(cell => {
-    const [cx, cy, cz] = cell.center, longitude = Math.atan2(cx, cz);
-    const h = (longitude * 180 / Math.PI + 360) % 360;
-    const l = .18 + (cy + 1) * .37;
-    const c = .012 + .235 * Math.max(0, 1 - cy * cy) ** .56;
-    cell.space = { l, c, h };
-    cell.hex = oklch(l, c, h); cell.rgb = rgb(cell.hex);
+  cells.forEach((cell, index) => {
+    cell.hex = themedColor(activeWorld, cell, index); cell.rgb = rgb(cell.hex);
+    cell.from = [...cell.rgb]; cell.target = [...cell.rgb];
   });
-  const payload = index => { const cell = cells[index], visual = imageFor?.(cell.hex, cell, index); return { index, hex: cell.hex, coordinates: { l: Math.round(cell.space.l * 100), c: cell.space.c.toFixed(3), h: Math.round(cell.space.h) }, image: visual?.image || visual || null, name: visual?.name || '', category: visual?.category || '', tags: visual?.tags || [] }; };
+  const payload = index => { const cell = cells[index], visual = imageFor?.(cell.hex, cell, index); return { index, hex: cell.hex, coordinates: colorSpace(cell.hex), image: visual?.image || visual || null, name: visual?.name || '', category: visual?.category || '', tags: visual?.tags || [] }; };
   function path(points) {
     ctx.beginPath(); ctx.moveTo(points[0][0], points[0][1]);
     for (let i = 1; i < points.length; i++) ctx.lineTo(points[i][0], points[i][1]);
@@ -38,10 +85,10 @@ export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor }) {
     const screen = p => project(rotate(p));
     ctx.save();
     ctx.translate(width / 2, height / 2);
-    ctx.strokeStyle = '#8DA4AD38'; ctx.lineWidth = 1; ctx.setLineDash([2, 7]);
+    ctx.strokeStyle = `${activeWorld.accent}38`; ctx.lineWidth = 1; ctx.setLineDash([2, 7]);
     ctx.beginPath(); ctx.arc(0, 0, radius * 1.075, 0, Math.PI * 2); ctx.stroke();
     ctx.setLineDash([]); ctx.rotate(rotation * .22);
-    ctx.strokeStyle = '#8DA4AD24'; ctx.beginPath(); ctx.ellipse(0, 0, radius * 1.14, radius * .27, -.18, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeStyle = `${activeWorld.accent}24`; ctx.beginPath(); ctx.ellipse(0, 0, radius * 1.14, radius * .27, -.18, 0, Math.PI * 2); ctx.stroke();
     for (let i = 0; i < 36; i++) {
       const angle = i / 36 * Math.PI * 2, inner = radius * (i % 3 ? 1.055 : 1.04), outer = radius * 1.085;
       ctx.beginPath(); ctx.moveTo(Math.cos(angle) * inner, Math.sin(angle) * inner); ctx.lineTo(Math.cos(angle) * outer, Math.sin(angle) * outer); ctx.stroke();
@@ -81,7 +128,7 @@ export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor }) {
       }
       path(face); ctx.fillStyle = toHex(faceColor); ctx.fill();
       if (index === hover || selected.has(index)) {
-        ctx.strokeStyle = index === hover ? '#FFFFFFD9' : '#BDECF0B8'; ctx.lineWidth = selected.has(index) ? 1.45 : 1.2; ctx.stroke();
+        ctx.strokeStyle = index === hover ? '#FFFFFFD9' : `${activeWorld.accent}C4`; ctx.lineWidth = selected.has(index) ? 1.45 : 1.2; ctx.stroke();
       }
       painted.push({ index, face, point: project(normal) });
     }
@@ -113,6 +160,11 @@ export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor }) {
   function tick(time) {
     const delta = Math.min(time - last, 40); last = time;
     if (visible && !document.hidden) {
+      if (transitioning) {
+        const progress = clamp((time - transitionStart) / 920), eased = 1 - (1 - progress) ** 3;
+        cells.forEach(cell => { cell.rgb = mix(cell.from, cell.target, eased); cell.hex = toHex(cell.rgb); });
+        transitioning = progress < 1; needsDraw = true;
+      }
       if (!paused && !dragging && time > idleUntil) { targetRotation += delta * .000024; needsDraw = true; }
       if (Math.abs(rotation - targetRotation) > .00005 || Math.abs(tilt - targetTilt) > .00005 || Math.abs(zoom - targetZoom) > .00005) {
         const damping = reduced.matches ? 1 : 1 - Math.exp(-delta / 75);
@@ -167,6 +219,18 @@ export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor }) {
     zoom(delta) { targetZoom = clamp(targetZoom + delta, .85, 1.3); needsDraw = true; },
     pause(value) { paused = value; },
     setSelection(indices) { selected = new Set(indices); pulseUntil = performance.now() + 1200; needsDraw = true; },
+    setWorld(id) {
+      const next = atlasWorlds.find(world => world.id === id);
+      if (!next || next.id === activeWorld.id) return false;
+      activeWorld = next; hover = -1; selected.clear(); onHover?.(null);
+      cells.forEach((cell, index) => {
+        cell.from = [...cell.rgb]; cell.target = rgb(themedColor(activeWorld, cell, index));
+        if (reduced.matches) { cell.rgb = [...cell.target]; cell.hex = toHex(cell.rgb); }
+      });
+      transitionStart = performance.now(); transitioning = !reduced.matches; needsDraw = true;
+      return true;
+    },
+    getWorld() { return activeWorld; },
     reset() { targetRotation = -.09; targetTilt = -.12; targetZoom = 1; needsDraw = true; },
     destroy() { cancelAnimationFrame(frame); observer.disconnect(); visibilityObserver.disconnect(); },
   };

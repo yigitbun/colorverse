@@ -1,6 +1,6 @@
 import { palettes } from './palettes.js';
 import { roles, clamp, contrast, textOn, paletteFromColor, exportPalette, extractPaletteVariants, oklabDistance } from './color.js';
-import { createAtlas } from './globe.js';
+import { createAtlas, atlasWorlds } from './globe.js';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -216,10 +216,43 @@ setTheme(savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : (matchMe
 $('#themeToggle').addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light'));
 
 if (page === 'home') {
+  let savedAtlasWorld; try { savedAtlasWorld = localStorage.getItem('colorverse-world'); } catch {}
+  let activeAtlasWorld = atlasWorlds.find(world => world.id === savedAtlasWorld) || atlasWorlds[0];
+  const atlasWorldSwitch = $('#atlasWorldSwitch');
+  atlasWorldSwitch.innerHTML = `<span class="atlas-world-label">World</span>${atlasWorlds.map(world => `<button type="button" role="tab" data-atlas-world="${world.id}" aria-selected="${world.id === activeAtlasWorld.id}" tabindex="${world.id === activeAtlasWorld.id ? '0' : '-1'}" title="${world.name}">${world.shortName}</button>`).join('')}`;
+  function renderAtlasWorld() {
+    $$('#atlasWorldSwitch [data-atlas-world]').forEach(button => {
+      const selected = button.dataset.atlasWorld === activeAtlasWorld.id;
+      button.setAttribute('aria-selected', String(selected)); button.tabIndex = selected ? 0 : -1;
+    });
+    $('.atlas-scene').style.setProperty('--atlas-field', activeAtlasWorld.accent);
+    $('#atlasWorldLabel').textContent = `${activeAtlasWorld.name} field`;
+  }
+  renderAtlasWorld();
   const globe = createAtlas($('#globe'), {
+    initialWorld: activeAtlasWorld.id,
     imageFor(hex) { const source = signatureFor(hex); return { image: source.image, name: source.name, category: source.category, tags: source.tags }; },
     onSelect(payload) { addAtlasSelection(payload); globe.setSelection(atlasSelected.map(item => item.index)); },
     onHover(payload) { atlasHover = payload; renderAtlasHover(payload); if (payload && !atlasPinned) setAtlasReadout(payload); },
+  });
+  function selectAtlasWorld(id, notify = true) {
+    const next = atlasWorlds.find(world => world.id === id);
+    if (!next || next.id === activeAtlasWorld.id) return;
+    activeAtlasWorld = next; globe.setWorld(next.id);
+    atlasSelected = []; atlasPinned = null; atlasHover = null;
+    globe.setSelection([]); renderAtlasSelection(); renderAtlasHover(null); setAtlasReadout(null); renderAtlasWorld();
+    try { localStorage.setItem('colorverse-world', next.id); } catch {}
+    if (notify) toast(`${next.name} world selected.`);
+  }
+  atlasWorldSwitch.addEventListener('click', event => {
+    const button = event.target.closest('[data-atlas-world]'); if (button) selectAtlasWorld(button.dataset.atlasWorld);
+  });
+  atlasWorldSwitch.addEventListener('keydown', event => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault(); const buttons = $$('#atlasWorldSwitch [data-atlas-world]');
+    const currentIndex = buttons.findIndex(button => button === document.activeElement);
+    const nextIndex = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : (currentIndex + (event.key === 'ArrowRight' ? 1 : -1) + buttons.length) % buttons.length;
+    buttons[nextIndex].focus(); selectAtlasWorld(buttons[nextIndex].dataset.atlasWorld);
   });
   setAtlasReadout(null);
   $('#copyAtlasColor').addEventListener('click', () => {
