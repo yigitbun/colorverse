@@ -13,7 +13,9 @@ export const palettes = [
     ],
     "image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=80",
     "credit": "Unsplash",
-    "category": "Original collection"
+    "category": "Landscape",
+    "tags": ["warm", "energetic", "sunset"],
+    "useCases": ["campaigns", "events", "editorial"]
   },
   {
     "id": "warm-cafe",
@@ -28,7 +30,9 @@ export const palettes = [
     ],
     "image": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=80",
     "credit": "Unsplash",
-    "category": "Original collection"
+    "category": "Coffee & food",
+    "tags": ["warm", "earthy", "comforting"],
+    "useCases": ["hospitality", "packaging", "retail"]
   },
   {
     "id": "nordic-calm",
@@ -43,7 +47,9 @@ export const palettes = [
     ],
     "image": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=900&q=80",
     "credit": "Unsplash",
-    "category": "Original collection"
+    "category": "Interiors",
+    "tags": ["cool", "minimal", "quiet"],
+    "useCases": ["software", "architecture", "wellness"]
   },
   {
     "id": "forest-floor",
@@ -58,7 +64,9 @@ export const palettes = [
     ],
     "image": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=900&q=80",
     "credit": "Unsplash",
-    "category": "Original collection"
+    "category": "Nature",
+    "tags": ["organic", "earthy", "grounded"],
+    "useCases": ["outdoors", "food", "sustainability"]
   },
   {
     "id": "midnight-tech",
@@ -73,7 +81,9 @@ export const palettes = [
     ],
     "image": "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?auto=format&fit=crop&w=900&q=80",
     "credit": "Unsplash",
-    "category": "Original collection"
+    "category": "Nightscape",
+    "tags": ["dark", "precise", "electric"],
+    "useCases": ["software", "data", "technology"]
   },
   {
     "id": "pastel-daydream",
@@ -88,7 +98,9 @@ export const palettes = [
     ],
     "image": "https://images.unsplash.com/photo-1500964757637-c85e8a162699?auto=format&fit=crop&w=900&q=80",
     "credit": "Unsplash",
-    "category": "Original collection"
+    "category": "Atmosphere",
+    "tags": ["pastel", "soft", "dreamlike"],
+    "useCases": ["beauty", "lifestyle", "editorial"]
   },
   {
     "id": "bold-minimal",
@@ -103,7 +115,9 @@ export const palettes = [
     ],
     "image": "https://images.unsplash.com/photo-1493238792000-8113da705763?auto=format&fit=crop&w=900&q=80",
     "credit": "Unsplash",
-    "category": "Original collection"
+    "category": "Automotive",
+    "tags": ["graphic", "high-contrast", "editorial"],
+    "useCases": ["campaigns", "fashion", "publishing"]
   },
   {
     "id": "tuscan-earth",
@@ -118,7 +132,9 @@ export const palettes = [
     ],
     "image": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",
     "credit": "Unsplash",
-    "category": "Original collection"
+    "category": "Travel",
+    "tags": ["vintage", "sun-baked", "artisanal"],
+    "useCases": ["hospitality", "packaging", "craft"]
   },
   {
     "id": "cyber-neon",
@@ -133,7 +149,9 @@ export const palettes = [
     ],
     "image": "https://images.unsplash.com/photo-1557682250-33bd709cbe85?auto=format&fit=crop&w=900&q=80",
     "credit": "Unsplash",
-    "category": "Original collection"
+    "category": "Abstract",
+    "tags": ["neon", "dark", "futuristic"],
+    "useCases": ["technology", "music", "gaming"]
   },
   {
     "id": "ocean-breeze",
@@ -148,7 +166,9 @@ export const palettes = [
     ],
     "image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
     "credit": "Unsplash",
-    "category": "Original collection"
+    "category": "Coastal",
+    "tags": ["fresh", "calm", "sunlit"],
+    "useCases": ["travel", "wellness", "hospitality"]
   },
   {
     "id": "neon-tide",
@@ -163,7 +183,9 @@ export const palettes = [
     ],
     "image": "https://images.unsplash.com/photo-1557682250-33bd709cbe85?auto=format&fit=crop&w=900&q=80",
     "credit": "Unsplash",
-    "category": "Studio"
+    "category": "Abstract",
+    "tags": ["electric", "playful", "high-contrast"],
+    "useCases": ["music", "campaigns", "digital products"]
   },
   {
     "id": "after-rain",
@@ -178,7 +200,9 @@ export const palettes = [
     ],
     "image": "https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=900&q=80",
     "credit": "Unsplash",
-    "category": "Studio"
+    "category": "Nature",
+    "tags": ["fresh", "soft", "rain-washed"],
+    "useCases": ["wellness", "beauty", "lifestyle"]
   },
   {
     "id": "citrus-static",
@@ -193,7 +217,9 @@ export const palettes = [
     ],
     "image": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",
     "credit": "Unsplash",
-    "category": "Studio"
+    "category": "Landscape",
+    "tags": ["citrus", "bright", "energetic"],
+    "useCases": ["food", "events", "campaigns"]
   },
   {
     "id": "night-garden",
@@ -208,7 +234,9 @@ export const palettes = [
     ],
     "image": "https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=900&q=80",
     "credit": "Unsplash",
-    "category": "Studio"
+    "category": "Botanical",
+    "tags": ["nocturnal", "lush", "mysterious"],
+    "useCases": ["beauty", "hospitality", "editorial"]
   },
   {
     "id": "soft-voltage",
@@ -223,6 +251,8 @@ export const palettes = [
     ],
     "image": "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=900&q=80",
     "credit": "Unsplash",
-    "category": "Studio"
+    "category": "Atmosphere",
+    "tags": ["soft", "electric", "contemporary"],
+    "useCases": ["fashion", "technology", "editorial"]
   }
 ];

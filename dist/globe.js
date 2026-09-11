@@ -1,5 +1,5 @@
 import { createHexSphere, dot, norm, mix } from './geometry.js';
-import { hsv, rgb, toHex, clamp } from './color.js';
+import { oklch, rgb, toHex, clamp } from './color.js';
 
 export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor }) {
   const ctx = canvas.getContext('2d', { alpha: true });
@@ -8,15 +8,18 @@ export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor }) {
   let width = 0, height = 0, ratio = 1, frame = 0, last = 0;
   let rotation = -.09, tilt = -.12, targetRotation = rotation, targetTilt = tilt;
   let zoom = 1, targetZoom = 1, pointer = null, dragging = false, moved = false;
-  let hover = -1, selected = -1, visible = true, paused = reduced.matches, idleUntil = 0;
+  let hover = -1, selected = new Set(), visible = true, paused = reduced.matches, idleUntil = 0, pulseUntil = 0;
   let painted = [], needsDraw = true;
   const light = norm([-.55, .8, 1.4]), halfLight = norm([-.28, .4, 2.2]);
   cells.forEach(cell => {
     const [cx, cy, cz] = cell.center, longitude = Math.atan2(cx, cz);
-    const h = 16 + Math.sin(longitude) * 32 + (1 - Math.cos(longitude)) * 95 + cy * 14;
-    cell.hex = hsv(h, .76, .98); cell.rgb = rgb(cell.hex);
+    const h = (longitude * 180 / Math.PI + 360) % 360;
+    const l = .18 + (cy + 1) * .37;
+    const c = .012 + .235 * Math.max(0, 1 - cy * cy) ** .56;
+    cell.space = { l, c, h };
+    cell.hex = oklch(l, c, h); cell.rgb = rgb(cell.hex);
   });
-  const payload = index => { const cell = cells[index], visual = imageFor?.(cell.hex, cell, index); return { index, hex: cell.hex, image: visual?.image || visual || null, name: visual?.name || '', category: visual?.category || '' }; };
+  const payload = index => { const cell = cells[index], visual = imageFor?.(cell.hex, cell, index); return { index, hex: cell.hex, coordinates: { l: Math.round(cell.space.l * 100), c: cell.space.c.toFixed(3), h: Math.round(cell.space.h) }, image: visual?.image || visual || null, name: visual?.name || '', category: visual?.category || '', tags: visual?.tags || [] }; };
   function path(points) {
     ctx.beginPath(); ctx.moveTo(points[0][0], points[0][1]);
     for (let i = 1; i < points.length; i++) ctx.lineTo(points[i][0], points[i][1]);
@@ -33,6 +36,17 @@ export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor }) {
     };
     const project = p => { const scale = 4.8 / (4.8 - p[2]); return [width / 2 + p[0] * radius * scale, height / 2 - p[1] * radius * scale]; };
     const screen = p => project(rotate(p));
+    ctx.save();
+    ctx.translate(width / 2, height / 2);
+    ctx.strokeStyle = '#8DA4AD38'; ctx.lineWidth = 1; ctx.setLineDash([2, 7]);
+    ctx.beginPath(); ctx.arc(0, 0, radius * 1.075, 0, Math.PI * 2); ctx.stroke();
+    ctx.setLineDash([]); ctx.rotate(rotation * .22);
+    ctx.strokeStyle = '#8DA4AD24'; ctx.beginPath(); ctx.ellipse(0, 0, radius * 1.14, radius * .27, -.18, 0, Math.PI * 2); ctx.stroke();
+    for (let i = 0; i < 36; i++) {
+      const angle = i / 36 * Math.PI * 2, inner = radius * (i % 3 ? 1.055 : 1.04), outer = radius * 1.085;
+      ctx.beginPath(); ctx.moveTo(Math.cos(angle) * inner, Math.sin(angle) * inner); ctx.lineTo(Math.cos(angle) * outer, Math.sin(angle) * outer); ctx.stroke();
+    }
+    ctx.restore();
     const shadow = ctx.createRadialGradient(width * .48, height * .9, 0, width * .48, height * .9, radius * .9);
     shadow.addColorStop(0, '#00000040'); shadow.addColorStop(1, '#00000000');
     ctx.save(); ctx.translate(0, height * .72); ctx.scale(1, .2); ctx.translate(0, -height * .72);
@@ -66,10 +80,22 @@ export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor }) {
         ctx.fillStyle = toHex(faceColor.map(v => v * (.82 + edgeLight * .15) + Math.max(0, edgeLight) * 95)); ctx.fill();
       }
       path(face); ctx.fillStyle = toHex(faceColor); ctx.fill();
-      if (index === hover || index === selected) {
-        ctx.strokeStyle = index === hover ? '#FFFFFFD9' : '#FFFFFF80'; ctx.lineWidth = 1.2; ctx.stroke();
+      if (index === hover || selected.has(index)) {
+        ctx.strokeStyle = index === hover ? '#FFFFFFD9' : '#BDECF0B8'; ctx.lineWidth = selected.has(index) ? 1.45 : 1.2; ctx.stroke();
       }
       painted.push({ index, face, point: project(normal) });
+    }
+    const active = painted.filter(item => selected.has(item.index));
+    if (active.length) {
+      ctx.save(); ctx.strokeStyle = '#A9E8ED70'; ctx.fillStyle = '#D7FBFF'; ctx.lineWidth = 1;
+      if (active.length > 1) {
+        ctx.setLineDash([3, 5]); ctx.beginPath(); ctx.moveTo(...active[0].point);
+        for (let i = 1; i < active.length; i++) ctx.lineTo(...active[i].point);
+        ctx.stroke(); ctx.setLineDash([]);
+      }
+      const pulse = performance.now() < pulseUntil ? 2 + (1 - (pulseUntil - performance.now()) / 1200) * 7 : 3;
+      for (const item of active) { ctx.beginPath(); ctx.arc(item.point[0], item.point[1], pulse, 0, Math.PI * 2); ctx.stroke(); ctx.beginPath(); ctx.arc(item.point[0], item.point[1], 1.5, 0, Math.PI * 2); ctx.fill(); }
+      ctx.restore();
     }
   }
   function hit(x, y) {
@@ -92,7 +118,7 @@ export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor }) {
         const damping = reduced.matches ? 1 : 1 - Math.exp(-delta / 75);
         rotation += (targetRotation - rotation) * damping; tilt += (targetTilt - tilt) * damping; zoom += (targetZoom - zoom) * damping; needsDraw = true;
       }
-      if (needsDraw) { draw(); needsDraw = false; }
+      if (needsDraw) { draw(); needsDraw = time < pulseUntil; }
     }
     frame = requestAnimationFrame(tick);
   }
@@ -118,7 +144,7 @@ export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor }) {
     }
   });
   canvas.addEventListener('pointerup', event => {
-    if (!moved) { const box = canvas.getBoundingClientRect(); selected = hit(event.clientX - box.left, event.clientY - box.top); if (selected >= 0) onSelect?.(payload(selected)); }
+    if (!moved) { const box = canvas.getBoundingClientRect(); const picked = hit(event.clientX - box.left, event.clientY - box.top); if (picked >= 0) onSelect?.(payload(picked)); }
     dragging = false; pointer = null; idleUntil = performance.now() + 5000; needsDraw = true; canvas.classList.remove('is-dragging');
   });
   const cancel = () => { dragging = false; pointer = null; canvas.classList.remove('is-dragging'); };
@@ -130,7 +156,7 @@ export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor }) {
     if (event.key === 'ArrowRight') targetRotation += .13;
     if (event.key === 'ArrowUp') targetTilt = clamp(targetTilt + .13, -.85, .85);
     if (event.key === 'ArrowDown') targetTilt = clamp(targetTilt - .13, -.85, .85);
-    if (event.key === 'Enter' || event.key === ' ') { const index = hit(width / 2, height / 2); if (index >= 0) { selected = index; onSelect?.(payload(index)); } }
+    if (event.key === 'Enter' || event.key === ' ') { const index = hit(width / 2, height / 2); if (index >= 0) onSelect?.(payload(index)); }
     idleUntil = performance.now() + 5000; needsDraw = true;
   });
   const observer = new ResizeObserver(resize); observer.observe(canvas);
@@ -140,6 +166,7 @@ export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor }) {
   return {
     zoom(delta) { targetZoom = clamp(targetZoom + delta, .85, 1.3); needsDraw = true; },
     pause(value) { paused = value; },
+    setSelection(indices) { selected = new Set(indices); pulseUntil = performance.now() + 1200; needsDraw = true; },
     reset() { targetRotation = -.09; targetTilt = -.12; targetZoom = 1; needsDraw = true; },
     destroy() { cancelAnimationFrame(frame); observer.disconnect(); visibilityObserver.disconnect(); },
   };

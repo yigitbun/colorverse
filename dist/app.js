@@ -1,5 +1,5 @@
 import { palettes } from './palettes.js';
-import { roles, rgb, toHex, clamp, contrast, textOn, paletteFromColor, exportPalette, extractColors } from './color.js';
+import { roles, clamp, contrast, textOn, paletteFromColor, exportPalette, extractPaletteVariants, oklabDistance } from './color.js';
 import { createAtlas } from './globe.js';
 
 const $ = selector => document.querySelector(selector);
@@ -7,7 +7,7 @@ const $$ = selector => [...document.querySelectorAll(selector)];
 const escape = text => String(text).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
 let current = palettes.find(p => p.id === new URLSearchParams(location.search).get('p')) || palettes[0];
-let context = 'landing', format = 'css', extracted = null, imageURL = null, toastTimer;
+let context = 'landing', format = 'css', extracted = null, extractedVariants = [], selectedExtraction = 0, imageURL = null, toastTimer;
 const route = location.pathname.replace(/\/+$/, '') || '/';
 const page = ({ '/explore': 'explore', '/extract': 'extract', '/about': 'about' })[route] || 'home';
 document.body.dataset.page = page;
@@ -59,8 +59,8 @@ function choosePalette(palette, notify = true) {
   if (notify) toast(`${palette.name} selected.`);
 }
 
-const signatureSources = palettes.map(palette => ({ name: palette.name, image: palette.image, category: palette.category, colors: palette.colors }));
-function colorDistance(a, b) { const ar = rgb(a), br = rgb(b); return ar.reduce((sum, value, index) => sum + (value - br[index]) ** 2, 0); }
+const signatureSources = palettes.map(palette => ({ name: palette.name, image: palette.image, category: palette.category, tags: palette.tags || [], colors: palette.colors }));
+const colorDistance = oklabDistance;
 function signatureFor(hex) {
   return signatureSources.reduce((best, source) => {
     const score = Math.min(...source.colors.map(color => colorDistance(hex, color)));
@@ -77,17 +77,19 @@ function setAtlasReadout(payload, selected = false) {
   $('#copyAtlasColor').textContent = selected ? 'Copy selected' : 'Copy';
   $('#copyAtlasColor').disabled = !payload;
   $('#copyAtlasColor').setAttribute('aria-label', selected ? `Copy selected color ${hex}` : `Copy hovered color ${hex}`);
+  const position = payload?.coordinates;
+  $('#atlasCoordinates').textContent = position ? `L ${position.l}  C ${position.c}  H ${position.h}°` : 'L —  C —  H —';
 }
 function renderAtlasHover(payload) {
   const card = $('#atlasHoverCard');
   if (!payload) { card.hidden = true; return; }
   const fallback = signatureFor(payload.hex);
-  const source = payload.image ? { image: payload.image, name: payload.name || fallback.name, category: payload.category || fallback.category } : fallback;
+  const source = payload.image ? { image: payload.image, name: payload.name || fallback.name, category: payload.category || fallback.category, tags: payload.tags?.length ? payload.tags : fallback.tags } : fallback;
   card.hidden = false;
   $('#atlasHoverImage').src = source.image;
   $('#atlasHoverImage').alt = `${source.name} visual reference`;
   $('#atlasHoverMode').textContent = atlasPinned?.index === payload.index ? 'Selected' : 'Hover';
-  $('#atlasHoverLabel').textContent = source.category || 'Visual reference';
+  $('#atlasHoverLabel').textContent = source.tags?.slice(0, 2).join(' · ') || source.category || 'Visual reference';
   $('#atlasHoverName').textContent = source.name;
   $('#atlasHoverHex').textContent = payload.hex;
 }
@@ -215,8 +217,8 @@ $('#themeToggle').addEventListener('click', () => setTheme(document.documentElem
 
 if (page === 'home') {
   const globe = createAtlas($('#globe'), {
-    imageFor(hex) { const source = signatureFor(hex); return { image: source.image, name: source.name, category: source.category }; },
-    onSelect(payload) { addAtlasSelection(payload); },
+    imageFor(hex) { const source = signatureFor(hex); return { image: source.image, name: source.name, category: source.category, tags: source.tags }; },
+    onSelect(payload) { addAtlasSelection(payload); globe.setSelection(atlasSelected.map(item => item.index)); },
     onHover(payload) { atlasHover = payload; renderAtlasHover(payload); if (payload && !atlasPinned) setAtlasReadout(payload); },
   });
   setAtlasReadout(null);
@@ -224,7 +226,7 @@ if (page === 'home') {
     const colors = atlasPinned ? [atlasPinned.hex] : atlasHover ? [atlasHover.hex] : [];
     if (colors.length) copy(colors.join(', '), `${colors[0]} copied.`);
   });
-  $('#clearAtlasSelection').addEventListener('click', () => { atlasSelected = []; atlasPinned = null; renderAtlasSelection(); setAtlasReadout(atlasHover); renderAtlasHover(atlasHover); });
+  $('#clearAtlasSelection').addEventListener('click', () => { atlasSelected = []; atlasPinned = null; globe.setSelection([]); renderAtlasSelection(); setAtlasReadout(atlasHover); renderAtlasHover(atlasHover); });
   $('#useAtlasPalette').addEventListener('click', () => { const palette = buildAtlasPalette(); if (!palette) return; choosePalette(palette, false); $('#studio').scrollIntoView({ behavior: reduceMotion.matches ? 'instant' : 'smooth', block: 'start' }); toast('Custom palette selected.'); });
   $('#atlasSuggestions').addEventListener('click', event => { const button = event.target.closest('[data-atlas-suggestion]'); if (!button) return; const palette = palettes.find(item => item.id === button.dataset.atlasSuggestion); if (palette) choosePalette(palette); });
   $('#zoomIn').addEventListener('click', () => globe.zoom(.08)); $('#zoomOut').addEventListener('click', () => globe.zoom(-.08));
@@ -236,6 +238,17 @@ if (page === 'home') {
 
 const input = $('#imageInput'), dropzone = $('#dropzone');
 let extractionSequence = 0;
+function selectExtractionVariant(index, updatePreview = false) {
+  if (!extractedVariants[index]) return;
+  selectedExtraction = index; extracted = extractedVariants[index];
+  $$('#extractedSwatches [data-extraction-variant]').forEach((button, buttonIndex) => button.setAttribute('aria-pressed', String(buttonIndex === index)));
+  $('#extractionInfo').textContent = `${extracted.variantName} · ${extracted.detail}`;
+  $('#useExtraction').textContent = `Use ${extracted.variantName.toLowerCase()}`;
+  if (updatePreview) choosePalette(extracted, false);
+}
+function renderExtractionVariants() {
+  $('#extractedSwatches').innerHTML = extractedVariants.map((variant, index) => `<button type="button" class="extraction-variant" data-extraction-variant="${index}" aria-pressed="${index === selectedExtraction}" aria-label="Choose ${variant.variantName} palette"><span class="extraction-variant-head"><strong>${variant.variantName}</strong><small>${variant.detail}</small></span><span class="extraction-variant-colors" aria-hidden="true">${variant.colors.map(color => `<i style="--swatch:${color}"></i>`).join('')}</span></button>`).join('');
+}
 async function extract(file) {
   if (!file) return;
   const sequence = ++extractionSequence;
@@ -251,16 +264,15 @@ async function extract(file) {
     const sample = document.createElement('canvas'); const size = 180 / Math.max(image.width, image.height);
     sample.width = Math.max(1, Math.round(image.width * size)); sample.height = Math.max(1, Math.round(image.height * size));
     const ctx = sample.getContext('2d', { willReadFrequently: true }); ctx.drawImage(image, 0, 0, sample.width, sample.height);
-    const result = extractColors(ctx.getImageData(0, 0, sample.width, sample.height).data);
+    const result = extractPaletteVariants(ctx.getImageData(0, 0, sample.width, sample.height).data);
     const replaceCurrent = current.image === imageURL && imageURL !== null;
     if (imageURL) URL.revokeObjectURL(imageURL); imageURL = nextURL;
-    extracted = { id: 'your-image', name: 'Image palette', description: 'Five colors from your image, assigned to background, surface, primary, accent, and text.', colors: result.colors, image: imageURL };
-    if (replaceCurrent) choosePalette(extracted, false);
+    extractedVariants = result.variants.map(variant => ({ id: `your-image-${variant.key}`, name: `Image · ${variant.name}`, variantName: variant.name, detail: variant.detail, description: variant.description, colors: variant.colors, image: imageURL }));
+    selectedExtraction = 0;
     $('#extractedImage').src = imageURL;
-    $('#extractedSwatches').innerHTML = extracted.colors.map(hex => swatch(hex)).join('');
-    $('#extractionInfo').textContent = result.sampled < 5 ? `${result.sampled} sampled · ${5 - result.sampled} tonal variations` : 'Five extracted colors';
+    renderExtractionVariants(); selectExtractionVariant(0, replaceCurrent);
     dropzone.classList.add('has-result'); $('#extractionResult').hidden = false;
-    status.textContent = 'Palette ready. Select “Use this palette” to preview it.';
+    status.textContent = `Three readings ready from ${result.sampled} color clusters.`;
   } catch (error) { URL.revokeObjectURL(nextURL); status.textContent = error.message?.includes('visible pixels') ? error.message : 'This image could not be read. Try another JPG, PNG, or WebP.'; }
   finally { input.value = ''; }
 }
@@ -271,8 +283,14 @@ $('.change-image').addEventListener('keydown', event => { if (event.key === 'Ent
 for (const eventName of ['dragenter', 'dragover']) dropzone.addEventListener(eventName, event => { event.preventDefault(); dropzone.classList.add('is-over'); });
 for (const eventName of ['dragleave', 'drop']) dropzone.addEventListener(eventName, event => { event.preventDefault(); dropzone.classList.remove('is-over'); });
 dropzone.addEventListener('drop', event => extract(event.dataTransfer.files?.[0]));
+$('#extractedSwatches').addEventListener('click', event => {
+  const button = event.target.closest('[data-extraction-variant]');
+  if (!button) return;
+  const updatePreview = Boolean(current.id?.startsWith('your-image-'));
+  selectExtractionVariant(Number(button.dataset.extractionVariant), updatePreview);
+});
 $('#useExtraction').addEventListener('click', () => {
-  if (!extracted) return; choosePalette(extracted, false); $('#studio').scrollIntoView({ behavior: reduceMotion.matches ? 'instant' : 'smooth', block: 'start' }); toast('Image palette selected.');
+  if (!extracted) return; choosePalette(extracted, false); $('#studio').scrollIntoView({ behavior: reduceMotion.matches ? 'instant' : 'smooth', block: 'start' }); toast(`${extracted.variantName} palette selected.`);
 });
 
 renderSelection(); updateRail();
