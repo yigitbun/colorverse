@@ -168,25 +168,6 @@ function setAtlasReadout(payload, selected = false) {
   }
 }
 
-function renderAtlasHover(payload) {
-  const card = $('#atlasHoverCard');
-  if (!card) return;
-  if (!payload) { card.hidden = true; return; }
-  const fallback = signatureFor(payload.hex);
-  const source = payload.image ? { image: payload.image, name: payload.name || fallback.name, category: payload.category || fallback.category, tags: payload.tags?.length ? payload.tags : fallback.tags } : fallback;
-  card.hidden = false;
-  const image = $('#atlasHoverImage');
-  if (image) { image.src = source.image; image.alt = `${source.name} visual reference`; }
-  const mode = $('#atlasHoverMode');
-  const label = $('#atlasHoverLabel');
-  const name = $('#atlasHoverName');
-  const hex = $('#atlasHoverHex');
-  if (mode) mode.textContent = atlasPinned?.index === payload.index ? 'Selected' : 'Hover';
-  if (label) label.textContent = source.tags?.slice(0, 2).join(' · ') || source.category || 'Visual reference';
-  if (name) name.textContent = source.name;
-  if (hex) hex.textContent = payload.hex;
-}
-
 function suggestedPalettes(hex) {
   return palettes.map(palette => ({ palette, score: Math.min(...palette.colors.map(color => oklabDistance(hex, color))) }))
     .sort((a, b) => a.score - b.score).slice(0, 3).map(({ palette }) => palette);
@@ -217,7 +198,6 @@ function addAtlasSelection(payload) {
   atlasPinned = atlasSelected.at(-1) || null;
   setAtlasReadout(atlasPinned, Boolean(atlasPinned));
   renderAtlasSelection();
-  renderAtlasHover(payload);
   toast(atlasPinned ? `${atlasSelected.length} color${atlasSelected.length === 1 ? '' : 's'} selected.` : 'Selection cleared.');
 }
 
@@ -393,7 +373,7 @@ if (page === 'home') {
   let activeAtlasWorld = atlasWorlds.find(world => world.id === savedAtlasWorld) || atlasWorlds[0];
   const atlasWorldSwitch = $('#atlasWorldSwitch');
   if (atlasWorldSwitch) {
-    atlasWorldSwitch.innerHTML = `<span class="atlas-world-label">World</span>${atlasWorlds.map(world => `<button type="button" role="tab" data-atlas-world="${world.id}" aria-selected="${world.id === activeAtlasWorld.id}" tabindex="${world.id === activeAtlasWorld.id ? '0' : '-1'}" title="${escape(world.name)}">${escape(world.shortName)}</button>`).join('')}`;
+    atlasWorldSwitch.innerHTML = `<span class="atlas-world-label">Worlds</span>${atlasWorlds.map((world, index) => `<button type="button" role="tab" data-atlas-world="${world.id}" aria-selected="${world.id === activeAtlasWorld.id}" tabindex="${world.id === activeAtlasWorld.id ? '0' : '-1'}" title="${escape(world.name)}"><span class="atlas-world-index">${String(index + 1).padStart(2, '0')}</span><span class="atlas-world-copy"><strong>${escape(world.shortName)}</strong><small>${escape(world.name)}</small></span><i class="atlas-world-chip" style="--world-accent:${world.accent}"></i></button>`).join('')}`;
     const renderAtlasWorld = () => {
       $$('#atlasWorldSwitch [data-atlas-world]').forEach(button => {
         const selected = button.dataset.atlasWorld === activeAtlasWorld.id;
@@ -409,7 +389,7 @@ if (page === 'home') {
       initialWorld: activeAtlasWorld.id,
       imageFor(hex) { const source = signatureFor(hex); return { image: source.image, name: source.name, category: source.category, tags: source.tags }; },
       onSelect(payload) { addAtlasSelection(payload); globe.setSelection(atlasSelected.map(item => item.index)); },
-      onHover(payload) { atlasHover = payload; renderAtlasHover(payload); if (payload && !atlasPinned) setAtlasReadout(payload); },
+      onHover(payload) { atlasHover = payload; if (payload && !atlasPinned) setAtlasReadout(payload); },
     });
     const selectAtlasWorld = (id, notify = true) => {
       const nextWorld = atlasWorlds.find(world => world.id === id);
@@ -421,7 +401,6 @@ if (page === 'home') {
       atlasHover = null;
       globe.setSelection([]);
       renderAtlasSelection();
-      renderAtlasHover(null);
       setAtlasReadout(null);
       renderAtlasWorld();
       try { localStorage.setItem('colorverse-world', nextWorld.id); } catch {}
@@ -447,7 +426,7 @@ if (page === 'home') {
       if (colors.length) copy(colors.join(', '), `${colors[0]} copied.`);
     });
     const clearAtlasSelection = $('#clearAtlasSelection');
-    if (clearAtlasSelection) clearAtlasSelection.addEventListener('click', () => { atlasSelected = []; atlasPinned = null; globe.setSelection([]); renderAtlasSelection(); setAtlasReadout(atlasHover); renderAtlasHover(atlasHover); });
+    if (clearAtlasSelection) clearAtlasSelection.addEventListener('click', () => { atlasSelected = []; atlasPinned = null; globe.setSelection([]); renderAtlasSelection(); setAtlasReadout(atlasHover); });
     const useAtlasPalette = $('#useAtlasPalette');
     if (useAtlasPalette) useAtlasPalette.addEventListener('click', () => {
       const palette = buildAtlasPalette();
