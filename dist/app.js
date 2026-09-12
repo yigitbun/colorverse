@@ -1,6 +1,6 @@
-import { palettes } from './palettes.js?v=20';
+import { palettes } from './palettes.js?v=22';
 import { roles, clamp, contrast, textOn, paletteFromColor, exportPalette, extractPaletteVariants, oklabDistance } from './color.js';
-import { createAtlas, atlasWorlds } from './globe.js';
+import { createAtlas, atlasWorlds } from './globe.js?v=22';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -13,7 +13,7 @@ const titles = {
   explore: 'Palette library — ColorVerse',
   extract: 'Image to palette — ColorVerse',
   studio: 'Studio — ColorVerse',
-  about: 'About ColorVerse',
+  about: 'Color guide — ColorVerse',
   community: 'Community — ColorVerse',
 };
 const params = new URLSearchParams(location.search);
@@ -127,10 +127,11 @@ function choosePalette(palette, notify = true) {
   if (notify) toast(`${palette.name} selected.`);
 }
 
-function renderPaletteRail() {
+let visiblePalettes = [...palettes];
+function renderPaletteRail(items = visiblePalettes) {
   const rail = $('#paletteRail');
   if (!rail) return;
-  rail.innerHTML = palettes.map((palette, index) => `<article class="palette-card" data-palette="${palette.id}" style="--cover:${palette.colors[1]}">
+  rail.innerHTML = items.map((palette, index) => `<article class="palette-card" data-palette="${palette.id}" style="--cover:${palette.colors[1]}">
     <div class="palette-card-image"><img src="${escape(palette.image)}" alt="${escape(palette.name)} inspiration" width="900" height="450" loading="${index < 3 ? 'eager' : 'lazy'}" decoding="async" draggable="false"><span class="palette-number">${String(index + 1).padStart(2, '0')}</span><span class="palette-category">${escape(palette.category)}</span></div>
     <div class="palette-card-colors" aria-label="Five palette colors">${palette.colors.slice(0, 5).map(color => swatch(color)).join('')}</div>
     <a class="palette-card-select" data-select="${palette.id}" href="/studio/?p=${encodeURIComponent(palette.id)}#studio" aria-label="Use ${escape(palette.name)} palette"><span>${escape(palette.name)}</span><span>Use palette</span></a>
@@ -289,6 +290,19 @@ if (shufflePalette) shufflePalette.addEventListener('click', () => {
   choosePalette(palettes[(index + 1 + palettes.length) % palettes.length]);
 });
 
+function makeRandomPalette() {
+  const randomValue = globalThis.crypto?.getRandomValues ? globalThis.crypto.getRandomValues(new Uint32Array(1))[0] : Math.floor(Math.random() * 0xFFFFFF);
+  const seed = `#${(randomValue & 0xFFFFFF).toString(16).padStart(6, '0').toUpperCase()}`;
+  const source = signatureFor(seed);
+  return { id: `random-${seed.slice(1).toLowerCase()}`, name: 'Random direction', description: `A new five-color system generated around ${seed}.`, colors: paletteFromColor(seed), image: source.image, category: 'Generated', tags: ['random', 'generated'] };
+}
+const randomPaletteButton = $('#randomPalette');
+if (randomPaletteButton) randomPaletteButton.addEventListener('click', () => {
+  const palette = makeRandomPalette();
+  persistPalette(palette);
+  location.href = `/studio/?p=${encodeURIComponent(palette.id)}#studio`;
+});
+
 renderPaletteRail();
 const rail = $('#paletteRail');
 if (rail) {
@@ -299,12 +313,12 @@ if (rail) {
     if (!cards.length) return;
     const stride = cards[1] ? cards[1].offsetLeft - cards[0].offsetLeft : cards[0].offsetWidth;
     const max = Math.max(0, rail.scrollWidth - rail.clientWidth);
-    const index = clamp(Math.round(rail.scrollLeft / Math.max(stride, 1)), 0, palettes.length - 1);
+    const index = clamp(Math.round(rail.scrollLeft / Math.max(stride, 1)), 0, cards.length - 1);
     const collectionIndex = $('#collectionIndex');
     const previous = $('#palettePrev');
     const next = $('#paletteNext');
     const progress = $('#railProgress');
-    if (collectionIndex) collectionIndex.textContent = `${String(index + 1).padStart(2, '0')} / ${palettes.length}`;
+    if (collectionIndex) collectionIndex.textContent = `${String(index + 1).padStart(2, '0')} / ${cards.length}`;
     if (previous) previous.disabled = rail.scrollLeft < 5;
     if (next) next.disabled = rail.scrollLeft >= max - 5;
     if (progress) progress.style.width = `${max ? 15 + rail.scrollLeft / max * 85 : 100}%`;
@@ -350,6 +364,48 @@ if (rail) {
   rail.addEventListener('pointercancel', finishDrag);
   rail.addEventListener('lostpointercapture', finishDrag);
   rail.addEventListener('click', event => { if (suppressClick) { event.preventDefault(); event.stopPropagation(); suppressClick = false; } }, true);
+  const search = $('#paletteSearch');
+  const use = $('#paletteUse');
+  let feeling = 'all';
+  const useGroups = {
+    digital: ['software', 'data', 'technology', 'gaming', 'digital products'],
+    brand: ['retail', 'hospitality', 'packaging', 'campaigns', 'craft'],
+    editorial: ['editorial', 'publishing', 'education'],
+    lifestyle: ['wellness', 'beauty', 'fashion', 'food', 'travel', 'music', 'arts', 'events'],
+  };
+  const feelingGroups = {
+    quiet: ['quiet', 'calm', 'minimal', 'soft', 'grounded', 'atmospheric'],
+    vivid: ['vivid', 'bright', 'electric', 'neon', 'energetic', 'playful', 'high-contrast'],
+    warm: ['warm', 'sunset', 'earthy', 'sun-baked', 'citrus', 'comforting'],
+    cool: ['cool', 'aquatic', 'fresh', 'rain-washed', 'nocturnal'],
+    dark: ['dark', 'nocturnal', 'mysterious', 'precise'],
+  };
+  const applyPaletteFilters = () => {
+    const query = (search?.value || '').trim().toLowerCase();
+    const useValue = use?.value || 'all';
+    visiblePalettes = palettes.filter(palette => {
+      const tags = palette.tags || [], useCases = palette.useCases || [];
+      const searchable = [palette.name, palette.description, palette.category, ...tags, ...useCases, ...palette.colors].join(' ').toLowerCase();
+      const matchesQuery = !query || query.split(/\s+/).every(token => searchable.includes(token));
+      const matchesFeeling = feeling === 'all' || (feelingGroups[feeling] || []).some(tag => tags.includes(tag));
+      const matchesUse = useValue === 'all' || useCases.some(item => useGroups[useValue]?.includes(item));
+      return matchesQuery && matchesFeeling && matchesUse;
+    });
+    renderPaletteRail(visiblePalettes);
+    rail.scrollLeft = 0;
+    const empty = $('#paletteEmpty');
+    if (empty) empty.hidden = visiblePalettes.length > 0;
+    const collectionIndex = $('#collectionIndex');
+    if (collectionIndex) collectionIndex.textContent = visiblePalettes.length ? `01 / ${visiblePalettes.length}` : '00 / 00';
+    scheduleRail();
+  };
+  search?.addEventListener('input', applyPaletteFilters);
+  use?.addEventListener('change', applyPaletteFilters);
+  $$('.palette-filter').forEach(button => button.addEventListener('click', () => {
+    feeling = button.dataset.paletteFilter;
+    $$('.palette-filter').forEach(item => item.classList.toggle('is-active', item === button));
+    applyPaletteFilters();
+  }));
   scheduleRail();
 }
 
@@ -421,11 +477,6 @@ if (page === 'home') {
       selectAtlasWorld(buttons[nextIndex].dataset.atlasWorld);
     });
     setAtlasReadout(null);
-    const copyAtlasColor = $('#copyAtlasColor');
-    if (copyAtlasColor) copyAtlasColor.addEventListener('click', () => {
-      const colors = atlasPinned ? [atlasPinned.hex] : atlasHover ? [atlasHover.hex] : [];
-      if (colors.length) copy(colors.join(', '), `${colors[0]} copied.`);
-    });
     const clearAtlasSelection = $('#clearAtlasSelection');
     if (clearAtlasSelection) clearAtlasSelection.addEventListener('click', () => { atlasSelected = []; atlasPinned = null; globe.setSelection([]); renderAtlasSelection(); setAtlasReadout(atlasHover); });
     const useAtlasPalette = $('#useAtlasPalette');
@@ -477,7 +528,7 @@ if (input && dropzone) {
   function renderExtractionVariants() {
     const container = $('#extractedSwatches');
     if (!container) return;
-    container.innerHTML = extractedVariants.map((variant, index) => `<button type="button" class="extraction-variant" data-extraction-variant="${index}" aria-pressed="${index === selectedExtraction}" aria-label="Choose ${escape(variant.variantName)} palette"><span class="extraction-variant-head"><strong>${escape(variant.variantName)}</strong><small>${escape(variant.detail)}</small></span><span class="extraction-variant-colors" aria-hidden="true">${variant.colors.map(color => `<i style="--swatch:${color}"></i>`).join('')}</span></button>`).join('');
+    container.innerHTML = extractedVariants.map((variant, index) => `<button type="button" class="extraction-variant" data-extraction-variant="${index}" aria-pressed="${index === selectedExtraction}" aria-label="Choose ${escape(variant.variantName)} palette"><span class="extraction-variant-head"><strong>${escape(variant.variantName)}</strong><small>${escape(variant.detail)}</small></span><span class="extraction-variant-colors" aria-hidden="true">${variant.colors.map(color => `<i style="--swatch:${color}"></i>`).join('')}</span><span class="extraction-variant-values" aria-hidden="true">${variant.colors.map(color => `<code>${color}</code>`).join('')}</span></button>`).join('');
   }
   async function extract(file) {
     if (!file) return;

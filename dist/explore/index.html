@@ -13,28 +13,30 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;650;700;750&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=20">
-  <link rel="stylesheet" href="/design-system.css?v=20">
-  <script type="module" src="/app.js?v=20"></script>
+  <link rel="stylesheet" href="/styles.css?v=22">
+  <link rel="stylesheet" href="/design-system.css?v=22">
+  <script type="module" src="/app.js?v=22"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="header">
     <a class="wordmark" href="/" aria-label="ColorVerse home"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2 28.1 9v14L16 30 3.9 23V9Z" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m16 8 6.9 4v8L16 24l-6.9-4v-8Z" fill="currentColor"/></svg><span>ColorVerse</span></a>
-    <nav class="desktop-nav" aria-label="Main navigation"><a href="/explore/">Palettes</a><a href="/extract/">Image to palette</a><a href="/community/">Community</a><a href="/about/">About</a></nav>
+    <nav class="desktop-nav" aria-label="Main navigation"><a href="/explore/">Palettes</a><a href="/extract/">Image to palette</a><a href="/community/">Community</a><a href="/about/">Color guide</a></nav>
     <div class="header-actions"><button class="icon-button theme-toggle" id="themeToggle" aria-label="Switch to light theme" title="Change theme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 5a7 7 0 0 1 0 14Z" fill="currentColor"/></svg></button><a class="small-button" href="/studio/">Open studio</a></div>
   </header>
   <main id="main">
     <section class="collection collection-page section-wrap" id="collection" aria-labelledby="collectionTitle">
-      <div class="page-intro reveal"><div class="eyebrow">Palette library</div><h1 id="collectionTitle">Find a starting point.</h1><p>Twenty-five five-color studies, each paired with a visual reference. Choose one to see how a direction behaves in a real layout.</p></div>
-      <div class="collection-controls page-collection-controls"><span class="mono" id="collectionIndex">01 / 25</span><button class="round-button" id="palettePrev" aria-label="Previous palette">←</button><button class="round-button" id="paletteNext" aria-label="Next palette">→</button></div>
-      <div class="collection-subline"><p>Every palette has five roles: background, surface, primary, accent, text.</p><span>Browse horizontally <span aria-hidden="true">↔</span></span></div>
+      <div class="palette-page-head"><div class="page-intro reveal"><div class="eyebrow">Palette library</div><h1 id="collectionTitle">Find the right direction.</h1><p>Search by feeling, use, color, or name. Every result is ready to test in context.</p></div><button class="button secondary" id="randomPalette">Random palette <span>↗</span></button></div>
+      <div class="palette-finder" role="search"><label class="palette-search"><span>Search palettes</span><input id="paletteSearch" type="search" placeholder="Try quiet, editorial, #E86E5B…" autocomplete="off"></label><label class="palette-use"><span>Use</span><select id="paletteUse"><option value="all">Any project</option><option value="digital">Digital products</option><option value="brand">Brand & campaign</option><option value="editorial">Editorial & publishing</option><option value="lifestyle">Lifestyle & culture</option></select></label></div>
+      <div class="palette-filter-row" aria-label="Filter by feeling"><span>Feeling</span><div><button class="palette-filter is-active" data-palette-filter="all">All</button><button class="palette-filter" data-palette-filter="quiet">Quiet</button><button class="palette-filter" data-palette-filter="vivid">Vivid</button><button class="palette-filter" data-palette-filter="warm">Warm</button><button class="palette-filter" data-palette-filter="cool">Cool</button><button class="palette-filter" data-palette-filter="dark">Dark</button></div><div class="collection-controls page-collection-controls"><span class="mono" id="collectionIndex">01 / 25</span><button class="round-button" id="palettePrev" aria-label="Previous palette">←</button><button class="round-button" id="paletteNext" aria-label="Next palette">→</button></div></div>
+      <div class="collection-subline"><p>Five roles: background, surface, primary, accent, and text.</p><span>Browse horizontally <span aria-hidden="true">↔</span></span></div>
       <div class="palette-rail" id="paletteRail" tabindex="0" aria-label="Palette collection. Scroll horizontally or use the previous and next buttons."></div>
+      <p class="palette-empty" id="paletteEmpty" hidden>No palette matches that combination. Try a broader feeling or project type.</p>
       <div class="rail-progress" aria-hidden="true"><span id="railProgress"></span></div>
     </section>
     <section class="route-next section-wrap" aria-label="Continue exploring"><a href="/extract/"><span class="eyebrow">Have an image?</span><strong>Read its colors <b>→</b></strong></a><a href="/studio/"><span class="eyebrow">Have a direction?</span><strong>Open the studio <b>→</b></strong></a></section>
   </main>
-  <footer class="footer section-wrap"><div class="footer-top"><a class="wordmark" href="/">ColorVerse</a><p>Color exploration, in context.</p><a class="back-top" href="#main">Back to top ↑</a></div><div class="footer-bottom"><span>© 2026 ColorVerse</span><nav aria-label="Footer navigation"><a href="/">Home</a><a href="/extract/">Image to palette</a><a href="/studio/">Studio</a><a href="/about/">About</a></nav></div></footer>
+  <footer class="footer section-wrap"><div class="footer-top"><a class="wordmark" href="/">ColorVerse</a><p>Color exploration, in context.</p><a class="back-top" href="#main">Back to top ↑</a></div><div class="footer-bottom"><span>© 2026 ColorVerse</span><nav aria-label="Footer navigation"><a href="/">Home</a><a href="/extract/">Image to palette</a><a href="/studio/">Studio</a><a href="/about/">Color guide</a></nav></div></footer>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <noscript><div class="noscript">Enable JavaScript to browse the palette library.</div></noscript>
 </body>

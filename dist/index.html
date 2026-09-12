@@ -13,15 +13,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;650;700;750&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=20">
-  <link rel="stylesheet" href="/design-system.css?v=20">
-  <script type="module" src="/app.js?v=20"></script>
+  <link rel="stylesheet" href="/styles.css?v=22">
+  <link rel="stylesheet" href="/design-system.css?v=22">
+  <script type="module" src="/app.js?v=22"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="header">
     <a class="wordmark" href="/" aria-label="ColorVerse home"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2 28.1 9v14L16 30 3.9 23V9Z" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m16 8 6.9 4v8L16 24l-6.9-4v-8Z" fill="currentColor"/></svg><span>ColorVerse</span></a>
-    <nav class="desktop-nav" aria-label="Main navigation"><a href="/explore/">Palettes</a><a href="/extract/">Image to palette</a><a href="/community/">Community</a><a href="/about/">About</a></nav>
+    <nav class="desktop-nav" aria-label="Main navigation"><a href="/explore/">Palettes</a><a href="/extract/">Image to palette</a><a href="/community/">Community</a><a href="/about/">Color guide</a></nav>
     <div class="header-actions"><button class="icon-button theme-toggle" id="themeToggle" aria-label="Switch to light theme" title="Change theme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 5a7 7 0 0 1 0 14Z" fill="currentColor"/></svg></button><a class="small-button" href="/studio/">Open studio</a></div>
   </header>
   <main id="main">
@@ -30,7 +30,7 @@
         <div class="eyebrow">Color exploration</div>
         <h1 id="heroTitle"><span class="title-line">Find a color.</span><span class="title-line">Build a direction.</span></h1>
         <p>Move through a living color field,<br>then make the choice useful.</p>
-        <div class="hero-actions"><a class="button primary" href="/explore/">Explore palettes</a><a class="text-link" href="/extract/">Start with an image</a></div>
+        <div class="hero-actions"><a class="button primary" href="/explore/">Explore palettes</a><a class="text-link" href="/extract/">Start with an image</a><button class="text-link" id="randomPalette">Random palette</button></div>
         <div class="hero-palette">
           <div class="hero-palette-label"><span>Current direction</span><span id="heroPaletteName">Sunset Pop</span></div>
           <div id="heroSwatches" class="hero-swatches" aria-label="Current palette colors"></div>
@@ -43,24 +43,23 @@
         <canvas id="globe" tabindex="0" role="application" aria-label="Interactive perceptual color globe. Drag to rotate. Use arrow keys to rotate, and Enter to select the center color."></canvas>
         <div class="atlas-telemetry" aria-hidden="true"><span id="atlasWorldLabel">Spectrum field</span><code id="atlasCoordinates">L —&nbsp; C —&nbsp; H —</code></div>
         <div class="atlas-scanline" aria-hidden="true"></div>
-        <div class="atlas-guide">Drag to rotate <span class="guide-divider"></span> Click colors to build a palette</div>
-        <div class="atlas-readout" aria-live="polite"><span id="atlasReadoutLabel">Hover</span><i id="hoverDot"></i><code id="hoverHex">#FF7658</code><button id="copyAtlasColor" aria-label="Copy selected color">Copy</button></div>
+        <div class="atlas-guide">Drag to rotate <span class="guide-divider"></span> Choose up to five colors</div>
         <div class="atlas-selection-panel" id="atlasSelectionPanel" hidden aria-live="polite"><div class="atlas-selection-head"><span><strong id="atlasSelectionCount">0 / 5</strong> selected</span><button id="clearAtlasSelection" aria-label="Clear selected colors">Clear</button></div><div class="atlas-selected-swatches" id="atlasSelectedSwatches"></div><div class="atlas-suggestions" id="atlasSuggestions"></div><button class="button primary" id="useAtlasPalette">Use selected colors</button></div>
         <div class="atlas-controls"><button class="icon-button" id="zoomOut" aria-label="Zoom out">−</button><button class="icon-button" id="pauseAtlas" aria-label="Pause globe rotation" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5v10M13 5v10"/></svg></button><button class="icon-button" id="zoomIn" aria-label="Zoom in">+</button></div>
       </div>
       <div class="hero-baseline"><span>Explore color. Make it usable.</span><a href="/explore/">Browse the library <span aria-hidden="true">↓</span></a></div>
     </section>
 
-    <section class="home-tools section-wrap" aria-labelledby="homeToolsTitle">
-      <div class="section-heading"><div><div class="eyebrow">Choose a starting point</div><h2 id="homeToolsTitle">From feeling to a usable system.</h2></div><p>Three focused ways to begin.</p></div>
-      <div class="home-tool-grid">
-        <a class="home-tool-card" href="/explore/"><span class="home-tool-number">01</span><strong>Browse the library</strong><p>Start with a five-color palette paired with a visual reference.</p><span class="home-tool-link">25 studies <b>→</b></span></a>
-        <a class="home-tool-card" href="/extract/"><span class="home-tool-number">02</span><strong>Read an image</strong><p>Upload a photograph and compare three ways of seeing its colors.</p><span class="home-tool-link">Extract colors <b>→</b></span></a>
-        <a class="home-tool-card" href="/studio/"><span class="home-tool-number">03</span><strong>Open the studio</strong><p>Test your direction across a website, slides, social, or shop.</p><span class="home-tool-link">Preview a palette <b>→</b></span></a>
+    <section class="home-community section-wrap" aria-labelledby="homeCommunityTitle">
+      <div class="section-heading home-community-heading"><div><div class="eyebrow">Made with ColorVerse</div><h2 id="homeCommunityTitle">Palettes in the wild.</h2></div><a class="text-link" href="/community/">Enter community →</a></div>
+      <div class="home-community-grid">
+        <article class="home-community-card home-community-card-featured"><a class="home-community-image" href="/studio/?p=warm-cafe#studio" data-select="warm-cafe"><img src="/assets/palette-library/ceramic-still-life.jpg" alt="Quiet House warm ceramic brand study"><span>QUIET<br>HOUSE</span></a><div class="home-community-meta"><div><small>Branding · by Meadow Archive</small><strong>A slower kind of morning.</strong></div><a href="/studio/?p=warm-cafe#studio" data-select="warm-cafe">Use palette →</a></div><div class="home-community-colors"><i style="--swatch:#F1E4C4"></i><i style="--swatch:#B95E3F"></i><i style="--swatch:#2F5A58"></i><i style="--swatch:#C59B4C"></i><i style="--swatch:#6F3E2A"></i></div></article>
+        <article class="home-community-card"><a class="home-community-image" href="/studio/?p=after-rain#studio" data-select="after-rain"><img src="/assets/palette-library/blue-coral.jpg" alt="After Rain blue coral print study"><span>AFTER<br>RAIN</span></a><div class="home-community-meta"><div><small>Print · by North Window</small><strong>A little weather in print.</strong></div><a href="/studio/?p=after-rain#studio" data-select="after-rain">Use palette →</a></div><div class="home-community-colors"><i style="--swatch:#E7F7F3"></i><i style="--swatch:#9CDDD2"></i><i style="--swatch:#2E9AAB"></i><i style="--swatch:#E86E5B"></i><i style="--swatch:#12394A"></i></div></article>
+        <article class="home-community-card"><a class="home-community-image" href="/studio/?p=archive-green#studio" data-select="archive-green"><img src="/assets/palette-library/old-bookstore.jpg" alt="Archive Green editorial study"><span>ARCHIVE<br>GREEN</span></a><div class="home-community-meta"><div><small>Editorial · by Soft Objects</small><strong>Useful things, carefully made.</strong></div><a href="/studio/?p=archive-green#studio" data-select="archive-green">Use palette →</a></div><div class="home-community-colors"><i style="--swatch:#F4EFE7"></i><i style="--swatch:#D9CBB8"></i><i style="--swatch:#B0A096"></i><i style="--swatch:#72836F"></i><i style="--swatch:#2B2A27"></i></div></article>
       </div>
     </section>
   </main>
-  <footer class="footer section-wrap"><div class="footer-top"><a class="wordmark" href="/">ColorVerse</a><p>Color exploration, in context.</p><a class="back-top" href="#main">Back to top ↑</a></div><div class="footer-bottom"><span>© 2026 ColorVerse</span><nav aria-label="Footer navigation"><a href="/explore/">Palettes</a><a href="/extract/">Image to palette</a><a href="/studio/">Studio</a><a href="/about/">About</a></nav></div></footer>
+  <footer class="footer section-wrap"><div class="footer-top"><a class="wordmark" href="/">ColorVerse</a><p>Color exploration, in context.</p><a class="back-top" href="#main">Back to top ↑</a></div><div class="footer-bottom"><span>© 2026 ColorVerse</span><nav aria-label="Footer navigation"><a href="/explore/">Palettes</a><a href="/extract/">Image to palette</a><a href="/studio/">Studio</a><a href="/about/">Color guide</a></nav></div></footer>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <noscript><div class="noscript">Enable JavaScript to explore the color atlas.</div></noscript>
 </body>

@@ -3,7 +3,7 @@ import { oklch, oklab, rgb, toHex, clamp } from './color.js';
 
 export const atlasWorlds = [
   {
-    id: 'spectrum', name: 'Spectrum', shortName: 'Spectrum', type: 'Core field', accent: '#75D8DF',
+    id: 'spectrum', name: 'All Colors', shortName: 'All', type: 'Full spectrum', accent: '#75D8DF',
     palette: ['#F5F2EA', '#F2C94C', '#E5527D', '#4B88E8', '#172126'],
   },
   {
@@ -13,6 +13,14 @@ export const atlasWorlds = [
   {
     id: 'botanical-nocturne', name: 'Botanical Nocturne', shortName: 'Botanical', type: 'Seasonal study', accent: '#8DBB9A',
     palette: ['#E6E6C5', '#688C56', '#244C49', '#8E4D73', '#CF9B6B', '#101D1D', '#91B7A4'],
+  },
+  {
+    id: 'climate-signal', name: 'Climate Signal', shortName: 'Climate', type: 'September signal', accent: '#E56A47',
+    palette: ['#DCE7D2', '#2E7D66', '#13505B', '#F2B544', '#E85D3F', '#252B30', '#A9C6B8'],
+  },
+  {
+    id: 'digital-bloom', name: 'Digital Bloom', shortName: 'Digital', type: 'Future study', accent: '#B877F2',
+    palette: ['#EEF1FF', '#7256E8', '#48C6D9', '#F06FAF', '#171528', '#9CE6B8', '#FFCF5C'],
   },
 ];
 
