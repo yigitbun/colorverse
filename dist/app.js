@@ -36,6 +36,7 @@ let extracted = null;
 let extractedVariants = [];
 let selectedExtraction = 0;
 let imageURL = null;
+let roleDrag = null;
 document.body.dataset.page = page;
 document.title = titles[page];
 
@@ -99,7 +100,7 @@ function renderSelection(updateURL = false) {
   if (heroName) heroName.textContent = current.name;
   if (description) description.textContent = current.description || 'A five-color direction ready to test.';
   if (heroSwatches) heroSwatches.innerHTML = current.colors.slice(0, 5).map(color => swatch(color)).join('');
-  if (paletteRoles) paletteRoles.innerHTML = current.colors.slice(0, 5).map((color, index) => `<button class="role-swatch" style="--swatch:${color}" data-copy="${color}" aria-label="Copy ${roles[index]} ${color}"><i aria-hidden="true"></i><span>${roles[index]}</span><code>${color}</code></button>`).join('');
+  if (paletteRoles) paletteRoles.innerHTML = current.colors.slice(0, 5).map((color, index) => `<button class="role-swatch${roleDrag?.index === index ? ' is-dragging' : ''}" type="button" style="--swatch:${color}" data-copy="${color}" data-role-index="${index}" aria-label="${roles[index]} ${color}. Drag to change its role, or use the arrow keys. Press Enter to copy."><span class="role-grip" aria-hidden="true" title="Drag to change role"><svg viewBox="0 0 10 16"><circle cx="2" cy="3" r="1.2"/><circle cx="8" cy="3" r="1.2"/><circle cx="2" cy="8" r="1.2"/><circle cx="8" cy="8" r="1.2"/><circle cx="2" cy="13" r="1.2"/><circle cx="8" cy="13" r="1.2"/></svg></span><i aria-hidden="true"></i><span>${roles[index]}</span><code>${color}</code></button>`).join('');
   if (ratio) {
     const value = contrast(current.colors[0], current.colors[4]);
     ratio.textContent = `${value.toFixed(2)}:1 · ${value >= 7 ? 'AAA contrast' : value >= 4.5 ? 'AA contrast' : value >= 3 ? 'Large text only' : 'Low contrast'}`;
@@ -125,6 +126,21 @@ function choosePalette(palette, notify = true) {
   persistPalette(palette);
   renderSelection(true);
   if (notify) toast(`${palette.name} selected.`);
+}
+
+function reorderPaletteColor(from, to) {
+  if (from === to || from < 0 || to < 0 || from > 4 || to > 4) return;
+  const colors = [...current.colors];
+  const [moved] = colors.splice(from, 1);
+  colors.splice(to, 0, moved);
+  current = { ...current, colors };
+  persistPalette(current);
+  renderSelection();
+}
+
+function announcePaletteOrder(color, index) {
+  const status = $('#paletteOrderStatus');
+  if (status) status.textContent = `${color} is now ${roles[index]}.`;
 }
 
 let visiblePalettes = [...palettes];
@@ -272,7 +288,7 @@ setupTabs('[data-format]', button => { format = button.dataset.format; renderExp
 
 document.addEventListener('click', event => {
   const color = event.target.closest('[data-copy]');
-  if (color) copy(color.dataset.copy, `${color.dataset.copy} copied.`);
+  if (color && !event.target.closest('.role-grip')) copy(color.dataset.copy, `${color.dataset.copy} copied.`);
   const selection = event.target.closest('[data-select]');
   if (selection) {
     const palette = palettes.find(item => item.id === selection.dataset.select);
@@ -284,11 +300,60 @@ const copyCode = $('#copyCode');
 if (copyCode) copyCode.addEventListener('click', () => copy(exportPalette(current, format), `${format === 'hex' ? 'Hex list' : format.toUpperCase()} copied.`));
 const copyPalette = $('#copyPalette');
 if (copyPalette) copyPalette.addEventListener('click', () => copy(current.colors.join(', '), 'All five colors copied.'));
-const shufflePalette = $('#shufflePalette');
-if (shufflePalette) shufflePalette.addEventListener('click', () => {
-  const index = palettes.findIndex(palette => palette.id === current.id);
-  choosePalette(palettes[(index + 1 + palettes.length) % palettes.length]);
-});
+const paletteRoles = $('#paletteRoles');
+if (paletteRoles) {
+  paletteRoles.addEventListener('keydown', event => {
+    const swatch = event.target.closest('[data-role-index]');
+    if (!swatch) return;
+    const from = Number(swatch.dataset.roleIndex);
+    let to = from;
+    if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') to = Math.max(0, from - 1);
+    if (event.key === 'ArrowDown' || event.key === 'ArrowRight') to = Math.min(4, from + 1);
+    if (event.key === 'Home') to = 0;
+    if (event.key === 'End') to = 4;
+    if (to === from) return;
+    event.preventDefault();
+    const color = current.colors[from];
+    reorderPaletteColor(from, to);
+    announcePaletteOrder(color, to);
+    requestAnimationFrame(() => paletteRoles.querySelector(`[data-role-index="${to}"]`)?.focus());
+  });
+
+  paletteRoles.addEventListener('pointerdown', event => {
+    const grip = event.target.closest('.role-grip');
+    const swatch = grip?.closest('[data-role-index]');
+    if (!swatch || event.button > 0) return;
+    event.preventDefault();
+    const index = Number(swatch.dataset.roleIndex);
+    roleDrag = { index, color: current.colors[index], moved: false };
+    document.body.classList.add('is-reordering-palette');
+    swatch.classList.add('is-dragging');
+  });
+
+  window.addEventListener('pointermove', event => {
+    if (!roleDrag) return;
+    event.preventDefault();
+    const target = document.elementFromPoint(event.clientX, event.clientY)?.closest?.('[data-role-index]');
+    if (!target || !paletteRoles.contains(target)) return;
+    const to = Number(target.dataset.roleIndex);
+    if (to === roleDrag.index) return;
+    const from = roleDrag.index;
+    roleDrag.index = to;
+    roleDrag.moved = true;
+    reorderPaletteColor(from, to);
+  }, { passive: false });
+
+  const finishRoleDrag = () => {
+    if (!roleDrag) return;
+    const { color, index, moved } = roleDrag;
+    roleDrag = null;
+    document.body.classList.remove('is-reordering-palette');
+    paletteRoles.querySelector('.is-dragging')?.classList.remove('is-dragging');
+    if (moved) announcePaletteOrder(color, index);
+  };
+  window.addEventListener('pointerup', finishRoleDrag);
+  window.addEventListener('pointercancel', finishRoleDrag);
+}
 
 function makeRandomPalette() {
   const randomValue = globalThis.crypto?.getRandomValues ? globalThis.crypto.getRandomValues(new Uint32Array(1))[0] : Math.floor(Math.random() * 0xFFFFFF);
