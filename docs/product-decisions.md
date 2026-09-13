@@ -23,3 +23,13 @@
 - Random generation is a first-class starting point.
 - Image extraction separates dominant colors, visual focus, and design-ready roles. Future work should expose small but meaningful accent colors and direct image sampling.
 - Community should show palettes in applied work, not as isolated strips, and should eventually support votes, saves, remixes, creator attribution, and weekly discovery loops.
+- Community upload is a staged action: choose an image, attach a known palette or review an extracted suggestion, confirm the five colors and naming, then explicitly share. Guest mode stays lightweight; accounts can add drafts, versions, and deeper attribution later.
+- Color worlds are navigational moods, not separate products. The default world includes the full spectrum; focused worlds provide three intentional starter palettes and a subtle site-wide atmosphere using CSS variables rather than heavy media.
+- The world rail uses six entries in a quiet reverse-crescent composition. One entry may rotate as a time-specific editorial edition without making the product dependent on weekly trends.
+
+## Visual quality bar
+
+- Every editorial image needs a job: demonstrate a palette in use, establish a material or cultural context, or explain a color principle.
+- Imagery in the same collection follows one art direction, consistent light, crop logic, finish, and level of realism. Decorative filler is avoided.
+- Palette colors must be visibly traceable in the associated image. Captions and names describe the actual work rather than generic mood words.
+- High-resolution originals are optimized into project-bound web assets with explicit dimensions. Quality must not create a performance tax.

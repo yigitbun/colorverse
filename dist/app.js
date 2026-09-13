@@ -1,6 +1,6 @@
 import { palettes } from './palettes.js?v=22';
 import { roles, clamp, contrast, textOn, paletteFromColor, exportPalette, extractPaletteVariants, oklabDistance } from './color.js';
-import { createAtlas, atlasWorlds } from './globe.js?v=22';
+import { createAtlas, atlasWorlds } from './globe.js?v=24';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -39,6 +39,14 @@ let imageURL = null;
 let roleDrag = null;
 document.body.dataset.page = page;
 document.title = titles[page];
+
+let savedAtlasWorldId;
+try { savedAtlasWorldId = localStorage.getItem('colorverse-world'); } catch {}
+const savedAtlasWorld = atlasWorlds.find(world => world.id === savedAtlasWorldId) || atlasWorlds[0];
+function applyWorldAtmosphere(world) {
+  document.documentElement.dataset.world = world?.id || atlasWorlds[0].id;
+}
+applyWorldAtmosphere(savedAtlasWorld);
 
 function persistPalette(palette) {
   try { sessionStorage.setItem('colorverse-current-palette', JSON.stringify(palette)); } catch {}
@@ -490,12 +498,32 @@ if (themeToggle) themeToggle.addEventListener('click', () => setTheme(document.d
 $$('.desktop-nav a').forEach(link => { if (link.pathname.replace(/\/+$/, '') === route) link.setAttribute('aria-current', 'page'); });
 
 if (page === 'home') {
-  let savedAtlasWorld;
-  try { savedAtlasWorld = localStorage.getItem('colorverse-world'); } catch {}
-  let activeAtlasWorld = atlasWorlds.find(world => world.id === savedAtlasWorld) || atlasWorlds[0];
+  let activeAtlasWorld = savedAtlasWorld;
+  let worldVariantIndex = 0;
   const atlasWorldSwitch = $('#atlasWorldSwitch');
   if (atlasWorldSwitch) {
     atlasWorldSwitch.innerHTML = `<span class="atlas-world-label">Worlds</span>${atlasWorlds.map((world, index) => `<button type="button" role="tab" data-atlas-world="${world.id}" aria-selected="${world.id === activeAtlasWorld.id}" tabindex="${world.id === activeAtlasWorld.id ? '0' : '-1'}" title="${escape(world.name)}"><span class="atlas-world-index">${String(index + 1).padStart(2, '0')}</span><span class="atlas-world-copy"><strong>${escape(world.shortName)}</strong><small>${escape(world.name)}</small></span><i class="atlas-world-chip" style="--world-accent:${world.accent}"></i></button>`).join('')}`;
+    const useWorldStarter = (index = 0, notify = false) => {
+      const starters = activeAtlasWorld.starters || [];
+      if (!starters.length) return;
+      worldVariantIndex = (index + starters.length) % starters.length;
+      const starter = starters[worldVariantIndex];
+      const source = signatureFor(starter.colors[2]);
+      current = {
+        id: `world-${activeAtlasWorld.id}-${worldVariantIndex + 1}`,
+        name: starter.name,
+        description: `${activeAtlasWorld.name} · starter ${worldVariantIndex + 1} of ${starters.length}.`,
+        colors: [...starter.colors],
+        image: source.image,
+        category: activeAtlasWorld.type,
+        tags: [activeAtlasWorld.id, 'world starter'],
+      };
+      persistPalette(current);
+      renderSelection();
+      const variation = $('#worldVariationLabel');
+      if (variation) variation.textContent = `${String(worldVariantIndex + 1).padStart(2, '0')} / ${String(starters.length).padStart(2, '0')}`;
+      if (notify) toast(`${starter.name} ready.`);
+    };
     const renderAtlasWorld = () => {
       $$('#atlasWorldSwitch [data-atlas-world]').forEach(button => {
         const selected = button.dataset.atlasWorld === activeAtlasWorld.id;
@@ -503,10 +531,12 @@ if (page === 'home') {
         button.tabIndex = selected ? 0 : -1;
       });
       $('.atlas-scene')?.style.setProperty('--atlas-field', activeAtlasWorld.accent);
+      applyWorldAtmosphere(activeAtlasWorld);
       const label = $('#atlasWorldLabel');
       if (label) label.textContent = `${activeAtlasWorld.name} field`;
     };
     renderAtlasWorld();
+    if (!params.get('p') && (!storedPalette || storedPalette.id?.startsWith('world-'))) useWorldStarter(0);
     const globe = createAtlas($('#globe'), {
       initialWorld: activeAtlasWorld.id,
       imageFor(hex) { const source = signatureFor(hex); return { image: source.image, name: source.name, category: source.category, tags: source.tags }; },
@@ -525,6 +555,7 @@ if (page === 'home') {
       renderAtlasSelection();
       setAtlasReadout(null);
       renderAtlasWorld();
+      useWorldStarter(0);
       try { localStorage.setItem('colorverse-world', nextWorld.id); } catch {}
       if (notify) toast(`${nextWorld.name} world selected.`);
     };
@@ -533,11 +564,11 @@ if (page === 'home') {
       if (button) selectAtlasWorld(button.dataset.atlasWorld);
     });
     atlasWorldSwitch.addEventListener('keydown', event => {
-      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+      if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
       event.preventDefault();
       const buttons = $$('#atlasWorldSwitch [data-atlas-world]');
       const currentIndex = buttons.findIndex(button => button === document.activeElement);
-      const nextIndex = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : (currentIndex + (event.key === 'ArrowRight' ? 1 : -1) + buttons.length) % buttons.length;
+      const nextIndex = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : (currentIndex + (event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length;
       buttons[nextIndex].focus();
       selectAtlasWorld(buttons[nextIndex].dataset.atlasWorld);
     });
@@ -551,6 +582,8 @@ if (page === 'home') {
       persistPalette(palette);
       location.href = `/studio/?p=${encodeURIComponent(palette.id)}#studio`;
     });
+    const nextWorldPalette = $('#nextWorldPalette');
+    if (nextWorldPalette) nextWorldPalette.addEventListener('click', () => useWorldStarter(worldVariantIndex + 1, true));
     const atlasSuggestions = $('#atlasSuggestions');
     if (atlasSuggestions) atlasSuggestions.addEventListener('click', event => {
       const button = event.target.closest('[data-atlas-suggestion]');
@@ -574,6 +607,116 @@ if (page === 'home') {
     if (pauseAtlas) pauseAtlas.addEventListener('click', () => { paused = !paused; globe.pause(paused); updatePause(); });
     reduceMotion.addEventListener('change', () => { paused = reduceMotion.matches; globe.pause(paused); updatePause(); });
   }
+}
+
+if (page === 'community') {
+  const projectInput = $('#projectInput');
+  const submitProject = $('#submitProject');
+  const composer = $('#projectComposer');
+  const composerForm = $('#projectComposerForm');
+  const composerPreview = $('#projectComposerPreview');
+  const composerSource = $('#projectPaletteSource');
+  const paletteEditor = $('#projectPaletteEditor');
+  const projectTitle = $('#projectTitle');
+  const projectPaletteName = $('#projectPaletteName');
+  const communityNote = $('#communityNote');
+  const communityGrid = $('.community-grid');
+  let projectImageData = '';
+
+  const renderProjectColors = colors => {
+    if (!paletteEditor) return;
+    paletteEditor.innerHTML = colors.slice(0, 5).map((color, index) => `<label><span>${roles[index]}</span><input type="color" value="${color}" aria-label="${roles[index]} color"><code>${color}</code></label>`).join('');
+    paletteEditor.querySelectorAll('input').forEach(input => input.addEventListener('input', () => { input.nextElementSibling.textContent = input.value.toUpperCase(); }));
+  };
+
+  const readImagePalette = async file => {
+    const url = URL.createObjectURL(file);
+    try {
+      const image = new Image();
+      image.src = url;
+      await image.decode();
+      const canvas = document.createElement('canvas');
+      const scale = 160 / Math.max(image.width, image.height);
+      canvas.width = Math.max(1, Math.round(image.width * scale));
+      canvas.height = Math.max(1, Math.round(image.height * scale));
+      const imageContext = canvas.getContext('2d', { willReadFrequently: true });
+      imageContext.drawImage(image, 0, 0, canvas.width, canvas.height);
+      return extractPaletteVariants(imageContext.getImageData(0, 0, canvas.width, canvas.height).data).variants[0].colors;
+    } finally { URL.revokeObjectURL(url); }
+  };
+
+  const readAsDataURL = file => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('This image could not be read.'));
+    reader.readAsDataURL(file);
+  });
+
+  submitProject?.addEventListener('click', () => projectInput?.click());
+  projectInput?.addEventListener('change', async () => {
+    const file = projectInput.files?.[0];
+    if (!file || !['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) return;
+    if (file.size > 20 * 1024 * 1024) {
+      if (communityNote) communityNote.textContent = 'Choose an image under 20 MB so the review stays fast.';
+      projectInput.value = '';
+      return;
+    }
+    submitProject.disabled = true;
+    submitProject.textContent = 'Preparing…';
+    try {
+      projectImageData = await readAsDataURL(file);
+      if (composerPreview) composerPreview.src = projectImageData;
+      const previous = readStoredPalette();
+      const known = palettes.find(palette => palette.id === previous?.id);
+      const colors = previous?.colors?.slice(0, 5) || await readImagePalette(file);
+      renderProjectColors(colors);
+      if (projectPaletteName) {
+        projectPaletteName.value = known?.name || (previous && !/^Custom palette$/i.test(previous.name) ? previous.name : '');
+        projectPaletteName.placeholder = previous ? 'Name this palette' : 'Name the suggested palette';
+      }
+      if (composerSource) composerSource.textContent = previous ? `Using ${known?.name || 'your latest Studio palette'}. Check every color before sharing.` : 'Suggested from the image. Check every color before sharing.';
+      if (projectTitle) projectTitle.value = '';
+      composer?.showModal();
+      requestAnimationFrame(() => projectTitle?.focus());
+    } catch {
+      if (communityNote) communityNote.textContent = 'This image could not be prepared. Try another JPG, PNG, or WebP.';
+    } finally {
+      submitProject.disabled = false;
+      submitProject.innerHTML = 'Share your work <span>↗</span>';
+      projectInput.value = '';
+    }
+  });
+
+  $('#closeProjectComposer')?.addEventListener('click', () => composer?.close());
+  composer?.addEventListener('click', event => { if (event.target === composer) composer.close(); });
+  composerForm?.addEventListener('submit', event => {
+    event.preventDefault();
+    if (!composerForm.reportValidity() || !projectImageData || !communityGrid) return;
+    const title = projectTitle.value.trim();
+    const paletteName = projectPaletteName.value.trim();
+    const category = $('#projectCategory').value;
+    const colors = [...paletteEditor.querySelectorAll('input')].map(input => input.value.toUpperCase());
+    const id = `guest-${Date.now()}`;
+    const card = document.createElement('article');
+    card.className = 'community-card community-card-new';
+    card.dataset.category = category.toLowerCase();
+    card.dataset.project = id;
+    card.innerHTML = `<div class="community-art"><img src="${projectImageData}" alt="${escape(title)} project preview"><span>${escape(title)}</span></div><div class="community-card-meta"><div><span class="eyebrow">${escape(category)} · ${escape(paletteName)}</span><h2>${escape(title)}</h2><small>Guest preview · review pending</small></div><button class="vote-button" data-vote="${id}" aria-label="Upvote ${escape(title)} project"><span>↑</span><b>0</b></button></div><div class="community-card-actions"><button type="button" class="community-use" data-community-colors="${colors.join(',')}" data-community-name="${escape(paletteName)}">Use palette →</button><span>5 colors · palette confirmed</span></div><div class="community-palette">${colors.map(color => `<i style="--swatch:${color}"></i>`).join('')}</div>`;
+    communityGrid.prepend(card);
+    window.dispatchEvent(new CustomEvent('colorverse:community-card', { detail: { card } }));
+    if (communityNote) communityNote.textContent = 'Your reviewed project is saved on this device as a community preview.';
+    composer.close();
+    composerForm.reset();
+  });
+
+  document.addEventListener('click', event => {
+    const use = event.target.closest('[data-community-colors]');
+    if (!use) return;
+    const colors = use.dataset.communityColors.split(',');
+    const palette = { id: 'community-custom', name: use.dataset.communityName || 'Community palette', description: 'A palette taken from a community project.', colors, image: projectImageData || palettes[0].image, category: 'Community', tags: ['community'] };
+    persistPalette(palette);
+    location.href = `/studio/?p=${palette.id}#studio`;
+  });
 }
 
 const input = $('#imageInput');
