@@ -14,8 +14,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;650;700;750&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css?v=24">
-  <link rel="stylesheet" href="/design-system.css?v=26">
-  <script type="module" src="/app.js?v=27"></script>
+  <link rel="stylesheet" href="/design-system.css?v=28">
+  <link rel="stylesheet" href="/shade-studio.css?v=1">
+  <script type="module" src="/app.js?v=28"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -41,13 +42,61 @@
           <div class="mockup-stage"><div id="mockup" role="tabpanel" aria-labelledby="tab-landing" tabindex="0"></div></div>
           <div class="context-caption"><span>Sample design</span><span>Drag one color onto another to swap roles.</span></div>
         </div>
-        <aside class="color-lab" id="colorLab" aria-labelledby="colorLabTitle"><div class="color-lab-head"><span class="eyebrow">Color lab</span><button type="button" id="clearColorTray">Clear tray</button></div><h3 id="colorLabTitle">Tune one color.</h3><p>Select a palette role, then explore its shades or nearby alternatives.</p><div class="color-lab-current"><span id="colorLabPreview" aria-hidden="true"></span><label><span>Exact color</span><input type="color" id="colorLabInput" aria-label="Choose an exact color"><code id="colorLabHex"></code></label></div><section class="color-lab-section" aria-labelledby="shadeTitle"><div><h4 id="shadeTitle">Shades</h4><span>same hue</span></div><div class="color-choice-grid shade-grid" id="colorShadeGrid"></div></section><section class="color-lab-section" aria-labelledby="alternativeTitle"><div><h4 id="alternativeTitle">Alternatives</h4><span>nearby directions</span></div><div class="color-choice-grid alternative-grid" id="colorAlternativeGrid"></div></section><button class="button color-tray-add" id="addColorToTray" type="button">Add to color tray <span>＋</span></button><div class="color-tray" id="colorTray" aria-label="Saved colors"></div></aside>
+        <aside class="color-lab" id="colorLab" aria-labelledby="colorLabTitle">
+          <div class="color-lab-head"><span class="eyebrow">Color lab</span><button type="button" id="clearColorTray">Clear tray</button></div>
+          <h3 id="colorLabTitle">Tune one color.</h3><p>A little lighter. A little richer. Find the nuance that fits.</p>
+          <div class="color-lab-current"><span id="colorLabPreview" aria-hidden="true"></span><label><span>Exact color</span><input type="color" id="colorLabInput" aria-label="Choose an exact color"><code id="colorLabHex"></code></label></div>
+          <section class="color-lab-section shade-entry" aria-labelledby="shadeTitle">
+            <div><h4 id="shadeTitle">Shades</h4><span id="shadeOptionCount">63 nuances</span></div>
+            <button class="shade-launch" id="openShadeStudio" type="button" aria-haspopup="dialog" aria-controls="shadeStudio">
+              <span class="shade-entry-spectrum" id="colorShadeGrid" aria-hidden="true"></span>
+              <span class="shade-entry-scale" aria-hidden="true"><span>Light</span><span>Deep</span></span>
+              <span class="shade-entry-action">Explore shades <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></span>
+            </button>
+          </section>
+          <section class="color-lab-section" aria-labelledby="alternativeTitle"><div><h4 id="alternativeTitle">Alternatives</h4><span>nearby directions</span></div><div class="color-choice-grid alternative-grid" id="colorAlternativeGrid"></div></section>
+          <button class="button color-tray-add" id="addColorToTray" type="button">Add to color tray <span>＋</span></button><div class="color-tray" id="colorTray" aria-label="Saved colors"></div>
+        </aside>
       </div>
       <div class="export-panel reveal"><div class="export-intro"><span class="eyebrow">Export</span><h3>Copy your palette.</h3><p>Choose the format for your project.</p></div><div class="export-code"><div class="export-toolbar"><div class="export-tabs" role="tablist" aria-label="Export format"><button role="tab" id="format-css" aria-controls="exportCode" aria-selected="true" data-format="css">CSS</button><button role="tab" id="format-scss" aria-controls="exportCode" aria-selected="false" tabindex="-1" data-format="scss">SCSS</button><button role="tab" id="format-tailwind" aria-controls="exportCode" aria-selected="false" tabindex="-1" data-format="tailwind">Tailwind</button><button role="tab" id="format-json" aria-controls="exportCode" aria-selected="false" tabindex="-1" data-format="json">JSON</button><button role="tab" id="format-hex" aria-controls="exportCode" aria-selected="false" tabindex="-1" data-format="hex">Hex</button></div><button class="copy-code" id="copyCode" aria-label="Copy export code">Copy</button></div><pre id="exportCode" role="tabpanel" aria-labelledby="format-css" tabindex="0"></pre></div></div>
     </section>
     <section class="route-next section-wrap" aria-label="Continue exploring"><a href="/explore/"><span class="eyebrow">Need another direction?</span><strong>Browse the library <b>→</b></strong></a><a href="/extract/"><span class="eyebrow">Have a reference?</span><strong>Read an image <b>→</b></strong></a></section>
   </main>
   <footer class="footer section-wrap"><div class="footer-top"><a class="wordmark" href="/">ColorVerse</a><p>Color exploration, in context.</p><a class="back-top" href="#main">Back to top ↑</a></div><div class="footer-bottom"><span>© 2026 ColorVerse</span><nav aria-label="Footer navigation"><a href="/">Home</a><a href="/explore/">Palettes</a><a href="/extract/">Image to palette</a><a href="/about/">Color guide</a></nav></div></footer>
+  <dialog class="shade-studio" id="shadeStudio" aria-labelledby="shadeStudioTitle" aria-describedby="shadeStudioDescription">
+    <header class="shade-studio-head">
+      <div><span class="shade-kicker">Color lab <span aria-hidden="true">/</span> Shades</span><h2 id="shadeStudioTitle">One color. Every nuance.</h2><p id="shadeStudioDescription">Explore the light, depth and character of your color.</p></div>
+      <button class="shade-close" type="button" data-shade-close aria-label="Close shades"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+    </header>
+    <div class="shade-studio-body">
+      <aside class="shade-study" aria-label="Color comparison">
+        <div class="shade-study-label"><span>Editing</span><strong id="shadeRoleName"></strong></div>
+        <button class="shade-original" id="shadeOriginal" type="button" aria-label="Restore original color"><span>Original <code id="shadeOriginalHex"></code></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10a8 8 0 1 1 1 8M4 4v6h6"/></svg></button>
+        <div class="shade-sample" id="shadeSample"><span class="shade-sample-state" id="shadeSampleState">Selected shade</span><span class="shade-sample-type" aria-hidden="true">Aa</span><div><code id="shadeSampleHex"></code><span id="shadeSampleLightness"></span></div></div>
+        <div class="shade-palette-label"><span>In your palette</span><span>01—05</span></div>
+        <div class="shade-palette-preview" id="shadePalettePreview" aria-label="Palette with the proposed shade"></div>
+        <p class="shade-study-note">Try a shade, then apply it to your selected role.</p>
+      </aside>
+      <section class="shade-library" aria-label="Shade library">
+        <div class="shade-library-heading"><h3>Find your shade</h3><span id="shadeLibraryCount">63 possibilities</span></div>
+        <div class="shade-family-tabs" role="tablist" aria-label="Tone character">
+          <button type="button" role="tab" id="shade-tab-pure" aria-controls="shadeFamilyPanel" aria-selected="true" data-shade-family="pure">Pure <span>21</span></button>
+          <button type="button" role="tab" id="shade-tab-soft" aria-controls="shadeFamilyPanel" aria-selected="false" tabindex="-1" data-shade-family="soft">Soft <span>21</span></button>
+          <button type="button" role="tab" id="shade-tab-rich" aria-controls="shadeFamilyPanel" aria-selected="false" tabindex="-1" data-shade-family="rich">Rich <span>21</span></button>
+        </div>
+        <div id="shadeFamilyPanel" role="tabpanel" aria-labelledby="shade-tab-pure">
+          <div class="shade-family-caption"><p id="shadeFamilyDescription">The character of your original, from light to deep.</p><span aria-hidden="true">Light → Deep</span></div>
+          <div class="shade-tile-grid" id="shadeTileGrid" aria-label="Select a shade"></div>
+        </div>
+        <div class="shade-fine-head"><h3>Fine-tune</h3><span>Stay within the same hue</span></div>
+        <div class="shade-fine-controls">
+          <label for="shadeLightness"><span>Lightness <output id="shadeLightnessValue" for="shadeLightness"></output></span><input id="shadeLightness" type="range" min="0" max="100" step="0.1"></label>
+          <label for="shadeChroma"><span>Color intensity <output id="shadeChromaValue" for="shadeChroma"></output></span><input id="shadeChroma" type="range" min="0" max="100" step="0.1"></label>
+        </div>
+      </section>
+    </div>
+    <footer class="shade-studio-foot"><div class="shade-change"><i id="shadeChangeChip" aria-hidden="true"></i><code id="shadeSelectedHex"></code><span id="shadeSelectionStatus" role="status" aria-live="polite"></span></div><div class="shade-footer-actions"><button class="button" type="button" data-shade-close>Cancel</button><button class="button primary" type="button" id="applyShade">Apply shade <span aria-hidden="true">→</span></button></div></footer>
+  </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <noscript><div class="noscript">Enable JavaScript to use the ColorVerse studio.</div></noscript>
 </body>

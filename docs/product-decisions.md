@@ -1,5 +1,8 @@
 # ColorVerse product decisions
 
+Unapproved tool ideas and the Adobe Color / Coolors review live in
+[`color-tools-opportunities.md`](color-tools-opportunities.md); they are not implementation commitments.
+
 ## Image rights and community sharing
 
 - Uploading an image for palette extraction does not publish it. Extraction stays private and browser-local by default.
@@ -20,6 +23,7 @@
 - Every primary route should end in a usable five-color palette and a clear path into Studio.
 - The globe supports one-to-five explicit color choices; missing roles are generated around those choices.
 - Studio preserves the chosen five colors. Reordering changes their functional roles and updates every preview and export live; it does not replace the palette with an unrelated one.
+- Studio shade editing uses a focused comparison dialog: Pure, Soft, and Rich families offer 21 light-to-deep samples each, plus continuous lightness/intensity controls. Neutral colors use one neutral family. The original hue stays fixed, browsing previews a draft, and Apply changes only the selected role. Cancel discards the draft; applied changes survive reloads from a library link.
 - Random generation is a first-class starting point.
 - Image extraction separates dominant colors, visual focus, and design-ready roles. Future work should expose small but meaningful accent colors and direct image sampling.
 - Community should show palettes in applied work, not as isolated strips, and should eventually support votes, saves, remixes, creator attribution, and weekly discovery loops.

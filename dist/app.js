@@ -1,6 +1,7 @@
 import { palettes } from './palettes.js?v=22';
 import { roles, clamp, contrast, textOn, rgb, toHex, oklab, oklch, paletteFromColor, exportPalette, extractPaletteVariants, oklabDistance } from './color.js';
 import { createAtlas, atlasWorlds } from './globe.js?v=24';
+import { buildShadeFamilies, createShadeStudio } from './shade-studio.js?v=1';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -155,7 +156,7 @@ function replacePaletteColor(index, color) {
   current = { ...current, id: current.id.startsWith('custom-') ? current.id : `custom-${current.id}`, name: current.name.replace(/^Custom · /, '') };
   current.colors = colors;
   persistPalette(current);
-  renderSelection();
+  renderSelection(true);
 }
 
 function announcePaletteOrder(color, index) {
@@ -188,12 +189,14 @@ function renderColorLab() {
   if (preview) preview.style.background = color;
   if (input) input.value = color;
   if (hex) hex.textContent = color;
-  const shades = [0.2, 0.29, 0.38, 0.47, 0.56, 0.65, 0.74, 0.83, 0.92].map(lightness => oklch(lightness, Math.min(coordinates.chroma, lightness < .28 || lightness > .84 ? .08 : .18), coordinates.hue));
+  const shadeFamilies = buildShadeFamilies(color);
   const alternatives = [-52, -32, -16, 16, 32, 52].map(offset => oklch(clamp(coordinates.lightness, .3, .82), clamp(coordinates.chroma * 1.04, .06, .2), coordinates.hue + offset));
   const choice = value => `<button type="button" style="--choice:${value};--on:${textOn(value)}" data-use-color="${value}" aria-label="Use ${value}" title="${value}"><span>${value}</span></button>`;
   const shadeGrid = $('#colorShadeGrid');
   const alternativeGrid = $('#colorAlternativeGrid');
-  if (shadeGrid) shadeGrid.innerHTML = shades.map(choice).join('');
+  if (shadeGrid) shadeGrid.innerHTML = shadeFamilies[0].colors.filter((_, index) => index % 2 === 0).map(value => `<i style="--tone:${value}"></i>`).join('');
+  const shadeCount = $('#shadeOptionCount');
+  if (shadeCount) shadeCount.textContent = `${new Set(shadeFamilies.flatMap(family => family.colors)).size} nuances`;
   if (alternativeGrid) alternativeGrid.innerHTML = alternatives.map(choice).join('');
   const tray = $('#colorTray');
   if (tray) tray.innerHTML = colorTray.length ? colorTray.map(value => choice(value)).join('') : '<p>Your saved colors will appear here.</p>';
@@ -359,6 +362,12 @@ if (copyCode) copyCode.addEventListener('click', () => copy(exportPalette(curren
 const copyPalette = $('#copyPalette');
 if (copyPalette) copyPalette.addEventListener('click', () => copy(current.colors.join(', '), 'All five colors copied.'));
 const paletteRoles = $('#paletteRoles');
+const shadeStudio = createShadeStudio({
+  getPalette: () => current,
+  onApply(index, color) { replacePaletteColor(index, color); toast(`${roles[index]} updated to ${color}.`); },
+  onClose(index) { paletteRoles?.querySelector(`[data-edit-color="${index}"]`)?.focus({ preventScroll: true }); },
+});
+$('#openShadeStudio')?.addEventListener('click', event => shadeStudio.open(activeColorIndex, event.currentTarget));
 if (paletteRoles) {
   paletteRoles.addEventListener('click', event => {
     const edit = event.target.closest('[data-edit-color]');
@@ -366,7 +375,7 @@ if (paletteRoles) {
       activeColorIndex = Number(edit.dataset.editColor);
       pendingSwapIndex = null;
       renderSelection();
-      requestAnimationFrame(() => $('#colorLabInput')?.focus());
+      shadeStudio.open(activeColorIndex, paletteRoles.querySelector(`[data-edit-color="${activeColorIndex}"]`));
       return;
     }
     const swap = event.target.closest('[data-role-swap]');
