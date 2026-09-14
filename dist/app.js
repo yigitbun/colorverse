@@ -723,6 +723,22 @@ const input = $('#imageInput');
 const dropzone = $('#dropzone');
 if (input && dropzone) {
   let extractionSequence = 0;
+  const supportedImageTypes = new Set(['image/png', 'image/jpeg', 'image/webp']);
+  const isSupportedImage = file => Boolean(file && supportedImageTypes.has(file.type));
+  const imageFileFromBlob = (blob, name = 'pasted-image.png') => new File([blob], name, { type: blob.type || 'image/png', lastModified: Date.now() });
+  const clipboardImageFromItems = items => {
+    const imageItem = [...(items || [])].find(item => item.kind === 'file' && isSupportedImage({ type: item.type }));
+    return imageItem?.getAsFile?.() || null;
+  };
+  async function readClipboardImage() {
+    if (!navigator.clipboard?.read) return null;
+    const clipboardItems = await navigator.clipboard.read();
+    for (const item of clipboardItems) {
+      const imageType = item.types.find(type => supportedImageTypes.has(type));
+      if (imageType) return imageFileFromBlob(await item.getType(imageType));
+    }
+    return null;
+  }
   function selectExtractionVariant(index) {
     if (!extractedVariants[index]) return;
     selectedExtraction = index;
@@ -742,7 +758,7 @@ if (input && dropzone) {
     if (!file) return;
     const sequence = ++extractionSequence;
     const status = $('#extractStatus');
-    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) { if (status) status.textContent = 'Choose a JPG, PNG, or WebP image.'; return; }
+    if (!isSupportedImage(file)) { if (status) status.textContent = 'Choose a JPG, PNG, or WebP image.'; return; }
     if (file.size > 20 * 1024 * 1024) { if (status) status.textContent = 'This image is a little large. Choose one smaller than 20 MB.'; return; }
     if (status) status.textContent = 'Finding the colors in your image…';
     const nextURL = URL.createObjectURL(file);
@@ -783,6 +799,25 @@ if (input && dropzone) {
     } finally { input.value = ''; }
   }
   input.addEventListener('change', () => extract(input.files?.[0]));
+  const pasteImage = $('#pasteImage');
+  async function pasteFromClipboard() {
+    const status = $('#extractStatus');
+    if (status) status.textContent = 'Reading the image from your clipboard…';
+    try {
+      const file = await readClipboardImage();
+      if (!file) throw new Error('No image found');
+      await extract(file);
+    } catch {
+      if (status) status.textContent = 'No supported image found. Copy an image, then try again.';
+    }
+  }
+  pasteImage?.addEventListener('click', pasteFromClipboard);
+  document.addEventListener('paste', event => {
+    const file = clipboardImageFromItems(event.clipboardData?.items);
+    if (!file) return;
+    event.preventDefault();
+    extract(file);
+  });
   const changeImage = $('.change-image');
   if (changeImage) {
     changeImage.tabIndex = 0;
@@ -791,7 +826,7 @@ if (input && dropzone) {
   }
   for (const eventName of ['dragenter', 'dragover']) dropzone.addEventListener(eventName, event => { event.preventDefault(); dropzone.classList.add('is-over'); });
   for (const eventName of ['dragleave', 'drop']) dropzone.addEventListener(eventName, event => { event.preventDefault(); dropzone.classList.remove('is-over'); });
-  dropzone.addEventListener('drop', event => extract(event.dataTransfer.files?.[0]));
+  dropzone.addEventListener('drop', event => extract(event.dataTransfer.files?.[0] || clipboardImageFromItems(event.dataTransfer.items)));
   const extractedSwatches = $('#extractedSwatches');
   if (extractedSwatches) extractedSwatches.addEventListener('click', event => { const button = event.target.closest('[data-extraction-variant]'); if (button) selectExtractionVariant(Number(button.dataset.extractionVariant)); });
   const useExtraction = $('#useExtraction');
