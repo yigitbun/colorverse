@@ -730,6 +730,9 @@ if (input && dropzone) {
     const imageItem = [...(items || [])].find(item => item.kind === 'file' && isSupportedImage({ type: item.type }));
     return imageItem?.getAsFile?.() || null;
   };
+  const clipboardImageFromData = clipboardData => clipboardImageFromItems(clipboardData?.items)
+    || [...(clipboardData?.files || [])].find(isSupportedImage)
+    || null;
   async function readClipboardImage() {
     if (!navigator.clipboard?.read) return null;
     const clipboardItems = await navigator.clipboard.read();
@@ -812,12 +815,12 @@ if (input && dropzone) {
     }
   }
   pasteImage?.addEventListener('click', pasteFromClipboard);
-  document.addEventListener('paste', event => {
-    const file = clipboardImageFromItems(event.clipboardData?.items);
+  window.addEventListener('paste', event => {
+    const file = clipboardImageFromData(event.clipboardData);
     if (!file) return;
     event.preventDefault();
     extract(file);
-  });
+  }, true);
   const changeImage = $('.change-image');
   if (changeImage) {
     changeImage.tabIndex = 0;
@@ -826,7 +829,7 @@ if (input && dropzone) {
   }
   for (const eventName of ['dragenter', 'dragover']) dropzone.addEventListener(eventName, event => { event.preventDefault(); dropzone.classList.add('is-over'); });
   for (const eventName of ['dragleave', 'drop']) dropzone.addEventListener(eventName, event => { event.preventDefault(); dropzone.classList.remove('is-over'); });
-  dropzone.addEventListener('drop', event => extract(event.dataTransfer.files?.[0] || clipboardImageFromItems(event.dataTransfer.items)));
+  dropzone.addEventListener('drop', event => extract(event.dataTransfer.files?.[0] || clipboardImageFromData(event.dataTransfer)));
   const extractedSwatches = $('#extractedSwatches');
   if (extractedSwatches) extractedSwatches.addEventListener('click', event => { const button = event.target.closest('[data-extraction-variant]'); if (button) selectExtractionVariant(Number(button.dataset.extractionVariant)); });
   const useExtraction = $('#useExtraction');
