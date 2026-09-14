@@ -14,8 +14,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;650;700;750&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css?v=24">
-  <link rel="stylesheet" href="/design-system.css?v=25">
-  <script type="module" src="/app.js?v=26"></script>
+  <link rel="stylesheet" href="/design-system.css?v=26">
+  <script type="module" src="/app.js?v=27"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -29,7 +29,7 @@
       <div class="page-intro reveal"><div class="eyebrow">Palette studio</div><h1 id="studioTitle">See your colors in context.</h1><p>Give a direction a quick reality check. Reassign each color's role, move between four familiar surfaces, and export the palette when it feels right.</p></div>
       <div class="studio-workspace reveal">
         <aside class="palette-inspector">
-          <div class="inspector-top"><span class="eyebrow">Your palette</span><span class="palette-order-hint">Drag to assign roles</span></div>
+          <div class="inspector-top"><span class="eyebrow">Your palette</span><span class="palette-order-hint">Select · tune · swap</span></div>
           <h3 id="paletteName">Sunset Pop</h3><p id="paletteDescription">Hot pinks and golden oranges.</p>
           <div class="palette-roles" id="paletteRoles"></div>
           <p class="sr-only" id="paletteOrderStatus" aria-live="polite"></p>
@@ -39,8 +39,9 @@
         <div class="context-area">
           <div class="context-tabs" role="tablist" aria-label="Preview context"><button role="tab" id="tab-landing" aria-selected="true" aria-controls="mockup" data-context="landing">Website</button><button role="tab" id="tab-presentation" aria-selected="false" aria-controls="mockup" tabindex="-1" data-context="presentation">Slides</button><button role="tab" id="tab-social" aria-selected="false" aria-controls="mockup" tabindex="-1" data-context="social">Social</button><button role="tab" id="tab-shop" aria-selected="false" aria-controls="mockup" tabindex="-1" data-context="shop">Shop</button><span class="context-live">Preview</span></div>
           <div class="mockup-stage"><div id="mockup" role="tabpanel" aria-labelledby="tab-landing" tabindex="0"></div></div>
-          <div class="context-caption"><span>Sample design</span><span>Drag a color to change its role instantly.</span></div>
+          <div class="context-caption"><span>Sample design</span><span>Drag one color onto another to swap roles.</span></div>
         </div>
+        <aside class="color-lab" id="colorLab" aria-labelledby="colorLabTitle"><div class="color-lab-head"><span class="eyebrow">Color lab</span><button type="button" id="clearColorTray">Clear tray</button></div><h3 id="colorLabTitle">Tune one color.</h3><p>Select a palette role, then explore its shades or nearby alternatives.</p><div class="color-lab-current"><span id="colorLabPreview" aria-hidden="true"></span><label><span>Exact color</span><input type="color" id="colorLabInput" aria-label="Choose an exact color"><code id="colorLabHex"></code></label></div><section class="color-lab-section" aria-labelledby="shadeTitle"><div><h4 id="shadeTitle">Shades</h4><span>same hue</span></div><div class="color-choice-grid shade-grid" id="colorShadeGrid"></div></section><section class="color-lab-section" aria-labelledby="alternativeTitle"><div><h4 id="alternativeTitle">Alternatives</h4><span>nearby directions</span></div><div class="color-choice-grid alternative-grid" id="colorAlternativeGrid"></div></section><button class="button color-tray-add" id="addColorToTray" type="button">Add to color tray <span>＋</span></button><div class="color-tray" id="colorTray" aria-label="Saved colors"></div></aside>
       </div>
       <div class="export-panel reveal"><div class="export-intro"><span class="eyebrow">Export</span><h3>Copy your palette.</h3><p>Choose the format for your project.</p></div><div class="export-code"><div class="export-toolbar"><div class="export-tabs" role="tablist" aria-label="Export format"><button role="tab" id="format-css" aria-controls="exportCode" aria-selected="true" data-format="css">CSS</button><button role="tab" id="format-scss" aria-controls="exportCode" aria-selected="false" tabindex="-1" data-format="scss">SCSS</button><button role="tab" id="format-tailwind" aria-controls="exportCode" aria-selected="false" tabindex="-1" data-format="tailwind">Tailwind</button><button role="tab" id="format-json" aria-controls="exportCode" aria-selected="false" tabindex="-1" data-format="json">JSON</button><button role="tab" id="format-hex" aria-controls="exportCode" aria-selected="false" tabindex="-1" data-format="hex">Hex</button></div><button class="copy-code" id="copyCode" aria-label="Copy export code">Copy</button></div><pre id="exportCode" role="tabpanel" aria-labelledby="format-css" tabindex="0"></pre></div></div>
     </section>

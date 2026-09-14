@@ -1,5 +1,5 @@
 import { palettes } from './palettes.js?v=22';
-import { roles, clamp, contrast, textOn, paletteFromColor, exportPalette, extractPaletteVariants, oklabDistance } from './color.js';
+import { roles, clamp, contrast, textOn, rgb, toHex, oklab, oklch, paletteFromColor, exportPalette, extractPaletteVariants, oklabDistance } from './color.js';
 import { createAtlas, atlasWorlds } from './globe.js?v=24';
 
 const $ = selector => document.querySelector(selector);
@@ -37,6 +37,8 @@ let extractedVariants = [];
 let selectedExtraction = 0;
 let imageURL = null;
 let roleDrag = null;
+let activeColorIndex = 0;
+let pendingSwapIndex = null;
 document.body.dataset.page = page;
 document.title = titles[page];
 
@@ -108,7 +110,7 @@ function renderSelection(updateURL = false) {
   if (heroName) heroName.textContent = current.name;
   if (description) description.textContent = current.description || 'A five-color direction ready to test.';
   if (heroSwatches) heroSwatches.innerHTML = current.colors.slice(0, 5).map(color => swatch(color)).join('');
-  if (paletteRoles) paletteRoles.innerHTML = current.colors.slice(0, 5).map((color, index) => `<button class="role-swatch${roleDrag?.index === index ? ' is-dragging' : ''}" type="button" style="--swatch:${color}" data-copy="${color}" data-role-index="${index}" aria-label="${roles[index]} ${color}. Drag to change its role, or use the arrow keys. Press Enter to copy."><span class="role-grip" aria-hidden="true" title="Drag to change role"><svg viewBox="0 0 10 16"><circle cx="2" cy="3" r="1.2"/><circle cx="8" cy="3" r="1.2"/><circle cx="2" cy="8" r="1.2"/><circle cx="8" cy="8" r="1.2"/><circle cx="2" cy="13" r="1.2"/><circle cx="8" cy="13" r="1.2"/></svg></span><i aria-hidden="true"></i><span>${roles[index]}</span><code>${color}</code></button>`).join('');
+  if (paletteRoles) paletteRoles.innerHTML = current.colors.slice(0, 5).map((color, index) => `<div class="role-swatch${activeColorIndex === index ? ' is-selected' : ''}${pendingSwapIndex === index ? ' is-swap-source' : ''}${roleDrag?.from === index ? ' is-dragging' : ''}" style="--swatch:${color}" data-role-index="${index}"><button class="role-select" type="button" data-role-select="${index}" aria-pressed="${activeColorIndex === index}" aria-label="Edit ${roles[index]} color ${color}"><span class="role-grip" aria-hidden="true" title="Drag onto another color to swap"><svg viewBox="0 0 10 16"><circle cx="2" cy="3" r="1.2"/><circle cx="8" cy="3" r="1.2"/><circle cx="2" cy="8" r="1.2"/><circle cx="8" cy="8" r="1.2"/><circle cx="2" cy="13" r="1.2"/><circle cx="8" cy="13" r="1.2"/></svg></span><i aria-hidden="true"></i><span>${roles[index]}</span><code>${color}</code></button><button class="role-action" type="button" data-role-swap="${index}" aria-label="${pendingSwapIndex === index ? 'Cancel swap' : `Swap ${roles[index]} with another role`}" title="Swap">↔</button><button class="role-action" type="button" data-edit-color="${index}" aria-label="Explore shades for ${roles[index]}" title="Explore shades">＋</button></div>`).join('');
   if (ratio) {
     const value = contrast(current.colors[0], current.colors[4]);
     ratio.textContent = `${value.toFixed(2)}:1 · ${value >= 7 ? 'AAA contrast' : value >= 4.5 ? 'AA contrast' : value >= 3 ? 'Large text only' : 'Low contrast'}`;
@@ -125,6 +127,7 @@ function renderSelection(updateURL = false) {
   });
   renderMockup();
   renderExport();
+  renderColorLab();
   if (updateURL) setPaletteURL();
 }
 
@@ -136,12 +139,21 @@ function choosePalette(palette, notify = true) {
   if (notify) toast(`${palette.name} selected.`);
 }
 
-function reorderPaletteColor(from, to) {
+function swapPaletteColors(from, to) {
   if (from === to || from < 0 || to < 0 || from > 4 || to > 4) return;
   const colors = [...current.colors];
-  const [moved] = colors.splice(from, 1);
-  colors.splice(to, 0, moved);
+  [colors[from], colors[to]] = [colors[to], colors[from]];
   current = { ...current, colors };
+  persistPalette(current);
+  renderSelection();
+}
+
+function replacePaletteColor(index, color) {
+  if (index < 0 || index > 4 || !/^#[0-9a-f]{6}$/i.test(color)) return;
+  const colors = [...current.colors];
+  colors[index] = color.toUpperCase();
+  current = { ...current, id: current.id.startsWith('custom-') ? current.id : `custom-${current.id}`, name: current.name.replace(/^Custom · /, '') };
+  current.colors = colors;
   persistPalette(current);
   renderSelection();
 }
@@ -149,6 +161,44 @@ function reorderPaletteColor(from, to) {
 function announcePaletteOrder(color, index) {
   const status = $('#paletteOrderStatus');
   if (status) status.textContent = `${color} is now ${roles[index]}.`;
+}
+
+let colorTray = [];
+try { colorTray = JSON.parse(localStorage.getItem('colorverse-color-tray') || '[]').filter(color => /^#[0-9a-f]{6}$/i.test(color)).slice(0, 18); } catch {}
+
+function saveColorTray() {
+  try { localStorage.setItem('colorverse-color-tray', JSON.stringify(colorTray)); } catch {}
+}
+
+function colorCoordinates(hex) {
+  const [lightness, a, b] = oklab(hex);
+  return { lightness, chroma: Math.hypot(a, b), hue: (Math.atan2(b, a) * 180 / Math.PI + 360) % 360 };
+}
+
+function renderColorLab() {
+  const lab = $('#colorLab');
+  if (!lab || !current.colors[activeColorIndex]) return;
+  const color = current.colors[activeColorIndex].toUpperCase();
+  const coordinates = colorCoordinates(color);
+  const title = $('#colorLabTitle');
+  const preview = $('#colorLabPreview');
+  const input = $('#colorLabInput');
+  const hex = $('#colorLabHex');
+  if (title) title.textContent = `Tune ${roles[activeColorIndex].toLowerCase()}.`;
+  if (preview) preview.style.background = color;
+  if (input) input.value = color;
+  if (hex) hex.textContent = color;
+  const shades = [0.2, 0.29, 0.38, 0.47, 0.56, 0.65, 0.74, 0.83, 0.92].map(lightness => oklch(lightness, Math.min(coordinates.chroma, lightness < .28 || lightness > .84 ? .08 : .18), coordinates.hue));
+  const alternatives = [-52, -32, -16, 16, 32, 52].map(offset => oklch(clamp(coordinates.lightness, .3, .82), clamp(coordinates.chroma * 1.04, .06, .2), coordinates.hue + offset));
+  const choice = value => `<button type="button" style="--choice:${value};--on:${textOn(value)}" data-use-color="${value}" aria-label="Use ${value}" title="${value}"><span>${value}</span></button>`;
+  const shadeGrid = $('#colorShadeGrid');
+  const alternativeGrid = $('#colorAlternativeGrid');
+  if (shadeGrid) shadeGrid.innerHTML = shades.map(choice).join('');
+  if (alternativeGrid) alternativeGrid.innerHTML = alternatives.map(choice).join('');
+  const tray = $('#colorTray');
+  if (tray) tray.innerHTML = colorTray.length ? colorTray.map(value => choice(value)).join('') : '<p>Your saved colors will appear here.</p>';
+  const add = $('#addColorToTray');
+  if (add) add.disabled = colorTray.includes(color);
 }
 
 let visiblePalettes = [...palettes];
@@ -310,21 +360,62 @@ const copyPalette = $('#copyPalette');
 if (copyPalette) copyPalette.addEventListener('click', () => copy(current.colors.join(', '), 'All five colors copied.'));
 const paletteRoles = $('#paletteRoles');
 if (paletteRoles) {
+  paletteRoles.addEventListener('click', event => {
+    const edit = event.target.closest('[data-edit-color]');
+    if (edit) {
+      activeColorIndex = Number(edit.dataset.editColor);
+      pendingSwapIndex = null;
+      renderSelection();
+      requestAnimationFrame(() => $('#colorLabInput')?.focus());
+      return;
+    }
+    const swap = event.target.closest('[data-role-swap]');
+    if (swap) {
+      const index = Number(swap.dataset.roleSwap);
+      if (pendingSwapIndex === null) {
+        pendingSwapIndex = index;
+        activeColorIndex = index;
+        renderSelection();
+        toast(`Choose another role to swap with ${roles[index]}.`);
+      } else if (pendingSwapIndex === index) {
+        pendingSwapIndex = null;
+        renderSelection();
+      } else {
+        const from = pendingSwapIndex;
+        pendingSwapIndex = null;
+        activeColorIndex = index;
+        swapPaletteColors(from, index);
+        announcePaletteOrder(current.colors[index], index);
+      }
+      return;
+    }
+    const select = event.target.closest('[data-role-select]');
+    if (!select) return;
+    const index = Number(select.dataset.roleSelect);
+    if (pendingSwapIndex !== null && pendingSwapIndex !== index) {
+      const from = pendingSwapIndex;
+      pendingSwapIndex = null;
+      activeColorIndex = index;
+      swapPaletteColors(from, index);
+      announcePaletteOrder(current.colors[index], index);
+    } else {
+      activeColorIndex = index;
+      renderSelection();
+    }
+  });
+
   paletteRoles.addEventListener('keydown', event => {
-    const swatch = event.target.closest('[data-role-index]');
-    if (!swatch) return;
-    const from = Number(swatch.dataset.roleIndex);
-    let to = from;
-    if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') to = Math.max(0, from - 1);
-    if (event.key === 'ArrowDown' || event.key === 'ArrowRight') to = Math.min(4, from + 1);
-    if (event.key === 'Home') to = 0;
-    if (event.key === 'End') to = 4;
-    if (to === from) return;
+    const select = event.target.closest('[data-role-select]');
+    if (!select) return;
+    const index = Number(select.dataset.roleSelect);
+    let next = index;
+    if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') next = Math.max(0, index - 1);
+    if (event.key === 'ArrowDown' || event.key === 'ArrowRight') next = Math.min(4, index + 1);
+    if (event.key === 'Home') next = 0;
+    if (event.key === 'End') next = 4;
+    if (next === index) return;
     event.preventDefault();
-    const color = current.colors[from];
-    reorderPaletteColor(from, to);
-    announcePaletteOrder(color, to);
-    requestAnimationFrame(() => paletteRoles.querySelector(`[data-role-index="${to}"]`)?.focus());
+    paletteRoles.querySelector(`[data-role-select="${next}"]`)?.focus();
   });
 
   paletteRoles.addEventListener('pointerdown', event => {
@@ -333,7 +424,7 @@ if (paletteRoles) {
     if (!swatch || event.button > 0) return;
     event.preventDefault();
     const index = Number(swatch.dataset.roleIndex);
-    roleDrag = { index, color: current.colors[index], moved: false };
+    roleDrag = { from: index, target: index, color: current.colors[index] };
     document.body.classList.add('is-reordering-palette');
     swatch.classList.add('is-dragging');
   });
@@ -344,24 +435,48 @@ if (paletteRoles) {
     const target = document.elementFromPoint(event.clientX, event.clientY)?.closest?.('[data-role-index]');
     if (!target || !paletteRoles.contains(target)) return;
     const to = Number(target.dataset.roleIndex);
-    if (to === roleDrag.index) return;
-    const from = roleDrag.index;
-    roleDrag.index = to;
-    roleDrag.moved = true;
-    reorderPaletteColor(from, to);
+    roleDrag.target = to;
+    paletteRoles.querySelectorAll('.is-drop-target').forEach(item => item.classList.remove('is-drop-target'));
+    if (to !== roleDrag.from) target.classList.add('is-drop-target');
   }, { passive: false });
 
   const finishRoleDrag = () => {
     if (!roleDrag) return;
-    const { color, index, moved } = roleDrag;
+    const { color, from, target } = roleDrag;
     roleDrag = null;
     document.body.classList.remove('is-reordering-palette');
     paletteRoles.querySelector('.is-dragging')?.classList.remove('is-dragging');
-    if (moved) announcePaletteOrder(color, index);
+    paletteRoles.querySelector('.is-drop-target')?.classList.remove('is-drop-target');
+    if (from !== target) {
+      activeColorIndex = target;
+      swapPaletteColors(from, target);
+      announcePaletteOrder(color, target);
+    }
   };
   window.addEventListener('pointerup', finishRoleDrag);
   window.addEventListener('pointercancel', finishRoleDrag);
 }
+
+$('#colorLabInput')?.addEventListener('change', event => replacePaletteColor(activeColorIndex, event.target.value));
+$('#colorLab')?.addEventListener('click', event => {
+  const choice = event.target.closest('[data-use-color]');
+  if (choice) replacePaletteColor(activeColorIndex, choice.dataset.useColor);
+});
+$('#addColorToTray')?.addEventListener('click', () => {
+  const color = current.colors[activeColorIndex].toUpperCase();
+  if (!colorTray.includes(color)) {
+    colorTray.unshift(color);
+    colorTray = colorTray.slice(0, 18);
+    saveColorTray();
+    renderColorLab();
+    toast(`${color} added to your color tray.`);
+  }
+});
+$('#clearColorTray')?.addEventListener('click', () => {
+  colorTray = [];
+  saveColorTray();
+  renderColorLab();
+});
 
 function makeRandomPalette() {
   const randomValue = globalThis.crypto?.getRandomValues ? globalThis.crypto.getRandomValues(new Uint32Array(1))[0] : Math.floor(Math.random() * 0xFFFFFF);
@@ -723,6 +838,9 @@ const input = $('#imageInput');
 const dropzone = $('#dropzone');
 if (input && dropzone) {
   let extractionSequence = 0;
+  let extractionSample = null;
+  let pickerPositions = [];
+  let pickerDrag = null;
   const supportedImageTypes = new Set(['image/png', 'image/jpeg', 'image/webp']);
   const isSupportedImage = file => Boolean(file && supportedImageTypes.has(file.type));
   const imageFileFromBlob = (blob, name = 'pasted-image.png') => new File([blob], name, { type: blob.type || 'image/png', lastModified: Date.now() });
@@ -742,8 +860,83 @@ if (input && dropzone) {
     }
     return null;
   }
+  function locatePickerPositions(colors) {
+    if (!extractionSample) return [];
+    const { width, height, pixels } = extractionSample;
+    const used = [];
+    return colors.map(color => {
+      const target = rgb(color);
+      let best = { score: Infinity, x: width / 2, y: height / 2 };
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const offset = (y * width + x) * 4;
+          if (pixels[offset + 3] < 128) continue;
+          const distance = (pixels[offset] - target[0]) ** 2 + (pixels[offset + 1] - target[1]) ** 2 + (pixels[offset + 2] - target[2]) ** 2;
+          const crowded = used.some(point => Math.hypot(point.x - x, point.y - y) < Math.max(5, Math.min(width, height) * .06));
+          const score = distance + (crowded ? 5400 : 0);
+          if (score < best.score) best = { score, x, y };
+        }
+      }
+      used.push(best);
+      return { x: (best.x + .5) / width * 100, y: (best.y + .5) / height * 100 };
+    });
+  }
+  function renderImagePickers(reposition = false) {
+    const layer = $('#imagePickers');
+    if (!layer || !extracted?.colors) return;
+    if (reposition || pickerPositions.length !== extracted.colors.length) pickerPositions = locatePickerPositions(extracted.colors);
+    layer.innerHTML = extracted.colors.map((color, index) => {
+      const point = pickerPositions[index] || { x: 50, y: 50 };
+      return `<button type="button" class="image-picker" data-image-picker="${index}" style="--picker:${color};--picker-on:${textOn(color)};left:${point.x}%;top:${point.y}%" aria-label="Move sample ${index + 1}, currently ${color}"><b>${index + 1}</b><span>${color}</span></button>`;
+    }).join('');
+  }
+  function sampleColorAt(xPercent, yPercent) {
+    if (!extractionSample) return null;
+    const { width, height, pixels } = extractionSample;
+    const centerX = clamp(Math.round(xPercent / 100 * (width - 1)), 0, width - 1);
+    const centerY = clamp(Math.round(yPercent / 100 * (height - 1)), 0, height - 1);
+    const sum = [0, 0, 0];
+    let count = 0;
+    for (let y = Math.max(0, centerY - 2); y <= Math.min(height - 1, centerY + 2); y++) {
+      for (let x = Math.max(0, centerX - 2); x <= Math.min(width - 1, centerX + 2); x++) {
+        const offset = (y * width + x) * 4;
+        if (pixels[offset + 3] < 128) continue;
+        for (let channel = 0; channel < 3; channel++) sum[channel] += pixels[offset + channel];
+        count++;
+      }
+    }
+    return count ? toHex(sum.map(value => value / count)) : null;
+  }
+  function updatePicker(index, event) {
+    const wrap = $('#extractedImageWrap');
+    const variant = extractedVariants[selectedExtraction];
+    if (!wrap || !variant) return;
+    const bounds = wrap.getBoundingClientRect();
+    const x = clamp((event.clientX - bounds.left) / bounds.width * 100, 0, 100);
+    const y = clamp((event.clientY - bounds.top) / bounds.height * 100, 0, 100);
+    const color = sampleColorAt(x, y);
+    if (!color) return;
+    pickerPositions[index] = { x, y };
+    variant.colors[index] = color;
+    extracted = variant;
+    const picker = $(`[data-image-picker="${index}"]`);
+    if (picker) {
+      picker.style.left = `${x}%`;
+      picker.style.top = `${y}%`;
+      picker.style.setProperty('--picker', color);
+      picker.style.setProperty('--picker-on', textOn(color));
+      picker.querySelector('span').textContent = color;
+      picker.setAttribute('aria-label', `Move sample ${index + 1}, currently ${color}`);
+    }
+    const variantButton = $(`[data-extraction-variant="${selectedExtraction}"]`);
+    const colorChip = variantButton?.querySelectorAll('.extraction-variant-colors i')[index];
+    const colorValue = variantButton?.querySelectorAll('.extraction-variant-values code')[index];
+    if (colorChip) colorChip.style.setProperty('--swatch', color);
+    if (colorValue) colorValue.textContent = color;
+  }
   function selectExtractionVariant(index) {
     if (!extractedVariants[index]) return;
+    const changed = selectedExtraction !== index || pickerPositions.length === 0;
     selectedExtraction = index;
     extracted = extractedVariants[index];
     $$('#extractedSwatches [data-extraction-variant]').forEach((button, buttonIndex) => button.setAttribute('aria-pressed', String(buttonIndex === index)));
@@ -751,6 +944,7 @@ if (input && dropzone) {
     const action = $('#useExtraction');
     if (info) info.textContent = `${extracted.variantName} · ${extracted.detail}`;
     if (action) action.textContent = `Use ${extracted.variantName.toLowerCase()}`;
+    renderImagePickers(changed);
   }
   function renderExtractionVariants() {
     const container = $('#extractedSwatches');
@@ -777,7 +971,8 @@ if (input && dropzone) {
       sample.height = Math.max(1, Math.round(image.height * size));
       const sampleContext = sample.getContext('2d', { willReadFrequently: true });
       sampleContext.drawImage(image, 0, 0, sample.width, sample.height);
-      const result = extractPaletteVariants(sampleContext.getImageData(0, 0, sample.width, sample.height).data);
+      const sampleData = sampleContext.getImageData(0, 0, sample.width, sample.height);
+      const result = extractPaletteVariants(sampleData.data);
       const preview = document.createElement('canvas');
       const previewScale = Math.min(1, 720 / image.width, 480 / image.height);
       preview.width = Math.max(1, Math.round(image.width * previewScale));
@@ -786,8 +981,10 @@ if (input && dropzone) {
       const previewData = preview.toDataURL('image/jpeg', .82);
       if (imageURL) URL.revokeObjectURL(imageURL);
       imageURL = nextURL;
+      extractionSample = { width: sample.width, height: sample.height, pixels: sampleData.data };
       extractedVariants = result.variants.map(variant => ({ id: `your-image-${variant.key}`, name: `Image · ${variant.name}`, variantName: variant.name, detail: variant.detail, description: variant.description, colors: variant.colors, image: previewData }));
       selectedExtraction = 0;
+      pickerPositions = [];
       const extractedImage = $('#extractedImage');
       // Use the generated local preview instead of the temporary blob URL. This
       // is more reliable in embedded browsers and keeps the preview browser-local.
@@ -834,6 +1031,36 @@ if (input && dropzone) {
   dropzone.addEventListener('drop', event => extract(event.dataTransfer.files?.[0] || clipboardImageFromData(event.dataTransfer)));
   const extractedSwatches = $('#extractedSwatches');
   if (extractedSwatches) extractedSwatches.addEventListener('click', event => { const button = event.target.closest('[data-extraction-variant]'); if (button) selectExtractionVariant(Number(button.dataset.extractionVariant)); });
+  const imagePickers = $('#imagePickers');
+  if (imagePickers) {
+    imagePickers.addEventListener('pointerdown', event => {
+      const picker = event.target.closest('[data-image-picker]');
+      if (!picker || event.button > 0) return;
+      event.preventDefault();
+      const index = Number(picker.dataset.imagePicker);
+      pickerDrag = { index, pointerId: event.pointerId };
+      picker.setPointerCapture(event.pointerId);
+      picker.classList.add('is-dragging');
+      updatePicker(index, event);
+    });
+    imagePickers.addEventListener('pointermove', event => {
+      if (!pickerDrag || pickerDrag.pointerId !== event.pointerId) return;
+      event.preventDefault();
+      updatePicker(pickerDrag.index, event);
+    }, { passive: false });
+    const finishPickerDrag = event => {
+      if (!pickerDrag || (event.pointerId !== undefined && pickerDrag.pointerId !== event.pointerId)) return;
+      imagePickers.querySelector('.is-dragging')?.classList.remove('is-dragging');
+      pickerDrag = null;
+      renderExtractionVariants();
+      selectExtractionVariant(selectedExtraction);
+      const status = $('#extractStatus');
+      if (status) status.textContent = 'Custom sample updated. Drag another point or continue to Studio.';
+    };
+    imagePickers.addEventListener('pointerup', finishPickerDrag);
+    imagePickers.addEventListener('pointercancel', finishPickerDrag);
+    imagePickers.addEventListener('lostpointercapture', finishPickerDrag);
+  }
   const useExtraction = $('#useExtraction');
   if (useExtraction) useExtraction.addEventListener('click', () => {
     if (!extracted) return;
