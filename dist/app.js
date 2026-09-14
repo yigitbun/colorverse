@@ -789,7 +789,9 @@ if (input && dropzone) {
       extractedVariants = result.variants.map(variant => ({ id: `your-image-${variant.key}`, name: `Image · ${variant.name}`, variantName: variant.name, detail: variant.detail, description: variant.description, colors: variant.colors, image: previewData }));
       selectedExtraction = 0;
       const extractedImage = $('#extractedImage');
-      if (extractedImage) extractedImage.src = imageURL;
+      // Use the generated local preview instead of the temporary blob URL. This
+      // is more reliable in embedded browsers and keeps the preview browser-local.
+      if (extractedImage) extractedImage.src = previewData;
       renderExtractionVariants();
       selectExtractionVariant(0);
       dropzone.classList.add('has-result');
