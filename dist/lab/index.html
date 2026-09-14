@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#151817">
+  <script>try { var preference = localStorage.getItem("colorverse-theme"); document.documentElement.dataset.theme = preference === "dark" || preference === "light" ? preference : (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); } catch { document.documentElement.dataset.theme = "light"; }</script>
+  <title>Lab — ColorVerse</title>
+  <meta name="description" content="Try experimental ColorVerse directions, starting with RoomKit Living Spaces.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;650;700;750&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css?v=24">
+  <link rel="stylesheet" href="/design-system.css?v=28">
+  <link rel="stylesheet" href="/lab.css?v=1">
+  <script type="module" src="/app.js?v=29"></script>
+  <script type="module" src="/lab.js?v=1"></script>
+</head>
+<body data-page="lab">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="header">
+    <a class="wordmark" href="/" aria-label="ColorVerse home"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2 28.1 9v14L16 30 3.9 23V9Z" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m16 8 6.9 4v8L16 24l-6.9-4v-8Z" fill="currentColor"/></svg><span>ColorVerse</span></a>
+    <nav class="desktop-nav" aria-label="Main navigation"><a href="/">Home</a><a href="/explore/">Palettes</a><a href="/extract/">Image to palette</a><a href="/studio/">Studio</a><a href="/community/">Community</a><a href="/lab/" aria-current="page">Lab</a></nav>
+    <div class="header-actions"><button class="icon-button theme-toggle" id="themeToggle" aria-label="Switch to light theme" title="Change theme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 5a7 7 0 0 1 0 14Z" fill="currentColor"/></svg></button><a class="small-button" href="/studio/">Open studio</a></div>
+  </header>
+  <main id="main" class="lab-page section-wrap">
+    <section class="lab-intro">
+      <div><div class="eyebrow">Experimental / open for feedback</div><h1>Make room for <em>possibility.</em></h1></div>
+      <div class="lab-intro-copy"><p>The Lab is where ColorVerse tests new ways to put color to work. Try a direction, tell us if it has a future, and help shape what comes next.</p><span class="lab-index">01 / 03 · first study</span></div>
+    </section>
+
+    <section class="lab-workbench" aria-labelledby="roomKitTitle">
+      <aside class="lab-controls">
+        <div class="lab-experiment-label"><span class="lab-pulse"></span><span>Now testing</span><span class="lab-state">Prototype</span></div>
+        <h2 id="roomKitTitle">RoomKit <em>/ Living Spaces</em></h2>
+        <p class="lab-lede">Upload a space or start with the room below. See how one palette changes the atmosphere across the surfaces that matter.</p>
+
+        <div class="lab-control-block">
+          <span class="lab-control-label">01 · Choose a direction</span>
+          <div class="lab-palette-picker" id="roomPalettes" role="list"></div>
+        </div>
+
+        <div class="lab-control-block">
+          <span class="lab-control-label">02 · Tune a surface</span>
+            <div class="room-role-picker" id="roomRoles" role="listbox" aria-label="Choose room surface"></div>
+            <div class="room-color-choices" id="roomColorChoices" aria-label="Choose a palette color"></div>
+          <p class="lab-hint" id="roomHint">Choose a surface, then click a color to test it.</p>
+        </div>
+
+        <div class="lab-upload-block">
+          <input id="roomInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+          <button class="button lab-upload" id="uploadRoom" type="button"><span><b>Try your own space</b><small>Private preview · JPG, PNG, WebP · max 20 MB</small></span><span aria-hidden="true">↗</span></button>
+          <button class="text-link lab-reset" id="resetRoom" type="button" hidden>Return to sample room</button>
+          <p class="lab-upload-note" id="roomStatus" role="status" aria-live="polite">Your photo stays in this browser. It is not published.</p>
+        </div>
+
+        <div class="lab-feedback">
+          <div><span class="lab-control-label">Would this earn a place in ColorVerse?</span><span class="lab-feedback-count" id="feedbackCount">0 responses</span></div>
+          <div class="lab-feedback-actions" id="feedbackActions"><button type="button" data-feedback="use">I would use this</button><button type="button" data-feedback="gimmick">Feels like a gimmick</button></div>
+          <button class="lab-comment-trigger" id="openLabComment" type="button">Leave a note <span>↗</span></button>
+        </div>
+      </aside>
+
+      <div class="room-workspace">
+        <div class="room-toolbar"><span class="room-source" id="roomSource">Curated sample room</span><div><button type="button" class="room-compare" id="compareRoom" aria-pressed="false">Compare original</button><span class="room-scale">Broad surfaces only</span></div></div>
+        <div class="room-stage" id="roomStage">
+          <div class="room-illustration" id="roomIllustration" aria-label="Stylized living room preview">
+            <div class="room-wall"></div><div class="room-window"><i></i><b></b></div><div class="room-art"><i></i><b></b><em></em></div><div class="room-floor"></div><div class="room-rug"></div><div class="room-sofa"><i></i><b></b><em></em></div><div class="room-coffee-table"></div><div class="room-chair room-chair-left"></div><div class="room-chair room-chair-right"></div><div class="room-plant"><i></i><b></b><em></em></div><div class="room-lamp"><i></i><b></b></div><div class="room-label room-label-wall">WALL</div><div class="room-label room-label-furniture">FURNITURE</div><div class="room-label room-label-accent">ACCENT</div>
+          </div>
+          <div class="room-photo" id="roomPhoto" hidden><img id="roomImage" alt="Your private room preview"><div class="photo-zone photo-zone-wall" data-photo-role="wall"></div><div class="photo-zone photo-zone-floor" data-photo-role="floor"></div><div class="photo-zone photo-zone-furniture" data-photo-role="furniture"></div><div class="photo-zone photo-zone-textile" data-photo-role="textile"></div><div class="photo-photo-note">Private preview · broad surface approximation</div></div>
+          <div class="room-original" id="roomOriginal" hidden>Original</div>
+        </div>
+        <div class="room-caption"><div><span class="eyebrow">RoomKit / 01</span><strong id="roomPaletteName">Nordic Calm</strong></div><p id="roomCaption">A quiet base, a softened blue, and one confident accent.</p><div class="room-legend"><span><i></i>Wall</span><span><i></i>Furniture</span><span><i></i>Accent</span></div></div>
+      </div>
+    </section>
+
+    <section class="lab-next" aria-labelledby="nextExperimentsTitle">
+      <div class="lab-next-head"><div><div class="eyebrow">Next in the lab</div><h2 id="nextExperimentsTitle">Three directions worth testing.</h2></div><p>Not promises. Small experiments with a clear question attached.</p></div>
+      <div class="lab-next-grid"><article><span>02</span><h3>Project memory</h3><p>Start from a named template with your palette roles and personal defaults already in place.</p><small>Question · Would you return to continue?</small></article><article><span>03</span><h3>Mini harmony wheel</h3><p>Move one color through a relationship and watch the rest of the palette respond.</p><small>Question · Is the control worth the complexity?</small></article></div>
+    </section>
+  </main>
+  <footer class="footer section-wrap"><div class="footer-top"><a class="wordmark" href="/">ColorVerse</a><p>Color exploration, in context.</p><a class="back-top" href="#main">Back to top ↑</a></div><div class="footer-bottom"><span>© 2026 ColorVerse</span><nav aria-label="Footer navigation"><a href="/explore/">Palettes</a><a href="/extract/">Image to palette</a><a href="/studio/">Studio</a><a href="/community/">Community</a><a href="/lab/">Lab</a></nav></div></footer>
+  <dialog class="lab-comment-dialog" id="labCommentDialog" aria-labelledby="labCommentTitle"><form method="dialog" id="labCommentForm"><div class="lab-dialog-head"><div><span class="eyebrow">RoomKit / feedback</span><h2 id="labCommentTitle">What would you change?</h2></div><button class="icon-button" value="cancel" aria-label="Close feedback">×</button></div><label for="labComment">Your note<textarea id="labComment" maxlength="500" placeholder="The moment I would use this is…" required></textarea></label><div class="lab-dialog-foot"><span>Prototype note · stays on this device</span><button class="button primary" value="submit">Save note</button></div></form></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

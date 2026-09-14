@@ -86,9 +86,33 @@ hesap değişikliği yapılmadı.
     açıklamayı seçilmiş bir kompozisyonda birleştir. Kare paylaşım, sunum ve
     masaüstü moodboard boyutlarında indirilebilir bir renk kartı üretir.
 
-## Önerilen ilk sıra
+## İlk araştırmadaki sıra — sonraki görüşmede güncellendi
 
-Mini çark → Keep & Explore → A/B karşılaştırma → Proje sepetleri.
+Proje/şablon hafızası → Lab + RoomKit / Living Spaces → community koleksiyonları.
+Mini çark, Keep & Explore ve A/B karşılaştırma bu temelleri destekleyen sonraki
+araçlardır. Kullanıcı özellikle projeleri/şablonları yeniden kullanmayı,
+community katkısını ve gerçek mekânda renk görmeyi öne aldı. Güncel tartışma için
+[proje hafızası ve yorum araştırması](project-workspace-and-review-research.md)
+ile [ürün kararlarına](product-decisions.md) bakılmalı.
 Bu sıra mevcut Studio düzenleme ve Color tray altyapısını büyütür. Bağımsız
 fotoğraf editörü, font kataloğu ve genel sohbet botu şimdilik daha düşük öncelikli:
 ColorVerse'in paletten uygulamaya geçen temel akışına katkıları daha dolaylı.
+
+## Son görüşme özeti
+
+- En güçlü üç yön: kullanıcının proje/şablon hafızası ve kişisel varsayılanları;
+  Community + Lab ile deneyleri kullanıcıya doğrulatma; RoomKit / Living Spaces
+  ile paleti gerçek veya örnek bir mekânda görme.
+- Hemen doğrulanabilir araç: Studio'ya eklenen Mini Harmony Wheel. Aktif renk
+  sürüklenerek ayarlanır; Free, Analogous, Complementary ve Triad ilişkileri
+  öneri olarak denenir ve Apply ile palete alınır.
+- A/B deneme masası için önerilen model: Prototype 1 kaydedilip kilitlenir;
+  Prototype 2 ondan bağımsız kopya olarak açılır. Varsayılan testte dört renk
+  aynı kalır, tek değişken görünür; değişiklikler baseline'ı ezmez.
+- Shades için yön: ilk bakışta kısa inline komşu tonlar; büyük shade kütüphanesi
+  yalnızca isteyen kullanıcı için gelişmiş görünüm. Yanında seçili çift için
+  okunabilirlik/kontrast önerisi.
+- RoomKit upload ilk aşamada private ve browser-local kalmalı. Public görsel
+  paylaşımı ayrı eylem, hak onayı, güvenlik ve oda-uygunluk kontrolü, provenance,
+  report/takedown ve kalıcı backend olmadan açılmamalı. Oda olmayan görsel
+  yönlendirilmeli; uygunsuz görsel public feed'e hiç girmemeli.

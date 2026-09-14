@@ -8,7 +8,7 @@ const $$ = selector => [...document.querySelectorAll(selector)];
 const escape = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const route = location.pathname.replace(/\/+$/, '') || '/';
-const page = ({ '/explore': 'explore', '/extract': 'extract', '/studio': 'studio', '/about': 'about', '/community': 'community' })[route] || 'home';
+const page = ({ '/explore': 'explore', '/extract': 'extract', '/studio': 'studio', '/about': 'about', '/community': 'community', '/lab': 'lab' })[route] || 'home';
 const titles = {
   home: 'ColorVerse — Find color in context',
   explore: 'Palette library — ColorVerse',
@@ -16,6 +16,7 @@ const titles = {
   studio: 'Studio — ColorVerse',
   about: 'Color guide — ColorVerse',
   community: 'Community — ColorVerse',
+  lab: 'Lab — ColorVerse',
 };
 const params = new URLSearchParams(location.search);
 let toastTimer;
@@ -202,6 +203,47 @@ function renderColorLab() {
   if (tray) tray.innerHTML = colorTray.length ? colorTray.map(value => choice(value)).join('') : '<p>Your saved colors will appear here.</p>';
   const add = $('#addColorToTray');
   if (add) add.disabled = colorTray.includes(color);
+  renderMiniHarmony();
+}
+
+let harmonyMode = 'free';
+const harmonyOffsets = { analogous: [0, 28, -28, 56, -56], complementary: [0, 180, 0, 180, 0], triad: [0, 120, 240, 120, 240] };
+function renderMiniHarmony() {
+  const wheel = $('#miniHarmonyWheel');
+  const points = $('#miniWheelPoints');
+  const rays = $('#miniWheelRays');
+  if (!wheel || !points || !rays || !current.colors[activeColorIndex]) return;
+  const base = colorCoordinates(current.colors[activeColorIndex]);
+  const offsets = harmonyOffsets[harmonyMode];
+  const colors = current.colors.slice(0, 5);
+  const pointFor = (color, index) => {
+    const coordinate = colorCoordinates(color);
+    const hue = offsets ? (base.hue + offsets[index]) % 360 : coordinate.hue;
+    const chroma = offsets ? clamp(base.chroma * (index === activeColorIndex ? 1 : .78 + index * .04), .035, .28) : clamp(coordinate.chroma, .035, .28);
+    const radius = Math.min(42, 14 + chroma / .28 * 30);
+    const angle = (hue - 90) * Math.PI / 180;
+    return { left: 50 + Math.cos(angle) * radius, top: 50 + Math.sin(angle) * radius, color };
+  };
+  points.innerHTML = colors.map((color, index) => { const point = pointFor(color, index); return `<button type="button" class="mini-wheel-point${index === activeColorIndex ? ' is-active' : ''}" data-mini-point="${index}" style="--point:${point.color};--x:${point.left}%;--y:${point.top}" aria-label="${roles[index]} ${point.color}" aria-pressed="${index === activeColorIndex}"><span>${index + 1}</span></button>`; }).join('');
+  rays.innerHTML = offsets ? offsets.map((offset, index) => `<i style="--ray:${(base.hue + offset) % 360}deg;--ray-color:${colors[index]}"></i>`).join('') : '';
+  wheel.dataset.mode = harmonyMode;
+  const status = $('#miniHarmonyStatus');
+  if (status) status.textContent = harmonyMode === 'free' ? 'drag the active point' : `${harmonyMode} suggestion`;
+  const apply = $('#applyHarmony');
+  if (apply) apply.hidden = harmonyMode === 'free';
+}
+
+function tuneMiniPoint(clientX, clientY) {
+  const wheel = $('#miniHarmonyWheel');
+  if (!wheel) return;
+  const rect = wheel.getBoundingClientRect();
+  const dx = clientX - (rect.left + rect.width / 2);
+  const dy = clientY - (rect.top + rect.height / 2);
+  const radius = Math.min(rect.width, rect.height) / 2 - 12;
+  const distance = Math.min(radius, Math.hypot(dx, dy));
+  const hue = (Math.atan2(dy, dx) * 180 / Math.PI + 90 + 360) % 360;
+  const chroma = clamp(distance / radius * .28, .02, .28);
+  replacePaletteColor(activeColorIndex, oklch(colorCoordinates(current.colors[activeColorIndex]).lightness, chroma, hue));
 }
 
 let visiblePalettes = [...palettes];
@@ -470,6 +512,37 @@ $('#colorLabInput')?.addEventListener('change', event => replacePaletteColor(act
 $('#colorLab')?.addEventListener('click', event => {
   const choice = event.target.closest('[data-use-color]');
   if (choice) replacePaletteColor(activeColorIndex, choice.dataset.useColor);
+});
+$('#miniHarmonyWheel')?.addEventListener('pointerdown', event => {
+  const point = event.target.closest('[data-mini-point]');
+  if (point && Number(point.dataset.miniPoint) !== activeColorIndex) {
+    activeColorIndex = Number(point.dataset.miniPoint);
+    renderSelection();
+    return;
+  }
+  if (!point) return;
+  event.preventDefault();
+  const wheel = event.currentTarget;
+  wheel.setPointerCapture?.(event.pointerId);
+  const move = moveEvent => tuneMiniPoint(moveEvent.clientX, moveEvent.clientY);
+  const end = () => { wheel.removeEventListener('pointermove', move); wheel.removeEventListener('pointerup', end); wheel.removeEventListener('pointercancel', end); };
+  wheel.addEventListener('pointermove', move, { passive: true });
+  wheel.addEventListener('pointerup', end, { once: true });
+  wheel.addEventListener('pointercancel', end, { once: true });
+});
+$$('[data-harmony-mode]').forEach(button => button.addEventListener('click', () => {
+  harmonyMode = button.dataset.harmonyMode;
+  $$('[data-harmony-mode]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+  renderMiniHarmony();
+}));
+$('#applyHarmony')?.addEventListener('click', () => {
+  const offsets = harmonyOffsets[harmonyMode];
+  if (!offsets || !current.colors[activeColorIndex]) return;
+  const base = colorCoordinates(current.colors[activeColorIndex]);
+  current = { ...current, id: current.id.startsWith('custom-') ? current.id : `custom-${current.id}`, colors: current.colors.map((color, index) => oklch(colorCoordinates(color).lightness, clamp(base.chroma * (index === activeColorIndex ? 1 : .78 + index * .04), .035, .28), base.hue + offsets[index])) };
+  persistPalette(current);
+  renderSelection(true);
+  toast(`${harmonyMode[0].toUpperCase() + harmonyMode.slice(1)} relationship applied.`);
 });
 $('#addColorToTray')?.addEventListener('click', () => {
   const color = current.colors[activeColorIndex].toUpperCase();

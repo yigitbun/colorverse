@@ -16,13 +16,14 @@
   <link rel="stylesheet" href="/styles.css?v=24">
   <link rel="stylesheet" href="/design-system.css?v=28">
   <link rel="stylesheet" href="/shade-studio.css?v=1">
+  <link rel="stylesheet" href="/mini-harmony.css?v=1">
   <script type="module" src="/app.js?v=28"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="header">
     <a class="wordmark" href="/" aria-label="ColorVerse home"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2 28.1 9v14L16 30 3.9 23V9Z" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m16 8 6.9 4v8L16 24l-6.9-4v-8Z" fill="currentColor"/></svg><span>ColorVerse</span></a>
-    <nav class="desktop-nav" aria-label="Main navigation"><a href="/">Home</a><a href="/explore/">Palettes</a><a href="/extract/">Image to palette</a><a href="/community/">Community</a><a href="/about/">Color guide</a></nav>
+    <nav class="desktop-nav" aria-label="Main navigation"><a href="/">Home</a><a href="/explore/">Palettes</a><a href="/extract/">Image to palette</a><a href="/studio/" aria-current="page">Studio</a><a href="/community/">Community</a><a href="/lab/">Lab</a></nav>
     <div class="header-actions"><button class="icon-button theme-toggle" id="themeToggle" aria-label="Switch to light theme" title="Change theme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 5a7 7 0 0 1 0 14Z" fill="currentColor"/></svg></button><a class="small-button" href="/explore/" aria-current="page">Back to palettes</a></div>
   </header>
   <main id="main">
@@ -46,6 +47,12 @@
           <div class="color-lab-head"><span class="eyebrow">Color lab</span><button type="button" id="clearColorTray">Clear tray</button></div>
           <h3 id="colorLabTitle">Tune one color.</h3><p>A little lighter. A little richer. Find the nuance that fits.</p>
           <div class="color-lab-current"><span id="colorLabPreview" aria-hidden="true"></span><label><span>Exact color</span><input type="color" id="colorLabInput" aria-label="Choose an exact color"><code id="colorLabHex"></code></label></div>
+          <section class="color-lab-section mini-harmony" aria-labelledby="miniHarmonyTitle">
+            <div><h4 id="miniHarmonyTitle">Mini harmony wheel</h4><span id="miniHarmonyStatus">drag the active point</span></div>
+            <div class="mini-wheel" id="miniHarmonyWheel" role="application" aria-label="Mini harmony color wheel. Drag the active point to tune its hue and intensity"><div class="mini-wheel-rays" id="miniWheelRays"></div><div class="mini-wheel-points" id="miniWheelPoints"></div><span class="mini-wheel-center" aria-hidden="true"></span></div>
+            <div class="mini-wheel-mode" role="group" aria-label="Harmony relationship"><button type="button" data-harmony-mode="free" aria-pressed="true">Free</button><button type="button" data-harmony-mode="analogous" aria-pressed="false">Analogous</button><button type="button" data-harmony-mode="complementary" aria-pressed="false">Complementary</button><button type="button" data-harmony-mode="triad" aria-pressed="false">Triad</button></div>
+            <button type="button" class="mini-wheel-apply" id="applyHarmony" hidden>Apply relationship <span>→</span></button>
+          </section>
           <section class="color-lab-section shade-entry" aria-labelledby="shadeTitle">
             <div><h4 id="shadeTitle">Shades</h4><span id="shadeOptionCount">63 nuances</span></div>
             <button class="shade-launch" id="openShadeStudio" type="button" aria-haspopup="dialog" aria-controls="shadeStudio">
@@ -62,7 +69,7 @@
     </section>
     <section class="route-next section-wrap" aria-label="Continue exploring"><a href="/explore/"><span class="eyebrow">Need another direction?</span><strong>Browse the library <b>→</b></strong></a><a href="/extract/"><span class="eyebrow">Have a reference?</span><strong>Read an image <b>→</b></strong></a></section>
   </main>
-  <footer class="footer section-wrap"><div class="footer-top"><a class="wordmark" href="/">ColorVerse</a><p>Color exploration, in context.</p><a class="back-top" href="#main">Back to top ↑</a></div><div class="footer-bottom"><span>© 2026 ColorVerse</span><nav aria-label="Footer navigation"><a href="/">Home</a><a href="/explore/">Palettes</a><a href="/extract/">Image to palette</a><a href="/about/">Color guide</a></nav></div></footer>
+  <footer class="footer section-wrap"><div class="footer-top"><a class="wordmark" href="/">ColorVerse</a><p>Color exploration, in context.</p><a class="back-top" href="#main">Back to top ↑</a></div><div class="footer-bottom"><span>© 2026 ColorVerse</span><nav aria-label="Footer navigation"><a href="/">Home</a><a href="/explore/">Palettes</a><a href="/extract/">Image to palette</a><a href="/community/">Community</a><a href="/lab/">Lab</a><a href="/about/">Color guide</a></nav></div></footer>
   <dialog class="shade-studio" id="shadeStudio" aria-labelledby="shadeStudioTitle" aria-describedby="shadeStudioDescription">
     <header class="shade-studio-head">
       <div><span class="shade-kicker">Color lab <span aria-hidden="true">/</span> Shades</span><h2 id="shadeStudioTitle">One color. Every nuance.</h2><p id="shadeStudioDescription">Explore the light, depth and character of your color.</p></div>
