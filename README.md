@@ -22,7 +22,11 @@ Serve the authored static output with `python3 -m http.server 4186 --directory d
 
 The earlier React component integration under `components/ui/` is retained and is independent of this static application. The v10 prototype is preserved in `docs/prototype-v10.html`.
 
-Hosting is configured by `.openai/hosting.json`. Private publication uses Sites; the original `colorverse.byigit.dev` deployment is not changed.
+Production is deployed from GitHub `main` to Cloudflare Pages at
+[`colorverse.byigit.dev`](https://colorverse.byigit.dev). `.openai/hosting.json`
+configures a separate private Sites preview and must not claim the public
+domain. Agents should start with [`AGENTS.md`](AGENTS.md); the full domain and
+release runbook is in [`docs/operations.md`](docs/operations.md).
 
 ## Backend infrastructure
 
