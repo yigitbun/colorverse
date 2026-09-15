@@ -32,6 +32,7 @@ The project/template direction and proposed review-analysis method live in
 - Community contribution should support a palette-first path as well as an image-first path. Confirm the palette, title, and intended use before an explicit sharing action; attach a reference image optionally. Accounts can add drafts, versions, and deeper attribution later.
 - Color worlds are navigational moods, not separate products. The default world includes the full spectrum; focused worlds provide three intentional starter palettes and a subtle site-wide atmosphere using CSS variables rather than heavy media.
 - The world rail uses six entries in a quiet reverse-crescent composition. One entry may rotate as a time-specific editorial edition without making the product dependent on weekly trends.
+- The public homepage is itself the primary Explore surface. The globe remains the distinctive creation entry, followed immediately by a visual feed of contextual palette examples. `/explore/` remains the complete searchable/filterable palette library rather than a duplicate landing page.
 
 ## Working directions — 2026-09-14
 
@@ -101,6 +102,20 @@ The project/template direction and proposed review-analysis method live in
   Tray storage remains browser-local, deduplicated, and capped at 18 colors.
 - Keep two-role swapping. Editing a shade, an exact color, or swapping roles must
   survive a reload, including when starting from a library palette URL.
+
+## Homepage discovery revision — 2026-09-15
+
+- Treat `/` as Explore, not as a conventional marketing homepage. In global
+  navigation, `/` is “Explore” and `/explore/` is “All palettes”.
+- Keep the interactive globe first because it is ColorVerse's distinctive way
+  to create a direction. Immediately below it, show a dense, image-led feed of
+  selected palettes so visitors can discover value without choosing a tool first.
+- The homepage feed may filter by practical context such as brand, digital,
+  spaces, and editorial. Every card must show its five colors and lead directly
+  to Studio; the complete search and filtering experience belongs to All palettes.
+- As real community work becomes durable, the feed can mix curated palettes and
+  credited community projects. Until then, do not label static editorial examples
+  as live or popular community activity.
 
 ## Community priority — 2026-09-14
 

@@ -1,0 +1,66 @@
+/* The homepage is the visual discovery surface; /explore remains the full library. */
+.home-explore{padding-top:54px;padding-bottom:82px;border-top:1px solid var(--line)}
+.home-explore-head{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(260px,.55fr);align-items:end;gap:40px}
+.home-explore-head h2{margin-top:14px;font-size:clamp(3rem,5.9vw,6rem);line-height:.92;letter-spacing:-.065em}
+.home-explore-head>p{max-width:430px;margin-bottom:7px;color:var(--muted);font-size:1rem;line-height:1.7}
+.home-explore-toolbar{display:flex;align-items:center;justify-content:space-between;gap:22px;margin:35px 0 19px;padding:13px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.home-explore-filters{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.home-explore-filters::-webkit-scrollbar{display:none}
+.home-explore-filters button{flex:none;padding:8px 12px;border:1px solid transparent;border-radius:999px;background:transparent;color:var(--muted);font-size:.8125rem;white-space:nowrap}
+.home-explore-filters button:hover,.home-explore-filters button[aria-pressed=true]{border-color:var(--line);background:var(--surface-2);color:var(--ink)}
+.home-explore-toolbar>a{flex:none;color:var(--accent);font-size:.8125rem;font-weight:700}
+.home-explore-toolbar>a span{margin-left:6px}
+.home-explore-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-auto-flow:dense;grid-auto-rows:64px;gap:16px}
+.home-explore-card{grid-column:span 4;grid-row:span 4;display:flex;min-width:0;flex-direction:column;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:0 15px 40px #00000008;transition:transform .25s var(--ease),border-color .25s,box-shadow .25s}
+.home-explore-card.is-featured{grid-column:span 8;grid-row:span 6}
+.home-explore-card.is-compact{grid-row:span 3}
+.home-explore-card:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--accent) 38%,var(--line));box-shadow:0 22px 52px #00000012}
+.home-explore-media{position:relative;display:block;flex:1;min-height:0;overflow:hidden;background:var(--cover);color:#fff}
+.home-explore-media img{width:100%;height:100%;object-fit:cover;filter:saturate(.88) contrast(.98);transition:transform .7s var(--ease),filter .35s}
+.home-explore-card:hover .home-explore-media img{transform:scale(1.035);filter:saturate(1) contrast(1)}
+.home-explore-media::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#080b0d08 35%,#080b0d9c)}
+.home-explore-index,.home-explore-category{position:absolute;z-index:1;top:14px;padding:5px 8px;border:1px solid #ffffff42;border-radius:4px;background:#10121642;backdrop-filter:blur(8px);font:10px var(--mono);letter-spacing:.03em}
+.home-explore-index{left:14px}.home-explore-category{right:14px}
+.home-explore-caption{position:absolute;z-index:1;left:17px;right:17px;bottom:15px;display:flex;align-items:end;justify-content:space-between;gap:14px}
+.home-explore-caption strong{font-size:clamp(1.2rem,2vw,2rem);line-height:1;letter-spacing:-.04em}
+.home-explore-caption span{font-size:.6875rem;opacity:.82}
+.home-explore-colors{display:grid;grid-template-columns:repeat(5,1fr);height:40px;padding:6px;gap:4px;background:color-mix(in srgb,var(--surface-2) 68%,transparent);border-top:1px solid var(--line)}
+.home-explore-colors button{min-width:0;border:1px solid #ffffff2e;border-radius:4px;background:var(--swatch);color:var(--on);box-shadow:inset 0 1px #ffffff35}
+.home-explore-colors button code{font:8px var(--mono);opacity:0}
+.home-explore-colors button:hover code,.home-explore-colors button:focus-visible code{opacity:1}
+.home-explore-copy{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:14px;padding:13px 15px 14px}
+.home-explore-copy p{min-width:0;overflow:hidden;color:var(--muted);font-size:.75rem;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.home-explore-copy a{color:var(--accent);font-size:.75rem;font-weight:700;white-space:nowrap}
+.home-explore-card.is-compact .home-explore-colors{height:32px;padding:5px}
+.home-explore-card.is-compact .home-explore-copy{padding-block:10px}
+.home-explore-card.is-compact .home-explore-copy p{display:none}
+.home-explore-empty{grid-column:1/-1;padding:70px 0;color:var(--muted);text-align:center}
+.home-explore-foot{display:flex;align-items:center;justify-content:center;gap:22px;margin-top:34px}
+.home-explore-foot>span{color:var(--muted);font-size:.8125rem}
+.home-explore-foot .button{min-height:42px;padding:10px 16px;font-size:.8125rem}
+.home-explore-foot .text-link{font-size:.8125rem}
+@media(max-width:900px){
+  .home-explore-head{grid-template-columns:1fr 280px;gap:28px}
+  .home-explore-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:auto}
+  .home-explore-card,.home-explore-card.is-compact{grid-column:span 1;grid-row:auto;height:340px}
+  .home-explore-card.is-featured{grid-column:1/-1;grid-row:auto;height:430px}
+  .home-explore-card.is-compact .home-explore-colors{height:40px;padding:6px}
+  .home-explore-card.is-compact .home-explore-copy{padding:13px 15px 14px}
+  .home-explore-card.is-compact .home-explore-copy p{display:-webkit-box}
+}
+@media(max-width:620px){
+  .home-explore{padding-top:35px;padding-bottom:48px}
+  .home-explore-head{grid-template-columns:1fr;gap:18px}
+  .home-explore-head h2{font-size:clamp(2.75rem,13vw,4rem);line-height:.96}
+  .home-explore-head>p{margin:0;font-size:.9rem;line-height:1.65}
+  .home-explore-toolbar{align-items:flex-start;margin:25px 0 15px;padding:11px 0}
+  .home-explore-filters{margin-right:-10px}
+  .home-explore-toolbar>a{display:none}
+  .home-explore-grid{grid-template-columns:1fr;gap:13px}
+  .home-explore-card,.home-explore-card.is-featured,.home-explore-card.is-compact{grid-column:1;grid-row:auto;height:360px}
+  .home-explore-media{min-height:210px}
+  .home-explore-caption strong{font-size:1.35rem}
+  .home-explore-copy p{font-size:.72rem}
+  .home-explore-foot{justify-content:flex-start;flex-wrap:wrap;gap:14px;margin-top:25px}
+  .home-explore-foot>span{flex:0 0 100%}
+}

@@ -10,7 +10,7 @@ const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const route = location.pathname.replace(/\/+$/, '') || '/';
 const page = ({ '/explore': 'explore', '/extract': 'extract', '/studio': 'studio', '/about': 'about', '/community': 'community', '/lab': 'lab' })[route] || 'home';
 const titles = {
-  home: 'ColorVerse — Find color in context',
+  home: 'Explore palettes in context — ColorVerse',
   explore: 'Palette library — ColorVerse',
   extract: 'Image to palette — ColorVerse',
   studio: 'Studio — ColorVerse',
@@ -706,6 +706,36 @@ if (themeToggle) themeToggle.addEventListener('click', () => setTheme(document.d
 $$('.desktop-nav a').forEach(link => { if (link.pathname.replace(/\/+$/, '') === route) link.setAttribute('aria-current', 'page'); });
 
 if (page === 'home') {
+  const homeExploreGroups = {
+    all: ['reef-current', 'civic-shadow', 'quiet-workshop', 'market-signal', 'after-hours', 'prism-light', 'dune-signal', 'archive-green', 'patina-cycle'],
+    brand: ['market-signal', 'quiet-workshop', 'dune-signal', 'archive-green', 'patina-cycle', 'reef-current'],
+    digital: ['after-hours', 'prism-light', 'civic-shadow', 'reef-current', 'market-signal', 'low-cloud'],
+    spaces: ['quiet-workshop', 'civic-shadow', 'low-cloud', 'dune-signal', 'reef-current', 'patina-cycle'],
+    editorial: ['archive-green', 'prism-light', 'patina-cycle', 'low-cloud', 'civic-shadow', 'dune-signal'],
+  };
+  const renderHomeExplore = (group = 'all') => {
+    const grid = $('#homeExploreGrid');
+    if (!grid) return;
+    const items = (homeExploreGroups[group] || homeExploreGroups.all).map(id => palettes.find(palette => palette.id === id)).filter(Boolean);
+    grid.innerHTML = items.length ? items.map((palette, index) => `<article class="home-explore-card${index === 0 ? ' is-featured' : index < 3 ? ' is-compact' : ''}" style="--cover:${palette.colors[1]}">
+      <a class="home-explore-media" href="/studio/?p=${encodeURIComponent(palette.id)}#studio" data-select="${palette.id}" aria-label="Open ${escape(palette.name)} in Studio">
+        <img src="${escape(palette.image)}" alt="${escape(palette.name)} inspiration" width="900" height="600" loading="${index < 3 ? 'eager' : 'lazy'}" decoding="async">
+        <span class="home-explore-index">${String(index + 1).padStart(2, '0')}</span><span class="home-explore-category">${escape(palette.category)}</span>
+        <span class="home-explore-caption"><strong>${escape(palette.name)}</strong><span>${escape((palette.useCases || []).slice(0, 2).join(' · '))}</span></span>
+      </a>
+      <div class="home-explore-colors" aria-label="${escape(palette.name)} colors">${palette.colors.slice(0, 5).map(color => swatch(color)).join('')}</div>
+      <div class="home-explore-copy"><p>${escape(palette.description)}</p><a href="/studio/?p=${encodeURIComponent(palette.id)}#studio" data-select="${palette.id}">Use palette →</a></div>
+    </article>`).join('') : '<p class="home-explore-empty">No directions in this view yet.</p>';
+    grid.querySelectorAll('img').forEach(image => image.addEventListener('error', () => {
+      image.hidden = true;
+      image.parentElement.classList.add('has-image-fallback');
+    }));
+  };
+  renderHomeExplore();
+  $$('.home-explore-filters [data-home-filter]').forEach(button => button.addEventListener('click', () => {
+    $$('.home-explore-filters [data-home-filter]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+    renderHomeExplore(button.dataset.homeFilter);
+  }));
   let activeAtlasWorld = savedAtlasWorld;
   let worldVariantIndex = 0;
   const atlasWorldSwitch = $('#atlasWorldSwitch');
