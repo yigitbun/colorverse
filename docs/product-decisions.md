@@ -90,9 +90,11 @@ The project/template direction and proposed review-analysis method live in
 
 - The owner rejected the Mini Harmony Wheel. Remove its UI, code, and Lab teaser;
   do not reintroduce it without a new request.
-- Keep direct color editing on the left: each role visibly says “Edit color”
-  with a pencil, and the selected role exposes a color picker and HEX field.
-  Remove the right-side “Tune background” editor. The first role starts selected.
+- Keep direct color editing on the left: each role has a compact visible swatch
+  that opens the native color picker directly. Do not duplicate the color as an
+  expanded “Edit color”, “Change color”, or HEX editor inside the role list.
+  Selecting or changing a role updates the right-side shade panel. The first
+  role starts selected.
 - The right panel presents a wider vertical shade strip, 12 nearby alternatives,
   and a separate Contrast section. Contrast suggestions show the resulting ratio
   against Text when editing Background, and against Background for other roles.
@@ -118,6 +120,9 @@ The project/template direction and proposed review-analysis method live in
   photography that competes with the palette. Keep the set small and curated,
   make the five-color strip more prominent than decorative imagery, and use one
   coherent photographic language across the feed.
+- Keep homepage calls to action minimal. “Browse inspiration” is the primary
+  hero action; image upload and random palette entry points belong in the
+  relevant tool/library surfaces, not beside the hero CTA.
 - As real community work becomes durable, the feed can mix curated palettes and
   credited community projects. Until then, do not label static editorial examples
   as live or popular community activity.

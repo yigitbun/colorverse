@@ -182,22 +182,18 @@ function colorCoordinates(hex) {
 
 // Keep the tonal scale anchored while trying its shades.
 let shadeSourceColors = current.colors.slice(0, 5);
-const pencilIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15Z"/></svg>';
 const trashIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7"/></svg>';
 
 function renderPaletteRoles() {
   const container = $('#paletteRoles');
   if (!container) return;
-  container.innerHTML = current.colors.slice(0, 5).map((color, index) => `<div class="role-swatch${activeColorIndex === index ? ' is-selected' : ''}${pendingSwapIndex === index ? ' is-swap-source' : ''}" style="--swatch:${color}" data-role-index="${index}">
-    <button class="role-select" type="button" data-role-select="${index}" aria-pressed="${activeColorIndex === index}" aria-label="Edit ${roles[index]} color ${color}" aria-controls="colorLab">
-      <span class="role-grip" aria-hidden="true" title="Drag onto another color to swap"><svg viewBox="0 0 10 16"><circle cx="2" cy="3" r="1.2"/><circle cx="8" cy="3" r="1.2"/><circle cx="2" cy="8" r="1.2"/><circle cx="8" cy="8" r="1.2"/><circle cx="2" cy="13" r="1.2"/><circle cx="8" cy="13" r="1.2"/></svg></span>
-      <i aria-hidden="true"></i><span class="role-name">${roles[index]}</span><code>${color}</code><span class="role-edit-hint">${pencilIcon} Edit color</span>
+  container.innerHTML = current.colors.slice(0, 5).map((color, index) => `<div class="role-swatch${activeColorIndex === index ? ' is-selected' : ''}${pendingSwapIndex === index ? ' is-swap-source' : ''}" data-role-index="${index}">
+    <span class="role-grip" aria-hidden="true" title="Drag onto another color to swap"><svg viewBox="0 0 10 16"><circle cx="2" cy="3" r="1.2"/><circle cx="8" cy="3" r="1.2"/><circle cx="2" cy="8" r="1.2"/><circle cx="8" cy="8" r="1.2"/><circle cx="2" cy="13" r="1.2"/><circle cx="8" cy="13" r="1.2"/></svg></span>
+    <label class="role-color-control" style="--swatch:${color}" title="Click to change ${roles[index]} color"><input type="color" data-role-color="${index}" value="${color}" aria-label="Change ${roles[index]} color"><span aria-hidden="true"></span></label>
+    <button class="role-select" type="button" data-role-select="${index}" aria-pressed="${activeColorIndex === index}" aria-label="Select ${roles[index]} for shades" aria-controls="colorLab">
+      <span class="role-name">${roles[index]}</span><code>${color}</code>
     </button>
     <button class="role-action" type="button" data-role-swap="${index}" aria-label="${pendingSwapIndex === index ? 'Cancel swap' : `Swap ${roles[index]} with another role`}" title="Swap colors">↔</button>
-    ${activeColorIndex === index ? `<div class="role-editor">
-      <label class="role-picker"><input type="color" data-role-color="${index}" value="${color}" aria-label="Change ${roles[index]} color"><span>${pencilIcon} Change color</span></label>
-      <label class="role-hex"><span>HEX</span><input type="text" data-role-hex="${index}" value="${color}" aria-label="${roles[index]} HEX" maxlength="7" spellcheck="false" autocomplete="off"></label>
-    </div>` : ''}
   </div>`).join('');
 }
 
@@ -496,25 +492,17 @@ if (paletteRoles) {
 }
 
 paletteRoles?.addEventListener('change', event => {
-  const input = event.target.closest('[data-role-color], [data-role-hex]');
+  const input = event.target.closest('[data-role-color]');
   if (!input) return;
-  const isHex = input.hasAttribute('data-role-hex');
-  const index = Number(isHex ? input.dataset.roleHex : input.dataset.roleColor);
+  const index = Number(input.dataset.roleColor);
   const color = '#' + input.value.trim().replace(/^#/, '').toUpperCase();
   if (!/^#[0-9A-F]{6}$/.test(color)) {
-    input.setCustomValidity('Enter six hex digits, for example #2D5BFF.');
-    input.reportValidity();
     return;
   }
   input.setCustomValidity('');
+  activeColorIndex = index;
+  pendingSwapIndex = null;
   replacePaletteColor(index, color);
-  paletteRoles.querySelector(`[data-role-${isHex ? 'hex' : 'color'}="${index}"]`)?.focus({ preventScroll: true });
-});
-paletteRoles?.addEventListener('input', event => event.target.setCustomValidity?.(''));
-paletteRoles?.addEventListener('keydown', event => {
-  if (!event.target.matches('[data-role-hex]')) return;
-  if (event.key === 'Enter') { event.preventDefault(); event.target.dispatchEvent(new Event('change', { bubbles: true })); }
-  if (event.key === 'Escape') { event.target.value = current.colors[activeColorIndex]; event.target.setCustomValidity(''); }
 });
 $('#colorLab')?.addEventListener('click', event => {
   const shade = event.target.closest('[data-inline-shade]');
