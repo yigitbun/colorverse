@@ -25,7 +25,7 @@ The project/template direction and proposed review-analysis method live in
 - Every primary route should end in a usable five-color palette and a clear path into Studio.
 - The globe supports one-to-five explicit color choices; missing roles are generated around those choices.
 - Studio preserves the chosen five colors. Reordering changes their functional roles and updates every preview and export live; it does not replace the palette with an unrelated one.
-- Studio shade editing uses a focused comparison dialog: Pure, Soft, and Rich families offer 21 light-to-deep samples each, plus continuous lightness/intensity controls. Neutral colors use one neutral family. The original hue stays fixed, browsing previews a draft, and Apply changes only the selected role. Cancel discards the draft; applied changes survive reloads from a library link.
+- Studio shade editing starts with a vertical light-to-deep strip in the right panel, driven by the selected left-hand role (Background by default). Clicking a tone changes only that role and keeps the strip's source stable. An optional Full library dialog retains Pure, Soft, and Rich families with 21 samples each, continuous controls, and explicit Apply/Cancel. Applied changes survive reloads from a library link.
 - Random generation is a first-class starting point.
 - Image extraction separates dominant colors, visual focus, and design-ready roles. Future work should expose small but meaningful accent colors and direct image sampling.
 - Community should support both contextual palette ideas and applied work, with clear labels distinguishing concepts from completed projects. Saves, remixes, creator attribution, and discovery should connect contributions to Studio.
@@ -62,7 +62,7 @@ The project/template direction and proposed review-analysis method live in
 - The Studio's three leading near-term product candidates from the owner's
   feedback are: project/template memory, Lab + Community validation, and
   RoomKit / Living Spaces. Within the existing tool ideas, the immediate small
-  implementation is Mini Harmony Wheel; A/B prototype workbench is the next
+  implementation was Mini Harmony Wheel (rejected and removed on 2026-09-15); A/B prototype workbench is the next
   structural step, followed by collection baskets, contrast cues, and a lighter
   shade entry.
 - The A/B workbench should be a project-level comparison, not a second unrelated
@@ -84,6 +84,23 @@ The project/template direction and proposed review-analysis method live in
   background pair, AA/AAA status, and one or two nearby safer alternatives. A
   contrast suggestion is guidance for the current pair, not a guarantee that an
   entire design is accessible.
+
+## Studio editing revision — 2026-09-15
+
+- The owner rejected the Mini Harmony Wheel. Remove its UI, code, and Lab teaser;
+  do not reintroduce it without a new request.
+- Keep direct color editing on the left: each role visibly says “Edit color”
+  with a pencil, and the selected role exposes a color picker and HEX field.
+  Remove the right-side “Tune background” editor. The first role starts selected.
+- The right panel presents a wider vertical shade strip, 12 nearby alternatives,
+  and a separate Contrast section. Contrast suggestions show the resulting ratio
+  against Text when editing Background, and against Background for other roles.
+  They concern that pair only, not whole-design accessibility.
+- Preserve Add to color tray. Every saved color has its own visible trash button;
+  deleting it removes only that saved color, never the active palette role.
+  Tray storage remains browser-local, deduplicated, and capped at 18 colors.
+- Keep two-role swapping. Editing a shade, an exact color, or swapping roles must
+  survive a reload, including when starting from a library palette URL.
 
 ## Community priority — 2026-09-14
 

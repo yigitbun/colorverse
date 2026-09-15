@@ -16,8 +16,8 @@
   <link rel="stylesheet" href="/styles.css?v=24">
   <link rel="stylesheet" href="/design-system.css?v=28">
   <link rel="stylesheet" href="/shade-studio.css?v=1">
-  <link rel="stylesheet" href="/mini-harmony.css?v=1">
-  <script type="module" src="/app.js?v=28"></script>
+  <link rel="stylesheet" href="/studio-editor.css?v=1">
+  <script type="module" src="/app.js?v=30"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -31,7 +31,7 @@
       <div class="page-intro reveal"><div class="eyebrow">Palette studio</div><h1 id="studioTitle">See your colors in context.</h1><p>Give a direction a quick reality check. Reassign each color's role, move between four familiar surfaces, and export the palette when it feels right.</p></div>
       <div class="studio-workspace reveal">
         <aside class="palette-inspector">
-          <div class="inspector-top"><span class="eyebrow">Your palette</span><span class="palette-order-hint">Select · tune · swap</span></div>
+          <div class="inspector-top"><span class="eyebrow">Your palette</span><span class="palette-order-hint">Click a color to edit</span></div>
           <h3 id="paletteName">Sunset Pop</h3><p id="paletteDescription">Hot pinks and golden oranges.</p>
           <div class="palette-roles" id="paletteRoles"></div>
           <p class="sr-only" id="paletteOrderStatus" aria-live="polite"></p>
@@ -44,25 +44,26 @@
           <div class="context-caption"><span>Sample design</span><span>Drag one color onto another to swap roles.</span></div>
         </div>
         <aside class="color-lab" id="colorLab" aria-labelledby="colorLabTitle">
-          <div class="color-lab-head"><span class="eyebrow">Color lab</span><button type="button" id="clearColorTray">Clear tray</button></div>
-          <h3 id="colorLabTitle">Tune one color.</h3><p>A little lighter. A little richer. Find the nuance that fits.</p>
-          <div class="color-lab-current"><span id="colorLabPreview" aria-hidden="true"></span><label><span>Exact color</span><input type="color" id="colorLabInput" aria-label="Choose an exact color"><code id="colorLabHex"></code></label></div>
-          <section class="color-lab-section mini-harmony" aria-labelledby="miniHarmonyTitle">
-            <div><h4 id="miniHarmonyTitle">Mini harmony wheel</h4><span id="miniHarmonyStatus">drag the active point</span></div>
-            <div class="mini-wheel" id="miniHarmonyWheel" role="application" aria-label="Mini harmony color wheel. Drag the active point to tune its hue and intensity"><div class="mini-wheel-rays" id="miniWheelRays"></div><div class="mini-wheel-points" id="miniWheelPoints"></div><span class="mini-wheel-center" aria-hidden="true"></span></div>
-            <div class="mini-wheel-mode" role="group" aria-label="Harmony relationship"><button type="button" data-harmony-mode="free" aria-pressed="true">Free</button><button type="button" data-harmony-mode="analogous" aria-pressed="false">Analogous</button><button type="button" data-harmony-mode="complementary" aria-pressed="false">Complementary</button><button type="button" data-harmony-mode="triad" aria-pressed="false">Triad</button></div>
-            <button type="button" class="mini-wheel-apply" id="applyHarmony" hidden>Apply relationship <span>→</span></button>
+          <header class="shade-panel-head"><h3 id="colorLabTitle">Shades</h3><span id="shadeRoleNameInline">Background</span></header>
+          <p class="shade-panel-intro">Choose a shade to apply it.</p>
+          <div class="shade-panel-body">
+            <section class="vertical-shade-section" aria-label="Light to deep shades">
+              <div class="shade-endpoint"><span>Light</span><code id="shadeCurrentHex"></code></div>
+              <div class="vertical-shades" id="colorShadeGrid" aria-label="Choose a shade"></div>
+              <div class="shade-endpoint"><span>Deep</span><span id="shadeOptionCount"></span></div>
+              <button class="shade-library-link" id="openShadeStudio" type="button" aria-haspopup="dialog" aria-controls="shadeStudio">Full library <span aria-hidden="true">↗</span></button>
+            </section>
+            <div class="shade-companions">
+              <section class="shade-alternatives" aria-labelledby="alternativeTitle"><h4 id="alternativeTitle">Alternatives</h4><p>Nearby hues</p><div class="color-choice-grid alternative-grid" id="colorAlternativeGrid"></div></section>
+              <section class="shade-contrast" aria-labelledby="contrastTitle"><h4 id="contrastTitle">Contrast</h4><p id="colorContrastPair"></p><div id="colorContrastGrid"></div></section>
+            </div>
+          </div>
+          <section class="tray-section" aria-labelledby="trayTitle">
+            <div class="tray-heading"><h4 id="trayTitle">Color tray</h4><span id="trayCount">0 / 18</span></div>
+            <button class="button color-tray-add" id="addColorToTray" type="button"><span>Add to color tray</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+            <div class="color-tray" id="colorTray" aria-label="Saved colors"></div>
+            <p class="sr-only" id="trayStatus" role="status" aria-live="polite"></p>
           </section>
-          <section class="color-lab-section shade-entry" aria-labelledby="shadeTitle">
-            <div><h4 id="shadeTitle">Shades</h4><span id="shadeOptionCount">63 nuances</span></div>
-            <button class="shade-launch" id="openShadeStudio" type="button" aria-haspopup="dialog" aria-controls="shadeStudio">
-              <span class="shade-entry-spectrum" id="colorShadeGrid" aria-hidden="true"></span>
-              <span class="shade-entry-scale" aria-hidden="true"><span>Light</span><span>Deep</span></span>
-              <span class="shade-entry-action">Explore shades <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></span>
-            </button>
-          </section>
-          <section class="color-lab-section" aria-labelledby="alternativeTitle"><div><h4 id="alternativeTitle">Alternatives</h4><span>nearby directions</span></div><div class="color-choice-grid alternative-grid" id="colorAlternativeGrid"></div></section>
-          <button class="button color-tray-add" id="addColorToTray" type="button">Add to color tray <span>＋</span></button><div class="color-tray" id="colorTray" aria-label="Saved colors"></div>
         </aside>
       </div>
       <div class="export-panel reveal"><div class="export-intro"><span class="eyebrow">Export</span><h3>Copy your palette.</h3><p>Choose the format for your project.</p></div><div class="export-code"><div class="export-toolbar"><div class="export-tabs" role="tablist" aria-label="Export format"><button role="tab" id="format-css" aria-controls="exportCode" aria-selected="true" data-format="css">CSS</button><button role="tab" id="format-scss" aria-controls="exportCode" aria-selected="false" tabindex="-1" data-format="scss">SCSS</button><button role="tab" id="format-tailwind" aria-controls="exportCode" aria-selected="false" tabindex="-1" data-format="tailwind">Tailwind</button><button role="tab" id="format-json" aria-controls="exportCode" aria-selected="false" tabindex="-1" data-format="json">JSON</button><button role="tab" id="format-hex" aria-controls="exportCode" aria-selected="false" tabindex="-1" data-format="hex">Hex</button></div><button class="copy-code" id="copyCode" aria-label="Copy export code">Copy</button></div><pre id="exportCode" role="tabpanel" aria-labelledby="format-css" tabindex="0"></pre></div></div>

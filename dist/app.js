@@ -112,7 +112,7 @@ function renderSelection(updateURL = false) {
   if (heroName) heroName.textContent = current.name;
   if (description) description.textContent = current.description || 'A five-color direction ready to test.';
   if (heroSwatches) heroSwatches.innerHTML = current.colors.slice(0, 5).map(color => swatch(color)).join('');
-  if (paletteRoles) paletteRoles.innerHTML = current.colors.slice(0, 5).map((color, index) => `<div class="role-swatch${activeColorIndex === index ? ' is-selected' : ''}${pendingSwapIndex === index ? ' is-swap-source' : ''}${roleDrag?.from === index ? ' is-dragging' : ''}" style="--swatch:${color}" data-role-index="${index}"><button class="role-select" type="button" data-role-select="${index}" aria-pressed="${activeColorIndex === index}" aria-label="Edit ${roles[index]} color ${color}"><span class="role-grip" aria-hidden="true" title="Drag onto another color to swap"><svg viewBox="0 0 10 16"><circle cx="2" cy="3" r="1.2"/><circle cx="8" cy="3" r="1.2"/><circle cx="2" cy="8" r="1.2"/><circle cx="8" cy="8" r="1.2"/><circle cx="2" cy="13" r="1.2"/><circle cx="8" cy="13" r="1.2"/></svg></span><i aria-hidden="true"></i><span>${roles[index]}</span><code>${color}</code></button><button class="role-action" type="button" data-role-swap="${index}" aria-label="${pendingSwapIndex === index ? 'Cancel swap' : `Swap ${roles[index]} with another role`}" title="Swap">↔</button><button class="role-action" type="button" data-edit-color="${index}" aria-label="Explore shades for ${roles[index]}" title="Explore shades">＋</button></div>`).join('');
+  renderPaletteRoles();
   if (ratio) {
     const value = contrast(current.colors[0], current.colors[4]);
     ratio.textContent = `${value.toFixed(2)}:1 · ${value >= 7 ? 'AAA contrast' : value >= 4.5 ? 'AA contrast' : value >= 3 ? 'Large text only' : 'Low contrast'}`;
@@ -136,6 +136,7 @@ function renderSelection(updateURL = false) {
 function choosePalette(palette, notify = true) {
   if (!palette || !Array.isArray(palette.colors) || palette.colors.length < 5) return;
   current = palette;
+  shadeSourceColors = current.colors.slice(0, 5);
   persistPalette(palette);
   renderSelection(true);
   if (notify) toast(`${palette.name} selected.`);
@@ -145,17 +146,19 @@ function swapPaletteColors(from, to) {
   if (from === to || from < 0 || to < 0 || from > 4 || to > 4) return;
   const colors = [...current.colors];
   [colors[from], colors[to]] = [colors[to], colors[from]];
-  current = { ...current, colors };
+  current = { ...current, id: current.id.startsWith('custom-') ? current.id : `custom-${current.id}`, colors };
+  [shadeSourceColors[from], shadeSourceColors[to]] = [shadeSourceColors[to], shadeSourceColors[from]];
   persistPalette(current);
-  renderSelection();
+  renderSelection(true);
 }
 
-function replacePaletteColor(index, color) {
+function replacePaletteColor(index, color, { keepShadeSource = false } = {}) {
   if (index < 0 || index > 4 || !/^#[0-9a-f]{6}$/i.test(color)) return;
   const colors = [...current.colors];
   colors[index] = color.toUpperCase();
   current = { ...current, id: current.id.startsWith('custom-') ? current.id : `custom-${current.id}`, name: current.name.replace(/^Custom · /, '') };
   current.colors = colors;
+  if (!keepShadeSource) shadeSourceColors[index] = colors[index];
   persistPalette(current);
   renderSelection(true);
 }
@@ -166,7 +169,7 @@ function announcePaletteOrder(color, index) {
 }
 
 let colorTray = [];
-try { colorTray = JSON.parse(localStorage.getItem('colorverse-color-tray') || '[]').filter(color => /^#[0-9a-f]{6}$/i.test(color)).slice(0, 18); } catch {}
+try { colorTray = [...new Set(JSON.parse(localStorage.getItem('colorverse-color-tray') || '[]').filter(color => /^#[0-9a-f]{6}$/i.test(color)).map(color => color.toUpperCase()))].slice(0, 18); } catch {}
 
 function saveColorTray() {
   try { localStorage.setItem('colorverse-color-tray', JSON.stringify(colorTray)); } catch {}
@@ -177,73 +180,71 @@ function colorCoordinates(hex) {
   return { lightness, chroma: Math.hypot(a, b), hue: (Math.atan2(b, a) * 180 / Math.PI + 360) % 360 };
 }
 
+// Keep the tonal scale anchored while trying its shades.
+let shadeSourceColors = current.colors.slice(0, 5);
+const pencilIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15Z"/></svg>';
+const trashIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7"/></svg>';
+
+function renderPaletteRoles() {
+  const container = $('#paletteRoles');
+  if (!container) return;
+  container.innerHTML = current.colors.slice(0, 5).map((color, index) => `<div class="role-swatch${activeColorIndex === index ? ' is-selected' : ''}${pendingSwapIndex === index ? ' is-swap-source' : ''}" style="--swatch:${color}" data-role-index="${index}">
+    <button class="role-select" type="button" data-role-select="${index}" aria-pressed="${activeColorIndex === index}" aria-label="Edit ${roles[index]} color ${color}" aria-controls="colorLab">
+      <span class="role-grip" aria-hidden="true" title="Drag onto another color to swap"><svg viewBox="0 0 10 16"><circle cx="2" cy="3" r="1.2"/><circle cx="8" cy="3" r="1.2"/><circle cx="2" cy="8" r="1.2"/><circle cx="8" cy="8" r="1.2"/><circle cx="2" cy="13" r="1.2"/><circle cx="8" cy="13" r="1.2"/></svg></span>
+      <i aria-hidden="true"></i><span class="role-name">${roles[index]}</span><code>${color}</code><span class="role-edit-hint">${pencilIcon} Edit color</span>
+    </button>
+    <button class="role-action" type="button" data-role-swap="${index}" aria-label="${pendingSwapIndex === index ? 'Cancel swap' : `Swap ${roles[index]} with another role`}" title="Swap colors">↔</button>
+    ${activeColorIndex === index ? `<div class="role-editor">
+      <label class="role-picker"><input type="color" data-role-color="${index}" value="${color}" aria-label="Change ${roles[index]} color"><span>${pencilIcon} Change color</span></label>
+      <label class="role-hex"><span>HEX</span><input type="text" data-role-hex="${index}" value="${color}" aria-label="${roles[index]} HEX" maxlength="7" spellcheck="false" autocomplete="off"></label>
+    </div>` : ''}
+  </div>`).join('');
+}
+
+function renderColorTray() {
+  const tray = $('#colorTray');
+  if (!tray) return;
+  tray.innerHTML = colorTray.length ? colorTray.map(value => `<div class="tray-item">
+    <button type="button" class="tray-use" style="--choice:${value}" data-use-color="${value}" aria-label="Use saved color ${value}"><i aria-hidden="true"></i><code>${value}</code></button>
+    <button type="button" class="tray-remove" data-remove-color="${value}" aria-label="Remove ${value} from color tray" title="Remove color">${trashIcon}</button>
+  </div>`).join('') : '<p>Keep colors here for later.</p>';
+  $('#trayCount').textContent = `${colorTray.length} / 18`;
+  const add = $('#addColorToTray');
+  const saved = colorTray.includes(current.colors[activeColorIndex].toUpperCase());
+  add.disabled = saved;
+  add.querySelector('span').textContent = saved ? 'Added to color tray' : 'Add to color tray';
+}
+
 function renderColorLab() {
   const lab = $('#colorLab');
   if (!lab || !current.colors[activeColorIndex]) return;
   const color = current.colors[activeColorIndex].toUpperCase();
-  const coordinates = colorCoordinates(color);
-  const title = $('#colorLabTitle');
-  const preview = $('#colorLabPreview');
-  const input = $('#colorLabInput');
-  const hex = $('#colorLabHex');
-  if (title) title.textContent = `Tune ${roles[activeColorIndex].toLowerCase()}.`;
-  if (preview) preview.style.background = color;
-  if (input) input.value = color;
-  if (hex) hex.textContent = color;
-  const shadeFamilies = buildShadeFamilies(color);
-  const alternatives = [-52, -32, -16, 16, 32, 52].map(offset => oklch(clamp(coordinates.lightness, .3, .82), clamp(coordinates.chroma * 1.04, .06, .2), coordinates.hue + offset));
-  const choice = value => `<button type="button" style="--choice:${value};--on:${textOn(value)}" data-use-color="${value}" aria-label="Use ${value}" title="${value}"><span>${value}</span></button>`;
+  const source = shadeSourceColors[activeColorIndex];
+  const coordinates = colorCoordinates(source);
+  $('#shadeRoleNameInline').textContent = roles[activeColorIndex];
+  $('#shadeCurrentHex').textContent = color;
+  const family = buildShadeFamilies(source)[0].colors;
+  const shades = [...new Set([...family.filter((_, index) => index % 2 === 0), source])]
+    .sort((a, b) => colorCoordinates(b).lightness - colorCoordinates(a).lightness);
   const shadeGrid = $('#colorShadeGrid');
-  const alternativeGrid = $('#colorAlternativeGrid');
-  if (shadeGrid) shadeGrid.innerHTML = shadeFamilies[0].colors.filter((_, index) => index % 2 === 0).map(value => `<i style="--tone:${value}"></i>`).join('');
-  const shadeCount = $('#shadeOptionCount');
-  if (shadeCount) shadeCount.textContent = `${new Set(shadeFamilies.flatMap(family => family.colors)).size} nuances`;
-  if (alternativeGrid) alternativeGrid.innerHTML = alternatives.map(choice).join('');
-  const tray = $('#colorTray');
-  if (tray) tray.innerHTML = colorTray.length ? colorTray.map(value => choice(value)).join('') : '<p>Your saved colors will appear here.</p>';
-  const add = $('#addColorToTray');
-  if (add) add.disabled = colorTray.includes(color);
-  renderMiniHarmony();
-}
-
-let harmonyMode = 'free';
-const harmonyOffsets = { analogous: [0, 28, -28, 56, -56], complementary: [0, 180, 0, 180, 0], triad: [0, 120, 240, 120, 240] };
-function renderMiniHarmony() {
-  const wheel = $('#miniHarmonyWheel');
-  const points = $('#miniWheelPoints');
-  const rays = $('#miniWheelRays');
-  if (!wheel || !points || !rays || !current.colors[activeColorIndex]) return;
-  const base = colorCoordinates(current.colors[activeColorIndex]);
-  const offsets = harmonyOffsets[harmonyMode];
-  const colors = current.colors.slice(0, 5);
-  const pointFor = (color, index) => {
-    const coordinate = colorCoordinates(color);
-    const hue = offsets ? (base.hue + offsets[index]) % 360 : coordinate.hue;
-    const chroma = offsets ? clamp(base.chroma * (index === activeColorIndex ? 1 : .78 + index * .04), .035, .28) : clamp(coordinate.chroma, .035, .28);
-    const radius = Math.min(42, 14 + chroma / .28 * 30);
-    const angle = (hue - 90) * Math.PI / 180;
-    return { left: 50 + Math.cos(angle) * radius, top: 50 + Math.sin(angle) * radius, color };
-  };
-  points.innerHTML = colors.map((color, index) => { const point = pointFor(color, index); return `<button type="button" class="mini-wheel-point${index === activeColorIndex ? ' is-active' : ''}" data-mini-point="${index}" style="--point:${point.color};--x:${point.left}%;--y:${point.top}" aria-label="${roles[index]} ${point.color}" aria-pressed="${index === activeColorIndex}"><span>${index + 1}</span></button>`; }).join('');
-  rays.innerHTML = offsets ? offsets.map((offset, index) => `<i style="--ray:${(base.hue + offset) % 360}deg;--ray-color:${colors[index]}"></i>`).join('') : '';
-  wheel.dataset.mode = harmonyMode;
-  const status = $('#miniHarmonyStatus');
-  if (status) status.textContent = harmonyMode === 'free' ? 'drag the active point' : `${harmonyMode} suggestion`;
-  const apply = $('#applyHarmony');
-  if (apply) apply.hidden = harmonyMode === 'free';
-}
-
-function tuneMiniPoint(clientX, clientY) {
-  const wheel = $('#miniHarmonyWheel');
-  if (!wheel) return;
-  const rect = wheel.getBoundingClientRect();
-  const dx = clientX - (rect.left + rect.width / 2);
-  const dy = clientY - (rect.top + rect.height / 2);
-  const radius = Math.min(rect.width, rect.height) / 2 - 12;
-  const distance = Math.min(radius, Math.hypot(dx, dy));
-  const hue = (Math.atan2(dy, dx) * 180 / Math.PI + 90 + 360) % 360;
-  const chroma = clamp(distance / radius * .28, .02, .28);
-  replacePaletteColor(activeColorIndex, oklch(colorCoordinates(current.colors[activeColorIndex]).lightness, chroma, hue));
+  shadeGrid.innerHTML = shades.map(value => `<button type="button" style="--tone:${value};--tone-ink:${textOn(value)}" data-inline-shade="${value}" aria-pressed="${value === color}" aria-label="Apply shade ${value} to ${roles[activeColorIndex]}" title="${value}"><code>${value}</code><span aria-hidden="true">${value === color ? '✓' : ''}</span></button>`).join('');
+  $('#shadeOptionCount').textContent = `${shades.length} tones`;
+  const alternatives = [...new Set([-60, -45, -30, -15, 15, 30, 45, 60, -80, 80, -100, 100].map(offset =>
+    oklch(clamp(coordinates.lightness, .3, .82), clamp(coordinates.chroma * 1.04, .06, .2), coordinates.hue + offset)))];
+  $('#colorAlternativeGrid').innerHTML = alternatives.map(value => `<button type="button" style="--choice:${value};--on:${textOn(value)}" data-use-color="${value}" aria-label="Use alternative ${value}" title="${value}"><code>${value.slice(1)}</code></button>`).join('');
+  const pairIndex = activeColorIndex === 0 ? 4 : 0;
+  const pair = current.colors[pairIndex];
+  $('#colorContrastPair').textContent = `vs ${roles[pairIndex].toLowerCase()}`;
+  const candidates = [...new Set([...[.15, .3, .45, .6, .8, .92, .98].flatMap(lightness =>
+    [0, 180].map(offset => oklch(lightness, Math.min(coordinates.chroma, .08), coordinates.hue + offset))), '#000000', '#FFFFFF'])]
+    .filter(value => contrast(value, pair) >= 4.5)
+    .sort((a, b) => oklabDistance(a, color) - oklabDistance(b, color));
+  const contrastColors = [candidates[0], candidates.find(value => oklabDistance(value, candidates[0]) > .08) || candidates[1]].filter(Boolean);
+  $('#colorContrastGrid').innerHTML = contrastColors.map(value => {
+    const ratio = contrast(value, pair).toFixed(2);
+    return `<button type="button" class="contrast-choice" data-use-color="${value}" title="${value} against ${pair}" aria-label="Use ${value}, contrast ${ratio} to 1 against ${roles[pairIndex]}"><span style="background:${activeColorIndex === 0 ? value : pair};color:${activeColorIndex === 0 ? pair : value}" aria-hidden="true">Aa</span><code>${ratio}:1</code></button>`;
+  }).join('');
+  renderColorTray();
 }
 
 let visiblePalettes = [...palettes];
@@ -407,19 +408,11 @@ const paletteRoles = $('#paletteRoles');
 const shadeStudio = createShadeStudio({
   getPalette: () => current,
   onApply(index, color) { replacePaletteColor(index, color); toast(`${roles[index]} updated to ${color}.`); },
-  onClose(index) { paletteRoles?.querySelector(`[data-edit-color="${index}"]`)?.focus({ preventScroll: true }); },
+  onClose(index) { paletteRoles?.querySelector(`[data-role-select="${index}"]`)?.focus({ preventScroll: true }); },
 });
 $('#openShadeStudio')?.addEventListener('click', event => shadeStudio.open(activeColorIndex, event.currentTarget));
 if (paletteRoles) {
   paletteRoles.addEventListener('click', event => {
-    const edit = event.target.closest('[data-edit-color]');
-    if (edit) {
-      activeColorIndex = Number(edit.dataset.editColor);
-      pendingSwapIndex = null;
-      renderSelection();
-      shadeStudio.open(activeColorIndex, paletteRoles.querySelector(`[data-edit-color="${activeColorIndex}"]`));
-      return;
-    }
     const swap = event.target.closest('[data-role-swap]');
     if (swap) {
       const index = Number(swap.dataset.roleSwap);
@@ -453,6 +446,7 @@ if (paletteRoles) {
       activeColorIndex = index;
       renderSelection();
     }
+    paletteRoles.querySelector(`[data-role-select="${index}"]`)?.focus({ preventScroll: true });
   });
 
   paletteRoles.addEventListener('keydown', event => {
@@ -508,41 +502,63 @@ if (paletteRoles) {
   window.addEventListener('pointercancel', finishRoleDrag);
 }
 
-$('#colorLabInput')?.addEventListener('change', event => replacePaletteColor(activeColorIndex, event.target.value));
-$('#colorLab')?.addEventListener('click', event => {
-  const choice = event.target.closest('[data-use-color]');
-  if (choice) replacePaletteColor(activeColorIndex, choice.dataset.useColor);
-});
-$('#miniHarmonyWheel')?.addEventListener('pointerdown', event => {
-  const point = event.target.closest('[data-mini-point]');
-  if (point && Number(point.dataset.miniPoint) !== activeColorIndex) {
-    activeColorIndex = Number(point.dataset.miniPoint);
-    renderSelection();
+paletteRoles?.addEventListener('change', event => {
+  const input = event.target.closest('[data-role-color], [data-role-hex]');
+  if (!input) return;
+  const isHex = input.hasAttribute('data-role-hex');
+  const index = Number(isHex ? input.dataset.roleHex : input.dataset.roleColor);
+  const color = '#' + input.value.trim().replace(/^#/, '').toUpperCase();
+  if (!/^#[0-9A-F]{6}$/.test(color)) {
+    input.setCustomValidity('Enter six hex digits, for example #2D5BFF.');
+    input.reportValidity();
     return;
   }
-  if (!point) return;
-  event.preventDefault();
-  const wheel = event.currentTarget;
-  wheel.setPointerCapture?.(event.pointerId);
-  const move = moveEvent => tuneMiniPoint(moveEvent.clientX, moveEvent.clientY);
-  const end = () => { wheel.removeEventListener('pointermove', move); wheel.removeEventListener('pointerup', end); wheel.removeEventListener('pointercancel', end); };
-  wheel.addEventListener('pointermove', move, { passive: true });
-  wheel.addEventListener('pointerup', end, { once: true });
-  wheel.addEventListener('pointercancel', end, { once: true });
+  input.setCustomValidity('');
+  replacePaletteColor(index, color);
+  paletteRoles.querySelector(`[data-role-${isHex ? 'hex' : 'color'}="${index}"]`)?.focus({ preventScroll: true });
 });
-$$('[data-harmony-mode]').forEach(button => button.addEventListener('click', () => {
-  harmonyMode = button.dataset.harmonyMode;
-  $$('[data-harmony-mode]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
-  renderMiniHarmony();
-}));
-$('#applyHarmony')?.addEventListener('click', () => {
-  const offsets = harmonyOffsets[harmonyMode];
-  if (!offsets || !current.colors[activeColorIndex]) return;
-  const base = colorCoordinates(current.colors[activeColorIndex]);
-  current = { ...current, id: current.id.startsWith('custom-') ? current.id : `custom-${current.id}`, colors: current.colors.map((color, index) => oklch(colorCoordinates(color).lightness, clamp(base.chroma * (index === activeColorIndex ? 1 : .78 + index * .04), .035, .28), base.hue + offsets[index])) };
-  persistPalette(current);
-  renderSelection(true);
-  toast(`${harmonyMode[0].toUpperCase() + harmonyMode.slice(1)} relationship applied.`);
+paletteRoles?.addEventListener('input', event => event.target.setCustomValidity?.(''));
+paletteRoles?.addEventListener('keydown', event => {
+  if (!event.target.matches('[data-role-hex]')) return;
+  if (event.key === 'Enter') { event.preventDefault(); event.target.dispatchEvent(new Event('change', { bubbles: true })); }
+  if (event.key === 'Escape') { event.target.value = current.colors[activeColorIndex]; event.target.setCustomValidity(''); }
+});
+$('#colorLab')?.addEventListener('click', event => {
+  const shade = event.target.closest('[data-inline-shade]');
+  if (shade) {
+    const color = shade.dataset.inlineShade;
+    replacePaletteColor(activeColorIndex, color, { keepShadeSource: true });
+    $('#colorShadeGrid').querySelector(`[data-inline-shade="${color}"]`)?.focus({ preventScroll: true });
+    return;
+  }
+  const choice = event.target.closest('[data-use-color]');
+  if (choice) {
+    const containerId = choice.closest('[id]')?.id;
+    const index = [...choice.parentElement.children].indexOf(choice);
+    const color = choice.dataset.useColor;
+    replacePaletteColor(activeColorIndex, color);
+    const container = document.getElementById(containerId);
+    (container?.querySelector(`[data-use-color="${color}"]`) || container?.children[index])?.focus?.({ preventScroll: true });
+  }
+  const remove = event.target.closest('[data-remove-color]');
+  if (remove) {
+    const buttons = [...$('#colorTray').querySelectorAll('[data-remove-color]')];
+    const index = buttons.indexOf(remove);
+    colorTray = colorTray.filter(color => color !== remove.dataset.removeColor);
+    saveColorTray();
+    renderColorTray();
+    const next = [...$('#colorTray').querySelectorAll('[data-remove-color]')];
+    (next[Math.min(index, next.length - 1)] || $('#addColorToTray')).focus({ preventScroll: true });
+    $('#trayStatus').textContent = `${remove.dataset.removeColor} removed from color tray.`;
+  }
+});
+$('#colorShadeGrid')?.addEventListener('keydown', event => {
+  const buttons = [...event.currentTarget.querySelectorAll('button')];
+  const index = buttons.indexOf(event.target);
+  if (index < 0 || !['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+  event.preventDefault();
+  const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : clamp(index + (event.key === 'ArrowDown' ? 1 : -1), 0, buttons.length - 1);
+  buttons[next].focus();
 });
 $('#addColorToTray')?.addEventListener('click', () => {
   const color = current.colors[activeColorIndex].toUpperCase();
@@ -553,11 +569,6 @@ $('#addColorToTray')?.addEventListener('click', () => {
     renderColorLab();
     toast(`${color} added to your color tray.`);
   }
-});
-$('#clearColorTray')?.addEventListener('click', () => {
-  colorTray = [];
-  saveColorTray();
-  renderColorLab();
 });
 
 function makeRandomPalette() {
