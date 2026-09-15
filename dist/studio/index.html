@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="/styles.css?v=24">
   <link rel="stylesheet" href="/design-system.css?v=28">
   <link rel="stylesheet" href="/shade-studio.css?v=1">
-  <link rel="stylesheet" href="/studio-editor.css?v=1">
+  <link rel="stylesheet" href="/studio-editor.css?v=2">
   <script type="module" src="/app.js?v=30"></script>
 </head>
 <body>
@@ -24,11 +24,11 @@
   <header class="header">
     <a class="wordmark" href="/" aria-label="ColorVerse home"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2 28.1 9v14L16 30 3.9 23V9Z" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m16 8 6.9 4v8L16 24l-6.9-4v-8Z" fill="currentColor"/></svg><span>ColorVerse</span></a>
     <nav class="desktop-nav" aria-label="Main navigation"><a href="/">Explore</a><a href="/explore/">All palettes</a><a href="/extract/">Image to palette</a><a href="/studio/" aria-current="page">Studio</a><a href="/community/">Community</a><a href="/lab/">Lab</a></nav>
-    <div class="header-actions"><button class="icon-button theme-toggle" id="themeToggle" aria-label="Switch to light theme" title="Change theme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 5a7 7 0 0 1 0 14Z" fill="currentColor"/></svg></button><a class="small-button" href="/explore/" aria-current="page">Back to palettes</a></div>
+    <div class="header-actions"><button class="icon-button theme-toggle" id="themeToggle" aria-label="Switch to light theme" title="Change theme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 5a7 7 0 0 1 0 14Z" fill="currentColor"/></svg></button><a class="small-button" href="/explore/">Back to palettes</a></div>
   </header>
   <main id="main">
     <section class="studio studio-page section-wrap" id="studio" aria-labelledby="studioTitle">
-      <div class="page-intro reveal"><div class="eyebrow">Palette studio</div><h1 id="studioTitle">See your colors in context.</h1><p>Give a direction a quick reality check. Reassign each color's role, move between four familiar surfaces, and export the palette when it feels right.</p></div>
+      <div class="studio-compact-head reveal"><div><span class="eyebrow">Tool / Palette</span><h1 id="studioTitle">Palette Studio</h1></div><p>Edit roles, shades, and context.</p></div>
       <div class="studio-workspace reveal">
         <aside class="palette-inspector">
           <div class="inspector-top"><span class="eyebrow">Your palette</span><span class="palette-order-hint">Click a color to edit</span></div>

@@ -1,5 +1,11 @@
-/* Studio: direct editing on the left, a vertical tonal study on the right. */
-.studio-workspace{grid-template-columns:280px minmax(0,1fr) 280px}
+/* Studio: the tool starts immediately, with direct editing on the left. */
+.studio-page{padding-top:0}
+.studio-compact-head{display:flex;align-items:end;justify-content:space-between;gap:24px;padding:22px 0 13px}
+.studio-compact-head>div{display:flex;align-items:baseline;gap:13px}
+.studio-compact-head .eyebrow{font-size:9px;white-space:nowrap}
+.studio-compact-head h1{margin:0;font-size:25px;line-height:1;letter-spacing:-.04em}
+.studio-compact-head>p{margin:0;color:var(--muted);font-size:11px}
+.studio-workspace{grid-template-columns:280px minmax(0,1fr) 280px;margin-top:0}
 .palette-inspector .inspector-top{align-items:start;gap:10px}
 .palette-order-hint{font-size:10px;max-width:95px;text-align:right;line-height:1.4;color:var(--muted)}
 .palette-inspector .palette-roles{margin:22px 0 20px;display:grid;grid-template-columns:1fr;gap:8px}
@@ -87,6 +93,11 @@
   #colorLab .color-tray{grid-template-columns:1fr}
 }
 @media(max-width:580px){
+  .studio-compact-head{align-items:center;padding:18px 0 11px}
+  .studio-compact-head>div{display:block}
+  .studio-compact-head h1{margin-top:4px;font-size:23px}
+  .studio-compact-head>p{max-width:120px;text-align:right;line-height:1.35}
+  .studio-workspace{margin-top:0}
   .palette-inspector .palette-roles{grid-template-columns:1fr}
   #colorLab{display:block;padding:20px 18px}
   .shade-panel-body{grid-template-columns:minmax(100px,1fr) minmax(100px,1fr);gap:20px}

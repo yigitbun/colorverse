@@ -251,18 +251,11 @@ let visiblePalettes = [...palettes];
 function renderPaletteRail(items = visiblePalettes) {
   const rail = $('#paletteRail');
   if (!rail) return;
-  rail.innerHTML = items.map((palette, index) => `<article class="palette-card" data-palette="${palette.id}" style="--cover:${palette.colors[1]}">
-    <div class="palette-card-image"><img src="${escape(palette.image)}" alt="${escape(palette.name)} inspiration" width="900" height="450" loading="${index < 3 ? 'eager' : 'lazy'}" decoding="async" draggable="false"><span class="palette-number">${String(index + 1).padStart(2, '0')}</span><span class="palette-category">${escape(palette.category)}</span></div>
+  rail.innerHTML = items.map((palette, index) => `<article class="palette-card" data-palette="${palette.id}">
+    <div class="palette-card-head"><span>${escape(palette.category)}</span><span>${String(index + 1).padStart(2, '0')}</span></div>
     <div class="palette-card-colors" aria-label="Five palette colors">${palette.colors.slice(0, 5).map(color => swatch(color)).join('')}</div>
-    <a class="palette-card-select" data-select="${palette.id}" href="/studio/?p=${encodeURIComponent(palette.id)}#studio" aria-label="Use ${escape(palette.name)} palette"><span>${escape(palette.name)}</span><span>Use palette</span></a>
+    <div class="palette-card-body"><h2><a data-select="${palette.id}" href="/studio/?p=${encodeURIComponent(palette.id)}#studio">${escape(palette.name)}</a></h2><p>${escape(palette.description)}</p><div class="palette-card-foot"><div class="palette-card-tags">${(palette.useCases || []).slice(0, 2).map(item => `<span>${escape(item)}</span>`).join('')}</div><a data-select="${palette.id}" href="/studio/?p=${encodeURIComponent(palette.id)}#studio" aria-label="Open ${escape(palette.name)} in Studio">Open ↗</a></div></div>
   </article>`).join('');
-  $$('.palette-card-image img').forEach(image => image.addEventListener('error', () => {
-    image.hidden = true;
-    const fallback = document.createElement('span');
-    fallback.className = 'image-fallback';
-    fallback.textContent = 'Color study';
-    image.parentElement.append(fallback);
-  }));
 }
 
 let atlasHover = null;
@@ -587,64 +580,6 @@ if (randomPaletteButton) randomPaletteButton.addEventListener('click', () => {
 renderPaletteRail();
 const rail = $('#paletteRail');
 if (rail) {
-  let railFrame = 0;
-  const updateRail = () => {
-    if (!rail.clientWidth) return;
-    const cards = $$('.palette-card');
-    if (!cards.length) return;
-    const stride = cards[1] ? cards[1].offsetLeft - cards[0].offsetLeft : cards[0].offsetWidth;
-    const max = Math.max(0, rail.scrollWidth - rail.clientWidth);
-    const index = clamp(Math.round(rail.scrollLeft / Math.max(stride, 1)), 0, cards.length - 1);
-    const collectionIndex = $('#collectionIndex');
-    const previous = $('#palettePrev');
-    const next = $('#paletteNext');
-    const progress = $('#railProgress');
-    if (collectionIndex) collectionIndex.textContent = `${String(index + 1).padStart(2, '0')} / ${cards.length}`;
-    if (previous) previous.disabled = rail.scrollLeft < 5;
-    if (next) next.disabled = rail.scrollLeft >= max - 5;
-    if (progress) progress.style.width = `${max ? 15 + rail.scrollLeft / max * 85 : 100}%`;
-    cards.forEach(card => {
-      const distance = (card.offsetLeft - cards[0].offsetLeft - rail.scrollLeft) / rail.clientWidth;
-      card.style.setProperty('--turn', `${clamp(distance * -1.2, -1.5, 1.5)}deg`);
-    });
-    railFrame = 0;
-  };
-  const scheduleRail = () => { if (!railFrame) railFrame = requestAnimationFrame(updateRail); };
-  rail.addEventListener('scroll', scheduleRail, { passive: true });
-  if (window.ResizeObserver) new ResizeObserver(scheduleRail).observe(rail);
-  function moveRail(direction) {
-    const cards = $$('.palette-card');
-    if (!cards[0]) return;
-    const stride = cards[1] ? cards[1].offsetLeft - cards[0].offsetLeft : cards[0].offsetWidth;
-    rail.scrollBy({ left: stride * direction, behavior: reduceMotion.matches ? 'instant' : 'smooth' });
-  }
-  const previous = $('#palettePrev');
-  const next = $('#paletteNext');
-  if (previous) previous.addEventListener('click', () => moveRail(-1));
-  if (next) next.addEventListener('click', () => moveRail(1));
-  rail.addEventListener('keydown', event => {
-    if (event.target !== rail) return;
-    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') { event.preventDefault(); moveRail(event.key === 'ArrowRight' ? 1 : -1); }
-    if (event.key === 'Home' || event.key === 'End') { event.preventDefault(); rail.scrollTo({ left: event.key === 'Home' ? 0 : rail.scrollWidth, behavior: reduceMotion.matches ? 'instant' : 'smooth' }); }
-  });
-  let railDrag = null;
-  let suppressClick = false;
-  rail.addEventListener('pointerdown', event => {
-    if (event.pointerType !== 'mouse' || event.button !== 0) return;
-    suppressClick = false;
-    railDrag = { x: event.clientX, scroll: rail.scrollLeft, moved: false };
-  });
-  rail.addEventListener('pointermove', event => {
-    if (!railDrag) return;
-    const distance = event.clientX - railDrag.x;
-    if (Math.abs(distance) > 5) { railDrag.moved = true; rail.classList.add('is-dragging'); rail.setPointerCapture(event.pointerId); }
-    if (railDrag.moved) { event.preventDefault(); rail.scrollLeft = railDrag.scroll - distance; }
-  });
-  const finishDrag = () => { if (!railDrag) return; suppressClick = railDrag.moved; railDrag = null; rail.classList.remove('is-dragging'); };
-  rail.addEventListener('pointerup', finishDrag);
-  rail.addEventListener('pointercancel', finishDrag);
-  rail.addEventListener('lostpointercapture', finishDrag);
-  rail.addEventListener('click', event => { if (suppressClick) { event.preventDefault(); event.stopPropagation(); suppressClick = false; } }, true);
   const search = $('#paletteSearch');
   const use = $('#paletteUse');
   let feeling = 'all';
@@ -673,21 +608,22 @@ if (rail) {
       return matchesQuery && matchesFeeling && matchesUse;
     });
     renderPaletteRail(visiblePalettes);
-    rail.scrollLeft = 0;
     const empty = $('#paletteEmpty');
     if (empty) empty.hidden = visiblePalettes.length > 0;
     const collectionIndex = $('#collectionIndex');
-    if (collectionIndex) collectionIndex.textContent = visiblePalettes.length ? `01 / ${visiblePalettes.length}` : '00 / 00';
-    scheduleRail();
+    if (collectionIndex) collectionIndex.textContent = `${visiblePalettes.length} palette${visiblePalettes.length === 1 ? '' : 's'}`;
   };
   search?.addEventListener('input', applyPaletteFilters);
   use?.addEventListener('change', applyPaletteFilters);
   $$('.palette-filter').forEach(button => button.addEventListener('click', () => {
     feeling = button.dataset.paletteFilter;
-    $$('.palette-filter').forEach(item => item.classList.toggle('is-active', item === button));
+    $$('.palette-filter').forEach(item => {
+      const active = item === button;
+      item.classList.toggle('is-active', active);
+      item.setAttribute('aria-pressed', String(active));
+    });
     applyPaletteFilters();
   }));
-  scheduleRail();
 }
 
 let savedTheme;

@@ -122,6 +122,17 @@ The project/template direction and proposed review-analysis method live in
   credited community projects. Until then, do not label static editorial examples
   as live or popular community activity.
 
+## Interface density revision — 2026-09-15
+
+- Studio is a working surface, so it should not open with a large marketing-style
+  introduction. Use a compact title/status row and place the editor immediately
+  beneath it on desktop and mobile.
+- All palettes is the focused color archive, while the homepage owns image-led
+  project discovery. The archive uses a calm, type-led grid with flat five-color
+  strips, readable descriptions, small use-case labels, and one clear Studio
+  action. Avoid horizontal carousels, overlapping/floating swatch shapes,
+  perspective effects, and text constrained inside decorative geometry.
+
 ## Community priority — 2026-09-14
 
 - The owner identifies community contribution as a central product priority. Reconsider the earlier tool-first roadmap with this priority in mind.
