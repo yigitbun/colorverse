@@ -93,10 +93,10 @@
   #colorLab .color-tray{grid-template-columns:1fr}
 }
 @media(max-width:580px){
-  .studio-compact-head{align-items:center;padding:18px 0 11px}
+  .studio-compact-head{align-items:center;padding:12px 0 7px}
   .studio-compact-head>div{display:block}
-  .studio-compact-head h1{margin-top:4px;font-size:23px}
-  .studio-compact-head>p{max-width:120px;text-align:right;line-height:1.35}
+  .studio-compact-head h1{margin-top:3px;font-size:21px}
+  .studio-compact-head>p{max-width:120px;text-align:right;font-size:10px;line-height:1.3}
   .studio-workspace{margin-top:0}
   .palette-inspector .palette-roles{grid-template-columns:1fr}
   #colorLab{display:block;padding:20px 18px}
