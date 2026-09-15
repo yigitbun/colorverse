@@ -113,6 +113,11 @@ The project/template direction and proposed review-analysis method live in
 - The homepage feed may filter by practical context such as brand, digital,
   spaces, and editorial. Every card must show its five colors and lead directly
   to Studio; the complete search and filtering experience belongs to All palettes.
+- Homepage examples should read as calm project presentations or design case
+  studies, close to the Community art direction. Avoid visually loud source
+  photography that competes with the palette. Keep the set small and curated,
+  make the five-color strip more prominent than decorative imagery, and use one
+  coherent photographic language across the feed.
 - As real community work becomes durable, the feed can mix curated palettes and
   credited community projects. Until then, do not label static editorial examples
   as live or popular community activity.
