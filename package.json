@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "node scripts/validate-static-site.mjs"
+    "build": "node scripts/validate-static-site.mjs",
+    "test:color-globe": "node --test scripts/test-color-globe.mjs"
   },
   "devDependencies": {
     "supabase": "2.117.0"

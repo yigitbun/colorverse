@@ -105,6 +105,29 @@ The project/template direction and proposed review-analysis method live in
 - Keep two-role swapping. Editing a shade, an exact color, or swapping roles must
   survive a reload, including when starting from a library palette URL.
 
+## Studio Color Globe — 2026-09-18
+
+- The owner approved continuing in order, starting with Color Globe. The compact
+  left-hand swatch now opens this picker instead of the native color input.
+  Selecting the role label still drives the inline Shades panel.
+- Reuse the homepage's beveled, rotatable globe. The picker uses hue around the
+  globe, HSL lightness from pole to pole, and independent intensity (saturation).
+  Faces display their actual HEX colors; lighting remains on the beveled edges.
+- Show the selected color with a ring and provide “Find color” to bring it back
+  to the front. Hue, intensity, lightness, and validated HEX entry allow precise
+  selection beyond the globe's 642 discrete samples, including black and white.
+- Draft changes preview the selected role and the five-color palette. Apply
+  changes only that role and persists through the existing Studio session.
+  Cancel, Escape, the close button, and a backdrop click discard the draft.
+  Restore original is available inside the picker. Opening it alone must not
+  replace a color with its nearest globe sample.
+- Desktop uses a compact dialog; mobile uses a bottom sheet with a scrollable
+  body and visible footer actions. Drag, touch, keyboard rotation/selection,
+  reduced motion, focus return, and light/dark themes are supported.
+- The next structural priority remains project save/resume, then named templates
+  and A/B versions. Color Globe does not introduce accounts, cross-device
+  persistence, or changes to the Community/Lab backend.
+
 ## Homepage discovery revision — 2026-09-15
 
 - Treat `/` as Explore, not as a conventional marketing homepage. In global

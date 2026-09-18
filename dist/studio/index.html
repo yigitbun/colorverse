@@ -16,8 +16,9 @@
   <link rel="stylesheet" href="/styles.css?v=24">
   <link rel="stylesheet" href="/design-system.css?v=28">
   <link rel="stylesheet" href="/shade-studio.css?v=1">
-  <link rel="stylesheet" href="/studio-editor.css?v=4">
-  <script type="module" src="/app.js?v=31"></script>
+  <link rel="stylesheet" href="/studio-editor.css?v=5">
+  <link rel="stylesheet" href="/color-globe.css?v=1">
+  <script type="module" src="/app.js?v=32"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -71,6 +72,33 @@
     <section class="route-next section-wrap" aria-label="Continue exploring"><a href="/explore/"><span class="eyebrow">Need another direction?</span><strong>Browse the library <b>→</b></strong></a><a href="/extract/"><span class="eyebrow">Have a reference?</span><strong>Read an image <b>→</b></strong></a></section>
   </main>
   <footer class="footer section-wrap"><div class="footer-top"><a class="wordmark" href="/">ColorVerse</a><p>Color exploration, in context.</p><a class="back-top" href="#main">Back to top ↑</a></div><div class="footer-bottom"><span>© 2026 ColorVerse</span><nav aria-label="Footer navigation"><a href="/">Explore</a><a href="/explore/">All palettes</a><a href="/extract/">Image to palette</a><a href="/community/">Community</a><a href="/lab/">Lab</a><a href="/about/">Color guide</a></nav></div></footer>
+  <dialog class="color-globe" id="colorGlobe" aria-labelledby="colorGlobeTitle" aria-describedby="colorGlobeGuide">
+    <header class="globe-picker-head">
+      <div><span class="eyebrow">Editing <span id="globeRole">Background</span></span><h2 id="colorGlobeTitle">Color Globe</h2></div>
+      <button class="icon-button" type="button" data-globe-close aria-label="Close Color Globe"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+    </header>
+    <div class="globe-picker-body">
+      <div class="globe-picker-world">
+        <canvas id="colorGlobeCanvas" tabindex="0" role="application" aria-label="Color Globe. Drag or use arrow keys to rotate. Tap a color, or press Enter to choose the center color." aria-describedby="colorGlobeGuide"></canvas>
+        <div class="globe-picker-guide"><p id="colorGlobeGuide">Drag to turn. Tap a color.</p><button type="button" id="globeRecenter" title="Bring the selected color to the front" aria-label="Find selected color on the globe"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg>Find color</button></div>
+      </div>
+      <div class="globe-picker-controls">
+        <div class="globe-comparison">
+          <button type="button" id="globeRestore" title="Restore original color"><i id="globeOriginal" aria-hidden="true"></i><span>Original<code id="globeOriginalHex"></code></span></button>
+          <div><i id="globeSelected" aria-hidden="true"></i><span>Preview<code id="globeSelectedHex"></code></span></div>
+        </div>
+        <div class="globe-sliders">
+          <label for="globeHue"><span>Hue <output id="globeHueValue" for="globeHue"></output></span><input id="globeHue" type="range" min="0" max="360" step="0.1" aria-label="Hue"></label>
+          <label for="globeSaturation"><span>Intensity <output id="globeSaturationValue" for="globeSaturation"></output></span><input id="globeSaturation" type="range" min="0" max="100" step="0.1" aria-label="Color intensity"><small><span>Soft</span><span>Vivid</span></small></label>
+          <label for="globeLightness"><span>Lightness <output id="globeLightnessValue" for="globeLightness"></output></span><input id="globeLightness" type="range" min="0" max="100" step="0.1" aria-label="Lightness"></label>
+        </div>
+        <div class="globe-hex-row"><label for="globeHex">HEX</label><input id="globeHex" type="text" maxlength="7" spellcheck="false" autocomplete="off" autocapitalize="characters" aria-describedby="globeHexError" enterkeyhint="done"><p id="globeHexError" hidden>Use 3 or 6 hex digits.</p></div>
+        <div class="globe-palette-label">In your palette</div>
+        <div id="globePalette" class="globe-palette" role="group" aria-label="Palette preview"></div>
+      </div>
+    </div>
+    <footer class="globe-picker-foot"><span id="globeStatus" role="status" aria-live="polite"></span><div><button class="button" type="button" data-globe-close>Cancel</button><button class="button primary" type="button" id="applyGlobeColor">Apply color <span aria-hidden="true">↗</span></button></div></footer>
+  </dialog>
   <dialog class="shade-studio" id="shadeStudio" aria-labelledby="shadeStudioTitle" aria-describedby="shadeStudioDescription">
     <header class="shade-studio-head">
       <div><span class="shade-kicker">Color lab <span aria-hidden="true">/</span> Shades</span><h2 id="shadeStudioTitle">One color. Every nuance.</h2><p id="shadeStudioDescription">Explore the light, depth and character of your color.</p></div>

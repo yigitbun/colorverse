@@ -93,22 +93,24 @@ function colorSpace(hex) {
   return { l: Math.round(l * 100), c: c.toFixed(3), h: Math.round(h) };
 }
 
-export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor, initialWorld = 'spectrum' }) {
+export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor, initialWorld = 'spectrum', colorFor, trueColor = false, autoRotate = true, tiltLimit = .85 }) {
   const ctx = canvas.getContext('2d', { alpha: true });
   const cells = createHexSphere(3);
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const events = new AbortController();
+  const listen = (target, type, callback) => target.addEventListener(type, callback, { signal: events.signal });
   let width = 0, height = 0, ratio = 1, frame = 0, last = 0;
   let rotation = -.09, tilt = -.12, targetRotation = rotation, targetTilt = tilt;
   let zoom = 1, targetZoom = 1, pointer = null, dragging = false, moved = false;
-  let hover = -1, selected = new Set(), visible = true, paused = reduced.matches, idleUntil = 0, pulseUntil = 0;
+  let hover = -1, selected = new Set(), marker = null, visible = true, paused = !autoRotate || reduced.matches, idleUntil = 0, pulseUntil = 0;
   let painted = [], needsDraw = true, transitioning = false, transitionStart = 0;
   let activeWorld = atlasWorlds.find(world => world.id === initialWorld) || atlasWorlds[0];
   const light = norm([-.55, .8, 1.4]), halfLight = norm([-.28, .4, 2.2]);
   cells.forEach((cell, index) => {
-    cell.hex = themedColor(activeWorld, cell, index); cell.rgb = rgb(cell.hex);
+    cell.hex = colorFor ? colorFor(cell, index) : themedColor(activeWorld, cell, index); cell.rgb = rgb(cell.hex);
     cell.from = [...cell.rgb]; cell.target = [...cell.rgb];
   });
-  const payload = index => { const cell = cells[index], visual = imageFor?.(cell.hex, cell, index); return { index, hex: cell.hex, coordinates: colorSpace(cell.hex), image: visual?.image || visual || null, name: visual?.name || '', category: visual?.category || '', tags: visual?.tags || [] }; };
+  const payload = index => { const cell = cells[index], visual = imageFor?.(cell.hex, cell, index); return { index, hex: cell.hex, point: [...cell.center], coordinates: colorSpace(cell.hex), image: visual?.image || visual || null, name: visual?.name || '', category: visual?.category || '', tags: visual?.tags || [] }; };
   function path(points) {
     ctx.beginPath(); ctx.moveTo(points[0][0], points[0][1]);
     for (let i = 1; i < points.length; i++) ctx.lineTo(points[i][0], points[i][1]);
@@ -168,7 +170,8 @@ export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor, init
         path([rim[k], rim[j], face[j], face[k]]);
         ctx.fillStyle = toHex(faceColor.map(v => v * (.82 + edgeLight * .15) + Math.max(0, edgeLight) * 95)); ctx.fill();
       }
-      path(face); ctx.fillStyle = toHex(faceColor); ctx.fill();
+      // Picker faces show their actual color; depth lives in the beveled edges.
+      path(face); ctx.fillStyle = trueColor ? cell.hex : toHex(faceColor); ctx.fill();
       if (index === hover || selected.has(index)) {
         ctx.strokeStyle = index === hover ? '#FFFFFFD9' : `${activeWorld.accent}C4`; ctx.lineWidth = selected.has(index) ? 1.45 : 1.2; ctx.stroke();
       }
@@ -185,6 +188,18 @@ export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor, init
       const pulse = performance.now() < pulseUntil ? 2 + (1 - (pulseUntil - performance.now()) / 1200) * 7 : 3;
       for (const item of active) { ctx.beginPath(); ctx.arc(item.point[0], item.point[1], pulse, 0, Math.PI * 2); ctx.stroke(); ctx.beginPath(); ctx.arc(item.point[0], item.point[1], 1.5, 0, Math.PI * 2); ctx.fill(); }
       ctx.restore();
+    }
+    if (marker) {
+      const normal = rotate(marker.point);
+      if (normal[2] > .02) {
+        const point = project(normal.map(value => value * 1.02));
+        ctx.save();
+        ctx.beginPath(); ctx.arc(...point, 8, 0, Math.PI * 2);
+        ctx.strokeStyle = '#10151ACC'; ctx.lineWidth = 5; ctx.stroke();
+        ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 2.5; ctx.stroke();
+        ctx.fillStyle = marker.hex; ctx.fill();
+        ctx.restore();
+      }
     }
   }
   function hit(x, y) {
@@ -221,15 +236,17 @@ export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor, init
     ratio = Math.min(devicePixelRatio || 1, 2); canvas.width = Math.round(width * ratio); canvas.height = Math.round(height * ratio);
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0); needsDraw = true;
   }
-  canvas.addEventListener('pointerdown', event => {
+  listen(canvas, 'pointerdown', event => {
+    if (!event.isPrimary || event.button > 0) return;
     pointer = { x: event.clientX, y: event.clientY, startX: event.clientX, startY: event.clientY };
     dragging = true; moved = false; hover = -1; canvas.setPointerCapture(event.pointerId); canvas.classList.add('is-dragging');
   });
-  canvas.addEventListener('pointermove', event => {
+  listen(canvas, 'pointermove', event => {
+    if (!event.isPrimary) return;
     if (dragging && pointer) {
       const dx = event.clientX - pointer.x, dy = event.clientY - pointer.y;
       moved ||= Math.hypot(event.clientX - pointer.startX, event.clientY - pointer.startY) > 5;
-      targetRotation += dx * .006; targetTilt = clamp(targetTilt + dy * .004, -.85, .85);
+      targetRotation += dx * .006; targetTilt = clamp(targetTilt + dy * .004, -tiltLimit, tiltLimit);
       pointer.x = event.clientX; pointer.y = event.clientY; needsDraw = true;
     } else {
       const box = canvas.getBoundingClientRect(); const next = hit(event.clientX - box.left, event.clientY - box.top);
@@ -237,30 +254,47 @@ export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor, init
       idleUntil = performance.now() + 2200;
     }
   });
-  canvas.addEventListener('pointerup', event => {
+  listen(canvas, 'pointerup', event => {
+    if (!event.isPrimary || !pointer) return;
     if (!moved) { const box = canvas.getBoundingClientRect(); const picked = hit(event.clientX - box.left, event.clientY - box.top); if (picked >= 0) onSelect?.(payload(picked)); }
     dragging = false; pointer = null; idleUntil = performance.now() + 5000; needsDraw = true; canvas.classList.remove('is-dragging');
   });
   const cancel = () => { dragging = false; pointer = null; canvas.classList.remove('is-dragging'); };
-  canvas.addEventListener('pointercancel', cancel); canvas.addEventListener('lostpointercapture', cancel);
-  canvas.addEventListener('pointerleave', () => { hover = -1; onHover?.(null); needsDraw = true; });
-  canvas.addEventListener('keydown', event => {
+  listen(canvas, 'pointercancel', cancel); listen(canvas, 'lostpointercapture', cancel);
+  listen(canvas, 'pointerleave', () => { hover = -1; onHover?.(null); needsDraw = true; });
+  listen(canvas, 'keydown', event => {
     if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter', ' '].includes(event.key)) event.preventDefault();
     if (event.key === 'ArrowLeft') targetRotation -= .13;
     if (event.key === 'ArrowRight') targetRotation += .13;
-    if (event.key === 'ArrowUp') targetTilt = clamp(targetTilt + .13, -.85, .85);
-    if (event.key === 'ArrowDown') targetTilt = clamp(targetTilt - .13, -.85, .85);
+    if (event.key === 'ArrowUp') targetTilt = clamp(targetTilt + .13, -tiltLimit, tiltLimit);
+    if (event.key === 'ArrowDown') targetTilt = clamp(targetTilt - .13, -tiltLimit, tiltLimit);
     if (event.key === 'Enter' || event.key === ' ') { const index = hit(width / 2, height / 2); if (index >= 0) onSelect?.(payload(index)); }
     idleUntil = performance.now() + 5000; needsDraw = true;
   });
   const observer = new ResizeObserver(resize); observer.observe(canvas);
   const visibilityObserver = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; if (visible) needsDraw = true; }); visibilityObserver.observe(canvas);
-  reduced.addEventListener('change', () => { paused = reduced.matches; needsDraw = true; });
+  listen(reduced, 'change', () => { paused = !autoRotate || reduced.matches; needsDraw = true; });
   resize(); draw(); frame = requestAnimationFrame(tick); onReady?.(cells.length);
   return {
     zoom(delta) { targetZoom = clamp(targetZoom + delta, .85, 1.3); needsDraw = true; },
     pause(value) { paused = value; },
     setSelection(indices) { selected = new Set(indices); pulseUntil = performance.now() + 1200; needsDraw = true; },
+    setColorField(resolveColor) {
+      transitioning = false;
+      cells.forEach((cell, index) => {
+        cell.hex = resolveColor(cell, index); cell.rgb = rgb(cell.hex);
+        cell.from = [...cell.rgb]; cell.target = [...cell.rgb];
+      });
+      needsDraw = true;
+    },
+    setMarker(point, hex) { marker = { point, hex }; needsDraw = true; },
+    focusPoint([x, y, z], immediate = false) {
+      const angle = -Math.atan2(x, z);
+      targetRotation = rotation + Math.atan2(Math.sin(angle - rotation), Math.cos(angle - rotation));
+      targetTilt = clamp(Math.asin(clamp(y, -1, 1)), -tiltLimit, tiltLimit);
+      if (immediate) { rotation = targetRotation; tilt = targetTilt; draw(); }
+      needsDraw = true;
+    },
     setWorld(id) {
       const next = atlasWorlds.find(world => world.id === id);
       if (!next || next.id === activeWorld.id) return false;
@@ -274,6 +308,6 @@ export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor, init
     },
     getWorld() { return activeWorld; },
     reset() { targetRotation = -.09; targetTilt = -.12; targetZoom = 1; needsDraw = true; },
-    destroy() { cancelAnimationFrame(frame); observer.disconnect(); visibilityObserver.disconnect(); },
+    destroy() { cancelAnimationFrame(frame); events.abort(); observer.disconnect(); visibilityObserver.disconnect(); cancel(); },
   };
 }

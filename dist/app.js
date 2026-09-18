@@ -1,7 +1,8 @@
 import { palettes } from './palettes.js?v=22';
 import { roles, clamp, contrast, textOn, rgb, toHex, oklab, oklch, paletteFromColor, exportPalette, extractPaletteVariants, oklabDistance } from './color.js';
-import { createAtlas, atlasWorlds } from './globe.js?v=24';
+import { createAtlas, atlasWorlds } from './globe.js?v=25';
 import { buildShadeFamilies, createShadeStudio } from './shade-studio.js?v=1';
+import { createColorGlobe } from './color-globe.js?v=1';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -189,7 +190,7 @@ function renderPaletteRoles() {
   if (!container) return;
   container.innerHTML = current.colors.slice(0, 5).map((color, index) => `<div class="role-swatch${activeColorIndex === index ? ' is-selected' : ''}${pendingSwapIndex === index ? ' is-swap-source' : ''}" data-role-index="${index}">
     <span class="role-grip" aria-hidden="true" title="Drag onto another color to swap"><svg viewBox="0 0 10 16"><circle cx="2" cy="3" r="1.2"/><circle cx="8" cy="3" r="1.2"/><circle cx="2" cy="8" r="1.2"/><circle cx="8" cy="8" r="1.2"/><circle cx="2" cy="13" r="1.2"/><circle cx="8" cy="13" r="1.2"/></svg></span>
-    <label class="role-color-control" style="--swatch:${color}" title="Click to change ${roles[index]} color"><input type="color" data-role-color="${index}" value="${color}" aria-label="Change ${roles[index]} color"><span aria-hidden="true"></span></label>
+    <button class="role-color-control" type="button" data-role-color="${index}" style="--swatch:${color}" title="Explore ${roles[index]} in Color Globe" aria-label="Change ${roles[index]} color in Color Globe" aria-haspopup="dialog" aria-controls="colorGlobe"><span aria-hidden="true"></span></button>
     <button class="role-select" type="button" data-role-select="${index}" aria-pressed="${activeColorIndex === index}" aria-label="Select ${roles[index]} for shades" aria-controls="colorLab">
       <span class="role-name">${roles[index]}</span><code>${color}</code>
     </button>
@@ -394,6 +395,24 @@ if (copyCode) copyCode.addEventListener('click', () => copy(exportPalette(curren
 const copyPalette = $('#copyPalette');
 if (copyPalette) copyPalette.addEventListener('click', () => copy(current.colors.join(', '), 'All five colors copied.'));
 const paletteRoles = $('#paletteRoles');
+const colorGlobe = createColorGlobe({
+  getPalette: () => current,
+  onPreview(index, color) {
+    const colors = [...current.colors];
+    colors[index] = color;
+    // Only the visual preview changes until the user applies the draft.
+    const panel = $('#mockup');
+    if (!panel) return;
+    ['bg', 'surface', 'primary', 'accent', 'text'].forEach((role, position) => panel.style.setProperty(`--p-${role}`, colors[position]));
+    panel.style.setProperty('--on-primary', textOn(colors[2]));
+    panel.style.setProperty('--on-accent', textOn(colors[3]));
+  },
+  onApply(index, color) { replacePaletteColor(index, color); toast(`${roles[index]} updated to ${color}.`); },
+  onClose(index) {
+    renderMockup();
+    paletteRoles?.querySelector(`[data-role-color="${index}"]`)?.focus({ preventScroll: true });
+  },
+});
 const shadeStudio = createShadeStudio({
   getPalette: () => current,
   onApply(index, color) { replacePaletteColor(index, color); toast(`${roles[index]} updated to ${color}.`); },
@@ -402,6 +421,14 @@ const shadeStudio = createShadeStudio({
 $('#openShadeStudio')?.addEventListener('click', event => shadeStudio.open(activeColorIndex, event.currentTarget));
 if (paletteRoles) {
   paletteRoles.addEventListener('click', event => {
+    const edit = event.target.closest('[data-role-color]');
+    if (edit) {
+      activeColorIndex = Number(edit.dataset.roleColor);
+      pendingSwapIndex = null;
+      renderSelection();
+      colorGlobe.open(activeColorIndex);
+      return;
+    }
     const swap = event.target.closest('[data-role-swap]');
     if (swap) {
       const index = Number(swap.dataset.roleSwap);
@@ -491,19 +518,6 @@ if (paletteRoles) {
   window.addEventListener('pointercancel', finishRoleDrag);
 }
 
-paletteRoles?.addEventListener('change', event => {
-  const input = event.target.closest('[data-role-color]');
-  if (!input) return;
-  const index = Number(input.dataset.roleColor);
-  const color = '#' + input.value.trim().replace(/^#/, '').toUpperCase();
-  if (!/^#[0-9A-F]{6}$/.test(color)) {
-    return;
-  }
-  input.setCustomValidity('');
-  activeColorIndex = index;
-  pendingSwapIndex = null;
-  replacePaletteColor(index, color);
-});
 $('#colorLab')?.addEventListener('click', event => {
   const shade = event.target.closest('[data-inline-shade]');
   if (shade) {
