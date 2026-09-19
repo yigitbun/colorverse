@@ -1,0 +1,161 @@
+/* Mobile atlas: keep controls outside the globe and give touch its own circular surface. */
+.atlas-world-mobile,
+.atlas-touch-zone {
+  display: none;
+}
+
+@media (max-width: 580px) {
+  .atlas-scene {
+    height: 500px;
+    margin-top: 18px;
+    overflow: visible;
+  }
+
+  .atlas-world-rail {
+    display: none;
+  }
+
+  .atlas-world-mobile {
+    position: absolute;
+    z-index: 7;
+    top: 0;
+    left: 22px;
+    right: 22px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 14px;
+    min-height: 48px;
+    padding: 6px 7px 6px 14px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    box-shadow: 0 12px 34px #0000000a;
+    backdrop-filter: blur(14px);
+    color: var(--muted);
+    font-size: .72rem;
+  }
+
+  .atlas-world-mobile > span:first-child {
+    white-space: nowrap;
+  }
+
+  .atlas-world-mobile-control {
+    position: relative;
+    display: grid;
+    grid-template-columns: 8px minmax(0, 1fr);
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+  }
+
+  .atlas-world-mobile-control i {
+    display: block;
+    width: 8px;
+    height: 26px;
+    border-radius: 999px;
+    background: var(--atlas-field);
+    box-shadow: 0 0 13px color-mix(in srgb, var(--atlas-field) 42%, transparent);
+  }
+
+  .atlas-world-mobile-control::after {
+    content: "";
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: translateY(-70%) rotate(45deg);
+    pointer-events: none;
+  }
+
+  .atlas-world-mobile select {
+    min-width: 0;
+    width: 100%;
+    height: 34px;
+    padding: 0 31px 0 9px;
+    border: 0;
+    border-radius: 8px;
+    appearance: none;
+    background: var(--surface-2);
+    color: var(--ink);
+    font: 700 .8rem var(--font);
+    outline: 0;
+  }
+
+  .atlas-world-mobile select:focus-visible {
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+
+  #globe {
+    position: absolute;
+    top: 50px;
+    left: 0;
+    width: 100%;
+    height: 400px;
+    pointer-events: none;
+    touch-action: auto;
+  }
+
+  .atlas-touch-zone {
+    position: absolute;
+    z-index: 5;
+    top: 250px;
+    left: 50%;
+    display: block;
+    width: min(85vw, 340px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    clip-path: circle(50%);
+    transform: translate(-50%, -50%);
+    touch-action: none;
+    cursor: grab;
+  }
+
+  .atlas-touch-zone:active {
+    cursor: grabbing;
+  }
+
+  .atlas-aura {
+    inset: 78px 8% 74px;
+  }
+
+  .atlas-scanline {
+    display: none;
+  }
+
+  .atlas-controls {
+    top: 454px;
+    bottom: auto;
+  }
+
+  .atlas-readout {
+    top: 410px;
+    right: 22px;
+    bottom: auto;
+  }
+}
+
+@media (max-width: 380px) {
+  .atlas-scene {
+    height: 480px;
+  }
+
+  #globe {
+    height: 380px;
+  }
+
+  .atlas-touch-zone {
+    top: 240px;
+  }
+
+  .atlas-controls {
+    top: 434px;
+  }
+
+  .atlas-readout {
+    top: 390px;
+  }
+}

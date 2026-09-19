@@ -1,6 +1,6 @@
 import { palettes } from './palettes.js?v=23';
 import { roles, clamp, contrast, textOn, rgb, toHex, oklab, oklch, paletteFromColor, exportPalette, extractPaletteVariants, oklabDistance } from './color.js';
-import { createAtlas, atlasWorlds } from './globe.js?v=26';
+import { createAtlas, atlasWorlds } from './globe.js?v=27';
 import { buildShadeFamilies, createShadeStudio } from './shade-studio.js?v=1';
 import { createColorGlobe } from './color-globe.js?v=2';
 
@@ -735,8 +735,10 @@ if (page === 'home') {
   let activeAtlasWorld = savedAtlasWorld;
   let worldVariantIndex = 0;
   const atlasWorldSwitch = $('#atlasWorldSwitch');
+  const atlasWorldSelect = $('#atlasWorldSelect');
   if (atlasWorldSwitch) {
     atlasWorldSwitch.innerHTML = `<span class="atlas-world-label">Worlds</span>${atlasWorlds.map((world, index) => `<button type="button" role="tab" data-atlas-world="${world.id}" aria-selected="${world.id === activeAtlasWorld.id}" tabindex="${world.id === activeAtlasWorld.id ? '0' : '-1'}" title="${escape(world.name)}"><span class="atlas-world-index">${String(index + 1).padStart(2, '0')}</span><span class="atlas-world-copy"><strong>${escape(world.shortName)}</strong><small>${escape(world.name)}</small></span><i class="atlas-world-chip" style="--world-accent:${world.accent}"></i></button>`).join('')}`;
+    if (atlasWorldSelect) atlasWorldSelect.innerHTML = atlasWorlds.map(world => `<option value="${world.id}">${escape(world.name)}</option>`).join('');
     const useWorldStarter = (index = 0, notify = false) => {
       const starters = activeAtlasWorld.starters || [];
       if (!starters.length) return;
@@ -764,6 +766,7 @@ if (page === 'home') {
         button.setAttribute('aria-selected', String(selected));
         button.tabIndex = selected ? 0 : -1;
       });
+      if (atlasWorldSelect) atlasWorldSelect.value = activeAtlasWorld.id;
       $('.atlas-scene')?.style.setProperty('--atlas-field', activeAtlasWorld.accent);
       applyWorldAtmosphere(activeAtlasWorld);
       const label = $('#atlasWorldLabel');
@@ -772,6 +775,7 @@ if (page === 'home') {
     renderAtlasWorld();
     if (!params.get('p') && (!storedPalette || storedPalette.id?.startsWith('world-'))) useWorldStarter(0);
     const globe = createAtlas($('#globe'), {
+      interactionTarget: $('#atlasTouchZone'),
       initialWorld: activeAtlasWorld.id,
       imageFor(hex) { const source = signatureFor(hex); return { image: source.image, name: source.name, category: source.category, tags: source.tags }; },
       onSelect(payload) { addAtlasSelection(payload); globe.setSelection(atlasSelected.map(item => item.index)); },
@@ -806,6 +810,7 @@ if (page === 'home') {
       buttons[nextIndex].focus();
       selectAtlasWorld(buttons[nextIndex].dataset.atlasWorld);
     });
+    if (atlasWorldSelect) atlasWorldSelect.addEventListener('change', () => selectAtlasWorld(atlasWorldSelect.value));
     setAtlasReadout(null);
     const clearAtlasSelection = $('#clearAtlasSelection');
     if (clearAtlasSelection) clearAtlasSelection.addEventListener('click', () => { atlasSelected = []; atlasPinned = null; globe.setSelection([]); renderAtlasSelection(); setAtlasReadout(atlasHover); });

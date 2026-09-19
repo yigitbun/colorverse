@@ -93,7 +93,12 @@ function colorSpace(hex) {
   return { l: Math.round(l * 100), c: c.toFixed(3), h: Math.round(h) };
 }
 
-export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor, initialWorld = 'spectrum', colorFor, trueColor = false, autoRotate = true, tiltLimit = .85 }) {
+export function isAtlasInteractionPoint(width, height, zoom, x, y) {
+  const radius = Math.min(width, height) * .425 * zoom * 1.075;
+  return Math.hypot(x - width / 2, y - height / 2) <= radius;
+}
+
+export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor, interactionTarget, initialWorld = 'spectrum', colorFor, trueColor = false, autoRotate = true, tiltLimit = .85 }) {
   const ctx = canvas.getContext('2d', { alpha: true });
   const cells = createHexSphere(3);
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -236,14 +241,21 @@ export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor, init
     ratio = Math.min(devicePixelRatio || 1, 2); canvas.width = Math.round(width * ratio); canvas.height = Math.round(height * ratio);
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0); needsDraw = true;
   }
-  listen(canvas, 'pointerdown', event => {
+  const interactionTargets = interactionTarget && interactionTarget !== canvas ? [canvas, interactionTarget] : [canvas];
+  const pointerDown = event => {
     if (!event.isPrimary || event.button > 0) return;
+    const box = canvas.getBoundingClientRect();
+    if (!isAtlasInteractionPoint(width, height, zoom, event.clientX - box.left, event.clientY - box.top)) return;
+    event.preventDefault();
     pointer = { x: event.clientX, y: event.clientY, startX: event.clientX, startY: event.clientY };
-    dragging = true; moved = false; hover = -1; canvas.setPointerCapture(event.pointerId); canvas.classList.add('is-dragging');
-  });
-  listen(canvas, 'pointermove', event => {
+    dragging = true; moved = false; hover = -1;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    canvas.classList.add('is-dragging');
+  };
+  const pointerMove = event => {
     if (!event.isPrimary) return;
     if (dragging && pointer) {
+      event.preventDefault();
       const dx = event.clientX - pointer.x, dy = event.clientY - pointer.y;
       moved ||= Math.hypot(event.clientX - pointer.startX, event.clientY - pointer.startY) > 5;
       targetRotation += dx * .006; targetTilt = clamp(targetTilt + dy * .004, -tiltLimit, tiltLimit);
@@ -253,15 +265,22 @@ export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor, init
       if (next !== hover) { hover = next; needsDraw = true; onHover?.(next < 0 ? null : payload(next)); }
       idleUntil = performance.now() + 2200;
     }
-  });
-  listen(canvas, 'pointerup', event => {
+  };
+  const pointerUp = event => {
     if (!event.isPrimary || !pointer) return;
+    event.preventDefault();
     if (!moved) { const box = canvas.getBoundingClientRect(); const picked = hit(event.clientX - box.left, event.clientY - box.top); if (picked >= 0) onSelect?.(payload(picked)); }
     dragging = false; pointer = null; idleUntil = performance.now() + 5000; needsDraw = true; canvas.classList.remove('is-dragging');
-  });
+  };
   const cancel = () => { dragging = false; pointer = null; canvas.classList.remove('is-dragging'); };
-  listen(canvas, 'pointercancel', cancel); listen(canvas, 'lostpointercapture', cancel);
-  listen(canvas, 'pointerleave', () => { hover = -1; onHover?.(null); needsDraw = true; });
+  interactionTargets.forEach(target => {
+    listen(target, 'pointerdown', pointerDown);
+    listen(target, 'pointermove', pointerMove);
+    listen(target, 'pointerup', pointerUp);
+    listen(target, 'pointercancel', cancel);
+    listen(target, 'lostpointercapture', cancel);
+    listen(target, 'pointerleave', () => { if (!dragging) { hover = -1; onHover?.(null); needsDraw = true; } });
+  });
   listen(canvas, 'keydown', event => {
     if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter', ' '].includes(event.key)) event.preventDefault();
     if (event.key === 'ArrowLeft') targetRotation -= .13;

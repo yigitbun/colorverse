@@ -211,3 +211,13 @@ The project/template direction and proposed review-analysis method live in
   product dashboard, an analytical report, a campaign set, and a packaging
   family. These replace invented portfolio/shop mockups and show functional
   roles across several components without depending on a source photograph.
+
+## Mobile atlas interaction — 2026-09-19
+
+- On narrow screens, color worlds use one compact native selector above the
+  globe. Do not return to a horizontal row of world cards over the artwork.
+- The globe owns touch gestures only inside its visible circular ring. Dragging
+  there rotates the globe without moving the page; touching outside that circle
+  preserves normal page scrolling.
+- Keep zoom and pause controls outside the sphere so no world or utility control
+  obscures the color field.

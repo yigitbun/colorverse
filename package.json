@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "node scripts/validate-static-site.mjs",
+    "test:atlas": "node --test scripts/test-atlas-touch.mjs",
     "test:color-globe": "node --test scripts/test-color-globe.mjs",
     "test:privacy": "node --test scripts/test-privacy.mjs",
     "test:database": "node --test scripts/test-database-schema.mjs",

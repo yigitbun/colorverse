@@ -13,8 +13,9 @@
   <link rel="stylesheet" href="/styles.css?v=24">
   <link rel="stylesheet" href="/design-system.css?v=29">
   <link rel="stylesheet" href="/home-explore.css?v=2">
+  <link rel="stylesheet" href="/mobile-atlas.css?v=1">
   <link rel="stylesheet" href="/privacy.css?v=2">
-  <script type="module" src="/app.js?v=37"></script>
+  <script type="module" src="/app.js?v=38"></script>
   <script type="module" src="/analytics.js?v=4"></script>
 </head>
 <body>
@@ -40,7 +41,9 @@
       <div class="atlas-scene">
         <div class="atlas-aura" aria-hidden="true"></div>
         <div class="atlas-world-rail" id="atlasWorldSwitch" role="tablist" aria-label="Choose a color world"></div>
+        <label class="atlas-world-mobile" for="atlasWorldSelect"><span>Color world</span><span class="atlas-world-mobile-control"><i aria-hidden="true"></i><select id="atlasWorldSelect" aria-label="Choose a color world"></select></span></label>
         <canvas id="globe" tabindex="0" role="application" aria-label="Interactive perceptual color globe. Drag to rotate. Use arrow keys to rotate, and Enter to select the center color."></canvas>
+        <div class="atlas-touch-zone" id="atlasTouchZone" aria-hidden="true"></div>
         <div class="atlas-telemetry" aria-hidden="true"><span id="atlasWorldLabel">Spectrum field</span><code id="atlasCoordinates">L —&nbsp; C —&nbsp; H —</code></div>
         <div class="atlas-scanline" aria-hidden="true"></div>
         <div class="atlas-guide">Drag to rotate <span class="guide-divider"></span> Choose up to five colors</div>
