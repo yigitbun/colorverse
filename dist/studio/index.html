@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#fafaf8">
-  <script>try { var preference = localStorage.getItem("colorverse-theme"); document.documentElement.dataset.theme = preference === "dark" || preference === "light" ? preference : (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); } catch { document.documentElement.dataset.theme = "light"; }</script>
+  <script src="/theme-init.js"></script>
   <title>Studio — ColorVerse</title>
   <meta name="description" content="Preview a ColorVerse palette across a website, slides, social, and shop layout, then export it.">
   <meta property="og:title" content="Studio — ColorVerse">
@@ -18,7 +18,9 @@
   <link rel="stylesheet" href="/shade-studio.css?v=1">
   <link rel="stylesheet" href="/studio-editor.css?v=5">
   <link rel="stylesheet" href="/color-globe.css?v=1">
-  <script type="module" src="/app.js?v=34"></script>
+  <link rel="stylesheet" href="/privacy.css?v=2">
+  <script type="module" src="/app.js?v=35"></script>
+  <script type="module" src="/analytics.js?v=4"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>

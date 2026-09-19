@@ -1,4 +1,4 @@
-import { createAtlas } from './globe.js?v=25';
+import { createAtlas } from './globe.js?v=26';
 import { clamp, rgb, toHex, textOn, roles } from './color.js';
 
 // HSL adds an independent saturation axis to the globe's hue/lightness surface.

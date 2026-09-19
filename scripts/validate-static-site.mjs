@@ -22,6 +22,12 @@ walk(root);
 
 for (const file of files.filter((path) => path.endsWith(".html"))) {
   const html = readFileSync(file, "utf8");
+  if (/<script(?![^>]*\bsrc=)[^>]*>/i.test(html)) {
+    problems.push(`${relative(root, file)} -> inline script blocked by production CSP`);
+  }
+  if (/\son[a-z]+\s*=/i.test(html)) {
+    problems.push(`${relative(root, file)} -> inline event handler blocked by production CSP`);
+  }
   for (const match of html.matchAll(/(?:src|href)=["']([^"']+)["']/g)) {
     const url = match[1];
     if (/^(?:https?:|data:|mailto:|tel:|#)/.test(url)) continue;

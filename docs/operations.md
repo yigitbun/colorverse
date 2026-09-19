@@ -29,6 +29,28 @@ preview is secondary: it does not own the production domain and its generated
 Sites verification TXT records may still exist in Cloudflare. They do not route
 traffic and are not evidence that the domain should be attached to Sites.
 
+## Privacy, analytics, and browser security
+
+- Google Analytics property: `ColorVerse`; web stream URL:
+  `https://colorverse.byigit.dev`; measurement ID: `G-TJG8M3VE03`.
+- Analytics uses basic consent mode. The Google tag is not requested until the
+  visitor explicitly allows analytics. Rejecting analytics leaves all color
+  tools available.
+- Page views exclude query strings and fragments. Product events are restricted
+  to fixed allowlisted values; uploaded images, project names, form text, and
+  palette values are not analytics payloads.
+- Consent lasts up to 180 days; GA cookies are configured for up to 90 days and
+  are removed from the ColorVerse host when consent is withdrawn.
+- GA Enhanced Measurement is disabled; ColorVerse sends its own sanitized page
+  views and allowlisted product events. GA event data and user data retention
+  are both set to two months, with “reset on new user activity” disabled.
+- `dist/_headers` is the Cloudflare Pages source for CSP, frame blocking,
+  content-type protection, referrer policy, permissions policy, and HSTS.
+  The production CSP intentionally blocks inline scripts and event handlers;
+  `npm run build` rejects either pattern in HTML.
+- The public privacy notice lives at `/privacy/`. Keep it synchronized whenever
+  storage, analytics, hosting, image delivery, or account behavior changes.
+
 ## Release checklist
 
 1. Run `npm run build`.
@@ -37,6 +59,9 @@ traffic and are not evidence that the domain should be attached to Sites.
 4. Confirm the Cloudflare Pages production deployment completed.
 5. Verify the affected public routes on `https://colorverse.byigit.dev` return
    HTTP 200 and do not show a ChatGPT sign-in screen.
+6. For releases touching `_headers`, verify the public response includes CSP,
+   `X-Content-Type-Options`, `Referrer-Policy`, and `Permissions-Policy`, then
+   check the browser console for blocked required assets.
 
 For a quick Studio check:
 

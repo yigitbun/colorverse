@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "build": "node scripts/validate-static-site.mjs",
-    "test:color-globe": "node --test scripts/test-color-globe.mjs"
+    "test:color-globe": "node --test scripts/test-color-globe.mjs",
+    "test:privacy": "node --test scripts/test-privacy.mjs"
   },
   "devDependencies": {
     "supabase": "2.117.0"

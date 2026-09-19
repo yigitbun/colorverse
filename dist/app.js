@@ -2,7 +2,7 @@ import { palettes } from './palettes.js?v=22';
 import { roles, clamp, contrast, textOn, rgb, toHex, oklab, oklch, paletteFromColor, exportPalette, extractPaletteVariants, oklabDistance } from './color.js';
 import { createAtlas, atlasWorlds } from './globe.js?v=26';
 import { buildShadeFamilies, createShadeStudio } from './shade-studio.js?v=1';
-import { createColorGlobe } from './color-globe.js?v=1';
+import { createColorGlobe } from './color-globe.js?v=2';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -20,6 +20,7 @@ const titles = {
   lab: 'Lab — ColorVerse',
 };
 const params = new URLSearchParams(location.search);
+const track = (name, detail) => window.colorverseTrack?.(name, detail);
 let toastTimer;
 
 function readStoredPalette() {
@@ -140,6 +141,7 @@ function choosePalette(palette, notify = true) {
   shadeSourceColors = current.colors.slice(0, 5);
   persistPalette(palette);
   renderSelection(true);
+  track('palette_open', { source: page === 'community' ? 'community' : 'library' });
   if (notify) toast(`${palette.name} selected.`);
 }
 
@@ -151,6 +153,7 @@ function swapPaletteColors(from, to) {
   [shadeSourceColors[from], shadeSourceColors[to]] = [shadeSourceColors[to], shadeSourceColors[from]];
   persistPalette(current);
   renderSelection(true);
+  track('color_edit', { method: 'swap' });
 }
 
 function replacePaletteColor(index, color, { keepShadeSource = false } = {}) {
@@ -377,7 +380,7 @@ function setupTabs(selector, callback) {
   });
 }
 
-setupTabs('[data-context]', button => { context = button.dataset.context; renderMockup(); });
+setupTabs('[data-context]', button => { context = button.dataset.context; renderMockup(); track('context_preview', { context }); });
 setupTabs('[data-format]', button => { format = button.dataset.format; renderExport(); });
 
 document.addEventListener('click', event => {
@@ -391,7 +394,7 @@ document.addEventListener('click', event => {
 });
 
 const copyCode = $('#copyCode');
-if (copyCode) copyCode.addEventListener('click', () => copy(exportPalette(current, format), `${format === 'hex' ? 'Hex list' : format.toUpperCase()} copied.`));
+if (copyCode) copyCode.addEventListener('click', () => { copy(exportPalette(current, format), `${format === 'hex' ? 'Hex list' : format.toUpperCase()} copied.`); track('palette_export', { format }); });
 const copyPalette = $('#copyPalette');
 if (copyPalette) copyPalette.addEventListener('click', () => copy(current.colors.join(', '), 'All five colors copied.'));
 const paletteRoles = $('#paletteRoles');
@@ -407,7 +410,7 @@ const colorGlobe = createColorGlobe({
     panel.style.setProperty('--on-primary', textOn(colors[2]));
     panel.style.setProperty('--on-accent', textOn(colors[3]));
   },
-  onApply(index, color) { replacePaletteColor(index, color); toast(`${roles[index]} updated to ${color}.`); },
+  onApply(index, color) { replacePaletteColor(index, color); track('color_edit', { method: 'globe' }); toast(`${roles[index]} updated to ${color}.`); },
   onClose(index) {
     renderMockup();
     paletteRoles?.querySelector(`[data-role-color="${index}"]`)?.focus({ preventScroll: true });
@@ -415,7 +418,7 @@ const colorGlobe = createColorGlobe({
 });
 const shadeStudio = createShadeStudio({
   getPalette: () => current,
-  onApply(index, color) { replacePaletteColor(index, color); toast(`${roles[index]} updated to ${color}.`); },
+  onApply(index, color) { replacePaletteColor(index, color); track('color_edit', { method: 'shade' }); toast(`${roles[index]} updated to ${color}.`); },
   onClose(index) { paletteRoles?.querySelector(`[data-role-select="${index}"]`)?.focus({ preventScroll: true }); },
 });
 $('#openShadeStudio')?.addEventListener('click', event => shadeStudio.open(activeColorIndex, event.currentTarget));
@@ -798,113 +801,15 @@ if (page === 'home') {
 }
 
 if (page === 'community') {
-  const projectInput = $('#projectInput');
-  const submitProject = $('#submitProject');
-  const composer = $('#projectComposer');
-  const composerForm = $('#projectComposerForm');
-  const composerPreview = $('#projectComposerPreview');
-  const composerSource = $('#projectPaletteSource');
-  const paletteEditor = $('#projectPaletteEditor');
-  const projectTitle = $('#projectTitle');
-  const projectPaletteName = $('#projectPaletteName');
-  const communityNote = $('#communityNote');
-  const communityGrid = $('.community-grid');
-  let projectImageData = '';
-
-  const renderProjectColors = colors => {
-    if (!paletteEditor) return;
-    paletteEditor.innerHTML = colors.slice(0, 5).map((color, index) => `<label><span>${roles[index]}</span><input type="color" value="${color}" aria-label="${roles[index]} color"><code>${color}</code></label>`).join('');
-    paletteEditor.querySelectorAll('input').forEach(input => input.addEventListener('input', () => { input.nextElementSibling.textContent = input.value.toUpperCase(); }));
-  };
-
-  const readImagePalette = async file => {
-    const url = URL.createObjectURL(file);
-    try {
-      const image = new Image();
-      image.src = url;
-      await image.decode();
-      const canvas = document.createElement('canvas');
-      const scale = 160 / Math.max(image.width, image.height);
-      canvas.width = Math.max(1, Math.round(image.width * scale));
-      canvas.height = Math.max(1, Math.round(image.height * scale));
-      const imageContext = canvas.getContext('2d', { willReadFrequently: true });
-      imageContext.drawImage(image, 0, 0, canvas.width, canvas.height);
-      return extractPaletteVariants(imageContext.getImageData(0, 0, canvas.width, canvas.height).data).variants[0].colors;
-    } finally { URL.revokeObjectURL(url); }
-  };
-
-  const readAsDataURL = file => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = () => reject(new Error('This image could not be read.'));
-    reader.readAsDataURL(file);
-  });
-
-  submitProject?.addEventListener('click', () => projectInput?.click());
-  projectInput?.addEventListener('change', async () => {
-    const file = projectInput.files?.[0];
-    if (!file || !['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) return;
-    if (file.size > 20 * 1024 * 1024) {
-      if (communityNote) communityNote.textContent = 'Choose an image under 20 MB so the review stays fast.';
-      projectInput.value = '';
-      return;
-    }
-    submitProject.disabled = true;
-    submitProject.textContent = 'Preparing…';
-    try {
-      projectImageData = await readAsDataURL(file);
-      if (composerPreview) composerPreview.src = projectImageData;
-      const previous = readStoredPalette();
-      const known = palettes.find(palette => palette.id === previous?.id);
-      const colors = previous?.colors?.slice(0, 5) || await readImagePalette(file);
-      renderProjectColors(colors);
-      if (projectPaletteName) {
-        projectPaletteName.value = known?.name || (previous && !/^Custom palette$/i.test(previous.name) ? previous.name : '');
-        projectPaletteName.placeholder = previous ? 'Name this palette' : 'Name the suggested palette';
-      }
-      if (composerSource) composerSource.textContent = previous ? `Using ${known?.name || 'your latest Studio palette'}. Check every color before sharing.` : 'Suggested from the image. Check every color before sharing.';
-      if (projectTitle) projectTitle.value = '';
-      composer?.showModal();
-      requestAnimationFrame(() => projectTitle?.focus());
-    } catch {
-      if (communityNote) communityNote.textContent = 'This image could not be prepared. Try another JPG, PNG, or WebP.';
-    } finally {
-      submitProject.disabled = false;
-      submitProject.innerHTML = 'Share your work <span>↗</span>';
-      projectInput.value = '';
-    }
-  });
-
-  $('#closeProjectComposer')?.addEventListener('click', () => composer?.close());
-  composer?.addEventListener('click', event => { if (event.target === composer) composer.close(); });
-  composerForm?.addEventListener('submit', event => {
-    event.preventDefault();
-    if (!composerForm.reportValidity() || !projectImageData || !communityGrid) return;
-    const title = projectTitle.value.trim();
-    const paletteName = projectPaletteName.value.trim();
-    const category = $('#projectCategory').value;
-    const colors = [...paletteEditor.querySelectorAll('input')].map(input => input.value.toUpperCase());
-    const id = `guest-${Date.now()}`;
-    const card = document.createElement('article');
-    card.className = 'community-card community-card-new';
-    card.dataset.category = category.toLowerCase();
-    card.dataset.project = id;
-    card.innerHTML = `<div class="community-art"><img src="${projectImageData}" alt="${escape(title)} project preview"><span>${escape(title)}</span></div><div class="community-card-meta"><div><span class="eyebrow">${escape(category)} · ${escape(paletteName)}</span><h2>${escape(title)}</h2><small>Guest preview · review pending</small></div><button class="vote-button" data-vote="${id}" aria-label="Upvote ${escape(title)} project"><span>↑</span><b>0</b></button></div><div class="community-card-actions"><button type="button" class="community-use" data-community-colors="${colors.join(',')}" data-community-name="${escape(paletteName)}">Use palette →</button><span>5 colors · palette confirmed</span></div><div class="community-palette">${colors.map(color => `<i style="--swatch:${color}"></i>`).join('')}</div>`;
-    communityGrid.prepend(card);
-    window.dispatchEvent(new CustomEvent('colorverse:community-card', { detail: { card } }));
-    if (communityNote) communityNote.textContent = 'Your reviewed project is saved on this device as a community preview.';
-    composer.close();
-    composerForm.reset();
-  });
-
-  document.addEventListener('click', event => {
-    const use = event.target.closest('[data-community-colors]');
-    if (!use) return;
-    const colors = use.dataset.communityColors.split(',');
-    const palette = { id: 'community-custom', name: use.dataset.communityName || 'Community palette', description: 'A palette taken from a community project.', colors, image: projectImageData || palettes[0].image, category: 'Community', tags: ['community'] };
-    persistPalette(palette);
-    location.href = `/studio/?p=${palette.id}#studio`;
-  });
+  $$('.community-filter').forEach(filter => filter.addEventListener('click', () => {
+    $$('.community-filter').forEach(item => {
+      const active = item === filter;
+      item.classList.toggle('is-active', active);
+      item.setAttribute('aria-pressed', String(active));
+    });
+    const value = filter.dataset.filter;
+    $$('.community-card').forEach(card => { card.hidden = value !== 'all' && card.dataset.category !== value; });
+  }));
 }
 
 const input = $('#imageInput');
@@ -1068,9 +973,11 @@ if (input && dropzone) {
       const resultPanel = $('#extractionResult');
       if (resultPanel) resultPanel.hidden = false;
       if (status) status.textContent = `Three readings ready from ${result.sampled} color clusters.`;
+      track('image_extract', { result: 'success' });
     } catch (error) {
       URL.revokeObjectURL(nextURL);
       if (status) status.textContent = error.message?.includes('visible pixels') ? error.message : 'This image could not be read. Try another JPG, PNG, or WebP.';
+      track('image_extract', { result: 'error' });
     } finally { input.value = ''; }
   }
   input.addEventListener('change', () => extract(input.files?.[0]));

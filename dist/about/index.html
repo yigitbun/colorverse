@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#fafaf8">
-  <script>try { var preference = localStorage.getItem("colorverse-theme"); document.documentElement.dataset.theme = preference === "dark" || preference === "light" ? preference : (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); } catch { document.documentElement.dataset.theme = "light"; }</script>
+  <script src="/theme-init.js"></script>
   <title>Color guide — ColorVerse</title>
   <meta name="description" content="Practical notes for choosing, reading, and applying color.">
   <meta property="og:title" content="Color guide — ColorVerse">
@@ -15,7 +15,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;650;700;750&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css?v=24">
   <link rel="stylesheet" href="/design-system.css?v=29">
-  <script type="module" src="/app.js?v=34"></script>
+  <link rel="stylesheet" href="/privacy.css?v=2">
+  <script type="module" src="/app.js?v=35"></script>
+  <script type="module" src="/analytics.js?v=4"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>

@@ -30,6 +30,10 @@ The project/template direction and proposed review-analysis method live in
 - Image extraction separates dominant colors, visual focus, and design-ready roles. Future work should expose small but meaningful accent colors and direct image sampling.
 - Community should support both contextual palette ideas and applied work, with clear labels distinguishing concepts from completed projects. Saves, remixes, creator attribution, and discovery should connect contributions to Studio.
 - Community contribution should support a palette-first path as well as an image-first path. Confirm the palette, title, and intended use before an explicit sharing action; attach a reference image optionally. Accounts can add drafts, versions, and deeper attribution later.
+- Until durable accounts, moderation, reporting, and backend writes exist, the
+  Community route presents clearly labeled ColorVerse editorial prototypes.
+  Do not show invented creator identities, vote totals, popularity sorting, or a
+  “share” action that only modifies the current DOM.
 - Color worlds are navigational moods, not separate products. The default world includes the full spectrum; focused worlds provide three intentional starter palettes and a subtle site-wide atmosphere using CSS variables rather than heavy media.
 - The world rail uses six entries in a quiet reverse-crescent composition. One entry may rotate as a time-specific editorial edition without making the product dependent on weekly trends.
 - The public homepage is itself the primary Explore surface. The globe remains the distinctive creation entry, followed immediately by a visual feed of contextual palette examples. `/explore/` remains the complete searchable/filterable palette library rather than a duplicate landing page.
@@ -171,7 +175,9 @@ The project/template direction and proposed review-analysis method live in
 - The owner's example, “Dining room of a canteen or cafeteria,” demonstrates the value of a palette attached to a concrete use case. Discovery should accommodate what someone is designing, alongside color, style, or mood.
 - Proposed next scope, not yet approved for implementation: lightweight idea submission (palette + title + use case), optional reference image, save to a project collection, and remix in Studio with creator/source attribution.
 - Proposed contextual roles: interiors can describe wall/floor/furniture/accent uses; digital projects can use background/surface/text roles. Do not silently replace Studio's existing role model.
-- Current implementation remains a prototype: community cards and initial vote counts are static; votes are browser-local; new submissions are appended to the current page without a backend write or durable submission storage. The UI's “saved on this device” and “review pending” wording does not establish an actual storage or review workflow. Real shared persistence must be implemented before presenting these as community activity.
+- Current implementation remains a curated prototype. Public submission and
+  voting UI is deliberately withheld until shared persistence, accounts,
+  moderation, reporting, and review are implemented.
 
 ## Visual quality bar
 

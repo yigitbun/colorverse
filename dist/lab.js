@@ -81,6 +81,7 @@ function applyFeedback(kind) {
   try { localStorage.setItem('colorverse-lab-feedback', JSON.stringify(feedback)); } catch {}
   document.querySelectorAll('[data-feedback]').forEach(button => button.classList.toggle('is-selected', button.dataset.feedback === kind));
   $('#feedbackCount').textContent = '1 response · prototype';
+  window.colorverseTrack?.('lab_feedback', { experiment: 'roomkit', response: kind });
 }
 
 function bindFeedback() {
