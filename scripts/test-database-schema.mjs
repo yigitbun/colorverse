@@ -6,6 +6,8 @@ const migrationUrl = new URL('../supabase/migrations/20260911000000_initial_colo
 const sql = await readFile(migrationUrl, 'utf8');
 const rpcUrl = new URL('../supabase/migrations/20260919000100_project_snapshot_rpc.sql', import.meta.url);
 const rpc = await readFile(rpcUrl, 'utf8');
+const paletteSyncUrl = new URL('../supabase/migrations/20260919000200_sync_palette_library.sql', import.meta.url);
+const paletteSync = await readFile(paletteSyncUrl, 'utf8');
 
 const privateTables = [
   'projects',
@@ -57,4 +59,19 @@ test('project saving is atomic and unavailable to anonymous visitors', () => {
   assert.match(rpc, /insert into public\.project_versions/i);
   assert.match(rpc, /revoke all on function public\.save_project_snapshot[^;]+from public, anon/i);
   assert.match(rpc, /grant execute on function public\.save_project_snapshot[^;]+to authenticated/i);
+});
+
+test('the hosted catalog migration contains all 100 palettes and five role colors each', () => {
+  assert.match(paletteSync, /-- palette-count: 100/);
+  assert.equal((paletteSync.match(/^  \('[^']+', \d, '(?:background|surface|primary|accent|text)', '#[0-9A-F]{6}'\)/gm) || []).length, 500);
+});
+
+test('the current snapshot function validates every browser-controlled structure', () => {
+  assert.match(paletteSync, /p_context_type not in \('custom', 'website', 'slides', 'social', 'shop', 'brand', 'roomkit', 'editorial'\)/i);
+  assert.match(paletteSync, /color\.value !~ '\^#\[0-9A-Fa-f\]\{6\}\$'/i);
+  assert.match(paletteSync, /octet_length\(p_roles::text\) > 4096/i);
+  assert.match(paletteSync, /octet_length\(p_editor_state::text\) > 16384/i);
+  assert.match(paletteSync, /palettes\.id = p_source_palette_id and palettes\.is_published = true/i);
+  assert.match(paletteSync, /security invoker\s+set search_path = ''/i);
+  assert.match(paletteSync, /revoke all on function public\.save_project_snapshot[^;]+from public, anon/i);
 });

@@ -2,8 +2,11 @@
   "name": "colorverse",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "node scripts/validate-static-site.mjs",
+    "cache:palette-images": "node scripts/cache-original-palette-images.mjs",
+    "generate:palette-migration": "node scripts/generate-palette-migration.mjs",
     "test:atlas": "node --test scripts/test-atlas-touch.mjs",
     "test:color-globe": "node --test scripts/test-color-globe.mjs",
     "test:privacy": "node --test scripts/test-privacy.mjs",

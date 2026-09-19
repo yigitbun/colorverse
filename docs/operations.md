@@ -51,7 +51,8 @@ traffic and are not evidence that the domain should be attached to Sites.
 - The public privacy notice lives at `/privacy/`. Keep it synchronized whenever
   storage, analytics, hosting, image delivery, or account behavior changes.
 - Nunito Sans is self-hosted under `dist/assets/fonts/` with its OFL license;
-  production pages must not request Google Fonts.
+  palette reference images are cached under `dist/assets/palette-library/`.
+  Production pages must not request Google Fonts or third-party image CDNs.
 - Supabase powers opt-in private Studio projects. The browser uses only the
   publishable key; never place a secret or service-role key in `dist/`. Project
   tables use explicit grants plus owner-only RLS, and uploaded images remain local.

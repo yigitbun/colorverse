@@ -7,6 +7,11 @@ import {
   parseConsent,
   safePageLocation,
 } from '../dist/privacy.js';
+import { palettes } from '../dist/palettes.js';
+import { readFile } from 'node:fs/promises';
+
+const headers = await readFile(new URL('../dist/_headers', import.meta.url), 'utf8');
+const worlds = await readFile(new URL('../dist/worlds/worlds.js', import.meta.url), 'utf8');
 
 test('consent accepts only the current, unexpired shape', () => {
   const now = 1_800_000_000_000;
@@ -37,4 +42,10 @@ test('analytics events reject unknown names and user-authored values', () => {
     detail: { experiment: 'roomkit', response: 'use' },
   });
   assert.equal(analyticsEvent('form_text', { value: 'secret' }), null);
+});
+
+test('palette imagery is self-hosted and third-party image CDNs are not allowed by CSP', () => {
+  palettes.forEach(palette => assert.match(palette.image, /^\/assets\/palette-library\/.+\.jpg$/, palette.id));
+  assert.doesNotMatch(worlds, /images\.unsplash\.com/);
+  assert.doesNotMatch(headers, /img-src[^\n]*images\.unsplash\.com/);
 });

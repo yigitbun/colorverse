@@ -10,9 +10,9 @@ const worlds = [
     palette: ['#F5F2EA', '#F2C94C', '#E5527D', '#4B88E8', '#172126'],
     reference: 'Chromatic field study',
     images: [
-      'https://images.unsplash.com/photo-1500964757637-c85e8a162699?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1557682250-33bd709cbe85?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=900&q=80',
+      '/assets/palette-library/original/pastel-daydream.jpg',
+      '/assets/palette-library/original/cyber-neon.jpg',
+      '/assets/palette-library/original/soft-voltage.jpg',
     ],
   },
   {
@@ -22,9 +22,9 @@ const worlds = [
     palette: ['#F1E4C4', '#B95E3F', '#2F5A58', '#C59B4C', '#6F3E2A', '#22282A', '#D6C1A2'],
     reference: 'Motion and material archive',
     images: [
-      'https://images.unsplash.com/photo-1493238792000-8113da705763?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=80',
+      '/assets/palette-library/original/bold-minimal.jpg',
+      '/assets/palette-library/original/tuscan-earth.jpg',
+      '/assets/palette-library/original/warm-cafe.jpg',
     ],
   },
   {
@@ -34,9 +34,9 @@ const worlds = [
     palette: ['#E6E6C5', '#688C56', '#244C49', '#8E4D73', '#CF9B6B', '#101D1D', '#91B7A4'],
     reference: 'Garden after dark',
     images: [
-      'https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=900&q=80',
-      'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=900&q=80',
+      '/assets/palette-library/original/night-garden.jpg',
+      '/assets/palette-library/original/forest-floor.jpg',
+      '/assets/palette-library/original/after-rain.jpg',
     ],
   },
 ];

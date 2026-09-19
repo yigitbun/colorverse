@@ -11,7 +11,8 @@ const originalPalettes = [
       "#F59E0B",
       "#3A1B2C"
     ],
-    "image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=80",
+    "image": "/assets/palette-library/original/sunset-pop.jpg",
+    "source": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4",
     "credit": "Unsplash",
     "category": "Landscape",
     "tags": ["warm", "energetic", "sunset"],
@@ -28,7 +29,8 @@ const originalPalettes = [
       "#D17F3F",
       "#3E2A1F"
     ],
-    "image": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=80",
+    "image": "/assets/palette-library/original/warm-cafe.jpg",
+    "source": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085",
     "credit": "Unsplash",
     "category": "Coffee & food",
     "tags": ["warm", "earthy", "comforting"],
@@ -45,7 +47,8 @@ const originalPalettes = [
       "#7FA8FF",
       "#1A2330"
     ],
-    "image": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=900&q=80",
+    "image": "/assets/palette-library/original/nordic-calm.jpg",
+    "source": "https://images.unsplash.com/photo-1505691938895-1758d7feb511",
     "credit": "Unsplash",
     "category": "Interiors",
     "tags": ["cool", "minimal", "quiet"],
@@ -62,7 +65,8 @@ const originalPalettes = [
       "#A38450",
       "#1F2C1D"
     ],
-    "image": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=900&q=80",
+    "image": "/assets/palette-library/original/forest-floor.jpg",
+    "source": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e",
     "credit": "Unsplash",
     "category": "Nature",
     "tags": ["organic", "earthy", "grounded"],
@@ -79,7 +83,8 @@ const originalPalettes = [
       "#A78BFA",
       "#E2E8F0"
     ],
-    "image": "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?auto=format&fit=crop&w=900&q=80",
+    "image": "/assets/palette-library/original/midnight-tech.jpg",
+    "source": "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a",
     "credit": "Unsplash",
     "category": "Nightscape",
     "tags": ["dark", "precise", "electric"],
@@ -96,7 +101,8 @@ const originalPalettes = [
       "#F472B6",
       "#3F2A4B"
     ],
-    "image": "https://images.unsplash.com/photo-1500964757637-c85e8a162699?auto=format&fit=crop&w=900&q=80",
+    "image": "/assets/palette-library/original/pastel-daydream.jpg",
+    "source": "https://images.unsplash.com/photo-1500964757637-c85e8a162699",
     "credit": "Unsplash",
     "category": "Atmosphere",
     "tags": ["pastel", "soft", "dreamlike"],
@@ -113,7 +119,8 @@ const originalPalettes = [
       "#171717",
       "#0A0A0A"
     ],
-    "image": "https://images.unsplash.com/photo-1493238792000-8113da705763?auto=format&fit=crop&w=900&q=80",
+    "image": "/assets/palette-library/original/bold-minimal.jpg",
+    "source": "https://images.unsplash.com/photo-1493238792000-8113da705763",
     "credit": "Unsplash",
     "category": "Automotive",
     "tags": ["graphic", "high-contrast", "editorial"],
@@ -130,7 +137,8 @@ const originalPalettes = [
       "#8A8F4D",
       "#3D2A1A"
     ],
-    "image": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",
+    "image": "/assets/palette-library/original/tuscan-earth.jpg",
+    "source": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
     "credit": "Unsplash",
     "category": "Travel",
     "tags": ["vintage", "sun-baked", "artisanal"],
@@ -147,7 +155,8 @@ const originalPalettes = [
       "#FF2E97",
       "#F5F5F7"
     ],
-    "image": "https://images.unsplash.com/photo-1557682250-33bd709cbe85?auto=format&fit=crop&w=900&q=80",
+    "image": "/assets/palette-library/original/cyber-neon.jpg",
+    "source": "https://images.unsplash.com/photo-1557682250-33bd709cbe85",
     "credit": "Unsplash",
     "category": "Abstract",
     "tags": ["neon", "dark", "futuristic"],
@@ -164,7 +173,8 @@ const originalPalettes = [
       "#F4C977",
       "#1B3B3A"
     ],
-    "image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
+    "image": "/assets/palette-library/original/ocean-breeze.jpg",
+    "source": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
     "credit": "Unsplash",
     "category": "Coastal",
     "tags": ["fresh", "calm", "sunlit"],
@@ -181,7 +191,8 @@ const originalPalettes = [
       "#FF6B5E",
       "#24213D"
     ],
-    "image": "https://images.unsplash.com/photo-1557682250-33bd709cbe85?auto=format&fit=crop&w=900&q=80",
+    "image": "/assets/palette-library/original/neon-tide.jpg",
+    "source": "https://images.unsplash.com/photo-1557682250-33bd709cbe85",
     "credit": "Unsplash",
     "category": "Abstract",
     "tags": ["electric", "playful", "high-contrast"],
@@ -198,7 +209,8 @@ const originalPalettes = [
       "#8FD3FF",
       "#273C4D"
     ],
-    "image": "https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=900&q=80",
+    "image": "/assets/palette-library/original/after-rain.jpg",
+    "source": "https://images.unsplash.com/photo-1500534623283-312aade485b7",
     "credit": "Unsplash",
     "category": "Nature",
     "tags": ["fresh", "soft", "rain-washed"],
@@ -215,7 +227,8 @@ const originalPalettes = [
       "#69E895",
       "#30233B"
     ],
-    "image": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",
+    "image": "/assets/palette-library/original/citrus-static.jpg",
+    "source": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
     "credit": "Unsplash",
     "category": "Landscape",
     "tags": ["citrus", "bright", "energetic"],
@@ -232,7 +245,8 @@ const originalPalettes = [
       "#EF6C9B",
       "#132F39"
     ],
-    "image": "https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=900&q=80",
+    "image": "/assets/palette-library/original/night-garden.jpg",
+    "source": "https://images.unsplash.com/photo-1519608487953-e999c86e7455",
     "credit": "Unsplash",
     "category": "Botanical",
     "tags": ["nocturnal", "lush", "mysterious"],
@@ -249,7 +263,8 @@ const originalPalettes = [
       "#E8FF5F",
       "#322447"
     ],
-    "image": "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=900&q=80",
+    "image": "/assets/palette-library/original/soft-voltage.jpg",
+    "source": "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8",
     "credit": "Unsplash",
     "category": "Atmosphere",
     "tags": ["soft", "electric", "contemporary"],

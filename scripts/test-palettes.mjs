@@ -25,9 +25,9 @@ test('palette identifiers and names are unique', () => {
   assert.equal(new Set(palettes.map(palette => palette.name)).size, palettes.length);
 });
 
-test('the expanded collection uses documented local visual sources', () => {
-  palettes.slice(25).forEach(palette => {
+test('the complete collection uses documented local visual sources', () => {
+  palettes.forEach(palette => {
     assert.match(palette.image, /^\/assets\/palette-library\/.+\.jpg$/, palette.name);
-    assert.match(palette.source, /^https:\/\/unsplash\.com\/photos\//, palette.name);
+    assert.match(palette.source, /^https:\/\/(?:images\.)?unsplash\.com\//, palette.name);
   });
 });
