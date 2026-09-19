@@ -33,6 +33,8 @@ The project/template direction and proposed review-analysis method live in
 - Color worlds are navigational moods, not separate products. The default world includes the full spectrum; focused worlds provide three intentional starter palettes and a subtle site-wide atmosphere using CSS variables rather than heavy media.
 - The world rail uses six entries in a quiet reverse-crescent composition. One entry may rotate as a time-specific editorial edition without making the product dependent on weekly trends.
 - The public homepage is itself the primary Explore surface. The globe remains the distinctive creation entry, followed immediately by a visual feed of contextual palette examples. `/explore/` remains the complete searchable/filterable palette library rather than a duplicate landing page.
+- Global navigation uses one Explore entry for that combined discovery area; “All palettes” is reached contextually from Explore instead of appearing as a competing top-level destination. Studio is the persistent top-right action and is not duplicated inside the primary menu. On desktop, the primary menu begins directly beneath the ColorVerse wordmark.
+- World starter palettes are editorial starting points, not “best” or “popular” rankings. Until save/open data is reliable, prefer the strongest coherent systems already in the library and avoid unearned popularity claims.
 
 ## Working directions — 2026-09-14
 
@@ -130,8 +132,9 @@ The project/template direction and proposed review-analysis method live in
 
 ## Homepage discovery revision — 2026-09-15
 
-- Treat `/` as Explore, not as a conventional marketing homepage. In global
-  navigation, `/` is “Explore” and `/explore/` is “All palettes”.
+- Treat `/` as Explore, not as a conventional marketing homepage. The complete
+  library remains at `/explore/`, but is entered from the Explore surface rather
+  than repeated as a second global-navigation item.
 - Keep the interactive globe first because it is ColorVerse's distinctive way
   to create a direction. Immediately below it, show a dense, image-led feed of
   selected palettes so visitors can discover value without choosing a tool first.

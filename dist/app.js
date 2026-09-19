@@ -1,6 +1,6 @@
 import { palettes } from './palettes.js?v=22';
 import { roles, clamp, contrast, textOn, rgb, toHex, oklab, oklch, paletteFromColor, exportPalette, extractPaletteVariants, oklabDistance } from './color.js';
-import { createAtlas, atlasWorlds } from './globe.js?v=25';
+import { createAtlas, atlasWorlds } from './globe.js?v=26';
 import { buildShadeFamilies, createShadeStudio } from './shade-studio.js?v=1';
 import { createColorGlobe } from './color-globe.js?v=1';
 
