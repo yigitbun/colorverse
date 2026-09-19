@@ -6,7 +6,8 @@
     "build": "node scripts/validate-static-site.mjs",
     "test:color-globe": "node --test scripts/test-color-globe.mjs",
     "test:privacy": "node --test scripts/test-privacy.mjs",
-    "test:database": "node --test scripts/test-database-schema.mjs"
+    "test:database": "node --test scripts/test-database-schema.mjs",
+    "test:palettes": "node --test scripts/test-palettes.mjs"
   },
   "devDependencies": {
     "supabase": "2.117.0"

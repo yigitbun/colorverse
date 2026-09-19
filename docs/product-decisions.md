@@ -197,3 +197,17 @@ The project/template direction and proposed review-analysis method live in
 - Named reusable templates and the A/B workbench remain the next project-layer
   increments; the database schema reserves those concepts without presenting
   unfinished controls in the public interface.
+
+## Library and context systems — 2026-09-19
+
+- The public palette archive contains 100 five-color directions. Twenty-five
+  established palettes remain intact; seventy-five additional directions are
+  grouped into fifteen practical families such as digital product, reporting,
+  packaging, hospitality, editorial, wellness, and architecture.
+- The expanded archive reuses a deliberately small set of credited, real-world
+  Unsplash references stored locally. The archive itself remains color-first;
+  imagery is supporting provenance, not a decorative card requirement.
+- Studio context previews now demonstrate four applied systems: a digital
+  product dashboard, an analytical report, a campaign set, and a packaging
+  family. These replace invented portfolio/shop mockups and show functional
+  roles across several components without depending on a source photograph.

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#fafaf8">
   <script src="/theme-init.js"></script>
   <title>Studio — ColorVerse</title>
-  <meta name="description" content="Preview a ColorVerse palette across a website, slides, social, and shop layout, then export it.">
+  <meta name="description" content="Preview a ColorVerse palette across product, report, campaign, and packaging systems, then export it.">
   <meta property="og:title" content="Studio — ColorVerse">
   <meta property="og:description" content="Preview a palette in context and export it for your project.">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -16,9 +16,10 @@
   <link rel="stylesheet" href="/studio-editor.css?v=5">
   <link rel="stylesheet" href="/project-store.css?v=1">
   <link rel="stylesheet" href="/color-globe.css?v=1">
+  <link rel="stylesheet" href="/context-kits.css?v=1">
   <link rel="stylesheet" href="/privacy.css?v=2">
   <script src="/vendor/supabase.js?v=2.116.0" defer></script>
-  <script type="module" src="/app.js?v=36"></script>
+  <script type="module" src="/app.js?v=37"></script>
   <script type="module" src="/analytics.js?v=4"></script>
 </head>
 <body>
@@ -41,9 +42,9 @@
           <button class="button full-button" id="copyPalette">Copy palette <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="12" rx="2"/><path d="M15 8V4H4v12h4"/></svg></button>
         </aside>
         <div class="context-area">
-          <div class="context-tabs" role="tablist" aria-label="Preview context"><button role="tab" id="tab-landing" aria-selected="true" aria-controls="mockup" data-context="landing">Website</button><button role="tab" id="tab-presentation" aria-selected="false" aria-controls="mockup" tabindex="-1" data-context="presentation">Slides</button><button role="tab" id="tab-social" aria-selected="false" aria-controls="mockup" tabindex="-1" data-context="social">Social</button><button role="tab" id="tab-shop" aria-selected="false" aria-controls="mockup" tabindex="-1" data-context="shop">Shop</button><span class="context-live">Preview</span></div>
+          <div class="context-tabs" role="tablist" aria-label="Preview context"><button role="tab" id="tab-landing" aria-selected="true" aria-controls="mockup" data-context="landing">Product</button><button role="tab" id="tab-presentation" aria-selected="false" aria-controls="mockup" tabindex="-1" data-context="presentation">Report</button><button role="tab" id="tab-social" aria-selected="false" aria-controls="mockup" tabindex="-1" data-context="social">Campaign</button><button role="tab" id="tab-shop" aria-selected="false" aria-controls="mockup" tabindex="-1" data-context="shop">Packaging</button><span class="context-live">Live preview</span></div>
           <div class="mockup-stage"><div id="mockup" role="tabpanel" aria-labelledby="tab-landing" tabindex="0"></div></div>
-          <div class="context-caption"><span>Sample design</span><span>Drag one color onto another to swap roles.</span></div>
+          <div class="context-caption"><span>Applied system</span><span>Every role updates live · drag colors to swap.</span></div>
         </div>
         <aside class="color-lab" id="colorLab" aria-labelledby="colorLabTitle">
           <header class="shade-panel-head"><h3 id="colorLabTitle">Shades</h3><span id="shadeRoleNameInline">Background</span></header>
@@ -142,7 +143,7 @@
         <form class="project-auth-form" id="projectAuthForm"><label for="projectEmail">Email<input id="projectEmail" name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label><button class="button primary" type="submit">Email me a sign-in link</button><p class="project-private-note">No password. The secure link returns to ColorVerse Studio.</p></form>
       </section>
       <section class="project-workspace-view" id="projectWorkspaceView" hidden>
-        <div class="project-save-panel"><h3>Save this version</h3><form class="project-save-form" id="projectSaveForm"><label for="projectName">Project name<input id="projectName" name="name" maxlength="120" required></label><label for="projectContext">Working context<select id="projectContext" name="context"><option value="website">Website</option><option value="slides">Slides</option><option value="social">Social</option><option value="shop">Shop</option><option value="brand">Brand system</option><option value="roomkit">Living space</option><option value="editorial">Editorial</option><option value="custom">Custom</option></select></label><button class="button primary" type="submit">Save private version</button><p class="project-private-note">Saving never publishes the project or its source image.</p></form></div>
+        <div class="project-save-panel"><h3>Save this version</h3><form class="project-save-form" id="projectSaveForm"><label for="projectName">Project name<input id="projectName" name="name" maxlength="120" required></label><label for="projectContext">Working context<select id="projectContext" name="context"><option value="website">Digital product</option><option value="slides">Report</option><option value="social">Campaign</option><option value="shop">Packaging</option><option value="brand">Brand system</option><option value="roomkit">Living space</option><option value="editorial">Editorial</option><option value="custom">Custom</option></select></label><button class="button primary" type="submit">Save private version</button><p class="project-private-note">Saving never publishes the project or its source image.</p></form></div>
         <div class="project-list-panel"><h3>Continue a project</h3><div class="project-list" id="projectList" aria-live="polite"></div></div>
       </section>
       <p class="project-message" id="projectMessage" role="status" aria-live="polite"></p>

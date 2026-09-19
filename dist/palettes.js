@@ -1,5 +1,5 @@
 // Original collection inherited from colorverse.byigit.dev, plus the five studio studies.
-export const palettes = [
+const originalPalettes = [
   {
     "id": "sunset-pop",
     "name": "Sunset Pop",
@@ -376,3 +376,191 @@ export const palettes = [
     "useCases": ["publishing", "education", "retail"]
   }
 ];
+
+const visualSources = {
+  heritage: {
+    image: "/assets/palette-library/vintage-bicycle.jpg",
+    credit: "Unsplash · Annie Spratt",
+    source: "https://unsplash.com/photos/vintage-brown-bicycle-o6HKk0uhU6o"
+  },
+  architecture: {
+    image: "/assets/palette-library/brutalist-shadows.jpg",
+    credit: "Unsplash · Alex Lvrs",
+    source: "https://unsplash.com/photos/industrial-building-facade-with-strong-geometric-shadows-Jye5NmDCwGU"
+  },
+  craft: {
+    image: "/assets/palette-library/ceramic-still-life.jpg",
+    credit: "Unsplash · Magdalena Raczka",
+    source: "https://unsplash.com/photos/various-ceramic-bowls-and-kitchen-utensils-arranged-decoratively-BU25z-gf4N4"
+  },
+  market: {
+    image: "/assets/palette-library/citrus-market.jpg",
+    credit: "Unsplash · Engin Akyurt",
+    source: "https://unsplash.com/photos/close-up-view-of-many-ripe-oranges-in-rows-3S5mx08Fy4w"
+  },
+  marine: {
+    image: "/assets/palette-library/blue-coral.jpg",
+    credit: "Unsplash · Francisco Jesús Navarro Hernández",
+    source: "https://unsplash.com/photos/underwater-photography-of-blue-corals-49TMUrNQDQ0"
+  },
+  landscape: {
+    image: "/assets/palette-library/fog-mountains.jpg",
+    credit: "Unsplash · Diego Romeo",
+    source: "https://unsplash.com/photos/foggy-mountains-in-a-moody-cloudy-landscape-mE6Wzzcvd18"
+  },
+  nightlife: {
+    image: "/assets/palette-library/neon-street.jpg",
+    credit: "Unsplash · Adhitya Sibikumar",
+    source: "https://unsplash.com/photos/night-view-of-a-street-with-glowing-neon-signs-uVG0LFG52VU"
+  },
+  arts: {
+    image: "/assets/palette-library/stained-glass.jpg",
+    credit: "Unsplash · Bobby",
+    source: "https://unsplash.com/photos/light-streams-through-colorful-stained-glass-windows-Nep25K5qa5g"
+  },
+  desert: {
+    image: "/assets/palette-library/desert-dunes.jpg",
+    credit: "Unsplash · Alexander Psiuk",
+    source: "https://unsplash.com/photos/desert-dunes-stretch-toward-a-serene-clear-sky-cczug9CpFpU"
+  },
+  editorial: {
+    image: "/assets/palette-library/old-bookstore.jpg",
+    credit: "Unsplash · tommao wang",
+    source: "https://unsplash.com/photos/old-bookstore-with-shelves-full-of-books-9t89HV3_3Sw"
+  }
+};
+
+const families = [
+  {
+    key: "editorial", category: "Editorial", hue: 38, accent: 4, source: "editorial",
+    tags: ["quiet", "literary", "considered"], useCases: ["editorial", "publishing", "education"],
+    description: "Paper-led neutrals with a precise editorial accent for publications, cultural work, and thoughtful reading systems.",
+    names: ["Paper Ledger", "Modern Folio", "Margin Note", "Sunday Review", "Quiet Edition"]
+  },
+  {
+    key: "architecture", category: "Architecture", hue: 28, accent: 347, source: "architecture",
+    tags: ["minimal", "structural", "grounded"], useCases: ["architecture", "portfolio", "brand"],
+    description: "Mineral surfaces and a measured signal color for spatial identities, portfolios, and civic design.",
+    names: ["Limewash Grid", "Concrete Sun", "Gallery Steps", "Civic Linen", "Museum Shadow"]
+  },
+  {
+    key: "hospitality", category: "Hospitality", hue: 31, accent: 142, source: "craft",
+    tags: ["warm", "comforting", "tactile"], useCases: ["hospitality", "food", "interiors"],
+    description: "Linen, clay, and a fresh counterpoint shaped for welcoming rooms, menus, and independent hospitality.",
+    names: ["Breakfast Room", "Hearth Table", "Linen Service", "Slow Sunday", "Small Hotel"]
+  },
+  {
+    key: "market", category: "Food & retail", hue: 39, accent: 111, source: "market",
+    tags: ["fresh", "warm", "vivid"], useCases: ["food", "retail", "packaging"],
+    description: "Produce-led color with sturdy dark type, designed for labels, counters, menus, and seasonal retail stories.",
+    names: ["Citrus Counter", "Pantry Label", "Fresh Market", "Olive Press", "Tomato Paper"]
+  },
+  {
+    key: "marine", category: "Coastal", hue: 188, accent: 9, source: "marine",
+    tags: ["cool", "fresh", "calm"], useCases: ["travel", "wellness", "science"],
+    description: "Clear aquatic tones balanced by a warm marker for coastal services, research, and restorative brands.",
+    names: ["Salt Air", "Tide Pool", "Harbor Glass", "Sea Studio", "Coastal Ledger"]
+  },
+  {
+    key: "landscape", category: "Landscape", hue: 163, accent: 41, source: "landscape",
+    tags: ["quiet", "atmospheric", "cool"], useCases: ["outdoors", "travel", "editorial"],
+    description: "Mist-softened greens and grays for slow travel, landscape practice, and atmospheric editorial work.",
+    names: ["Moss Weather", "Silver Rain", "Pine Distance", "Lake Fog", "Field Notes"]
+  },
+  {
+    key: "desert", category: "Desert & earth", hue: 29, accent: 177, source: "desert",
+    tags: ["warm", "sun-baked", "grounded"], useCases: ["hospitality", "packaging", "outdoors"],
+    description: "Sand, terracotta, and a cool balancing note for grounded destinations, goods, and tactile packaging.",
+    names: ["Clay Horizon", "Desert Linen", "Sienna Court", "Canyon Paper", "Dry Garden"]
+  },
+  {
+    key: "heritage", category: "Heritage", hue: 202, accent: 25, source: "heritage",
+    tags: ["vintage", "crafted", "grounded"], useCases: ["heritage", "retail", "editorial"],
+    description: "Workshop blue, aged metal, and paper neutrals for brands that need history without nostalgia overload.",
+    names: ["Workshop Blue", "Brass & Denim", "Railway Poster", "Leather Ledger", "Foundry Cream"]
+  },
+  {
+    key: "arts", category: "Arts & culture", hue: 268, accent: 46, source: "arts",
+    tags: ["vivid", "cultural", "expressive"], useCases: ["arts", "events", "editorial"],
+    description: "Luminous cultural color built for posters, programs, exhibitions, and expressive identities.",
+    names: ["Prism Poster", "Blue Theatre", "Rose Glass", "Festival Ink", "Museum Night"], modes: ["light", "light", "light", "dark", "dark"]
+  },
+  {
+    key: "night", category: "Night culture", hue: 236, accent: 324, source: "nightlife",
+    tags: ["dark", "nocturnal", "electric"], useCases: ["music", "events", "digital products"],
+    description: "Deep ink, electric highlights, and controlled contrast for music, cinema, and after-dark digital work.",
+    names: ["Electric Cinema", "Midnight Transit", "Club Poster", "Afterimage", "Violet Signal"], modes: ["dark", "dark", "dark", "dark", "dark"]
+  },
+  {
+    key: "product", category: "Digital product", hue: 216, accent: 163, source: "architecture",
+    tags: ["cool", "precise", "minimal"], useCases: ["software", "digital products", "technology"],
+    description: "Accessible interface neutrals with a clear action color, tuned for product screens and useful software.",
+    names: ["Clear Product", "Blue System", "Mint Interface", "Amber Utility", "Violet Console"], modes: ["light", "light", "light", "light", "dark"]
+  },
+  {
+    key: "data", category: "Data & reporting", hue: 206, accent: 34, source: "landscape",
+    tags: ["cool", "precise", "quiet"], useCases: ["data", "software", "editorial"],
+    description: "Calm analytical color with one decisive highlight for dashboards, reports, and evidence-led presentations.",
+    names: ["Evidence Blue", "Signal Report", "Quiet Metrics", "Boardroom Ink", "Public Data"], modes: ["light", "light", "light", "dark", "light"]
+  },
+  {
+    key: "wellness", category: "Wellness", hue: 145, accent: 344, source: "craft",
+    tags: ["soft", "calm", "fresh"], useCases: ["wellness", "beauty", "health"],
+    description: "Gentle mineral tones with enough definition for care, movement, beauty, and everyday wellbeing services.",
+    names: ["Mineral Bath", "Sage Practice", "Rose Ritual", "Soft Clinic", "Morning Stretch"]
+  },
+  {
+    key: "fashion", category: "Fashion & beauty", hue: 330, accent: 89, source: "arts",
+    tags: ["soft", "editorial", "contemporary"], useCases: ["fashion", "beauty", "editorial"],
+    description: "Powdered surfaces, inky type, and a seasonal accent for lookbooks, beauty launches, and modern retail.",
+    names: ["Powder Issue", "Studio Rouge", "Ink & Lilac", "Runway Lime", "Soft Tailoring"], modes: ["light", "light", "dark", "light", "light"]
+  },
+  {
+    key: "packaging", category: "Packaging", hue: 23, accent: 195, source: "craft",
+    tags: ["warm", "crafted", "considered"], useCases: ["packaging", "retail", "food"],
+    description: "Shelf-ready paper, label, and ribbon colors for small-batch goods, gifts, and tactile product systems.",
+    names: ["Tea Carton", "Cacao Wrap", "Soap Paper", "Gift Ribbon", "Bottle Label"]
+  }
+];
+
+const hueOffsets = [-12, -5, 0, 7, 14];
+const accentOffsets = [0, 11, -9, 19, -17];
+
+function hslToHex(hue, saturation, lightness) {
+  const h = ((hue % 360) + 360) % 360;
+  const s = saturation / 100;
+  const l = lightness / 100;
+  const chroma = (1 - Math.abs(2 * l - 1)) * s;
+  const x = chroma * (1 - Math.abs((h / 60) % 2 - 1));
+  const match = l - chroma / 2;
+  const segments = h < 60 ? [chroma, x, 0] : h < 120 ? [x, chroma, 0] : h < 180 ? [0, chroma, x] : h < 240 ? [0, x, chroma] : h < 300 ? [x, 0, chroma] : [chroma, 0, x];
+  return `#${segments.map(value => Math.round((value + match) * 255).toString(16).padStart(2, "0")).join("").toUpperCase()}`;
+}
+
+function slug(value) {
+  return value.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
+function familyPalette(family, index) {
+  const hue = family.hue + hueOffsets[index];
+  const accentHue = family.accent + accentOffsets[index];
+  const dark = family.modes?.[index] === "dark";
+  const colors = dark
+    ? [hslToHex(hue, 31, 9 + index % 2), hslToHex(hue, 25, 16 + index % 3), hslToHex(hue, 68, 66), hslToHex(accentHue, 76, 62), hslToHex(hue, 22, 94)]
+    : [hslToHex(hue, 34, 97), hslToHex(hue, 30, 89 - index % 2), hslToHex(hue, 56 + index * 2, 39 + index % 3), hslToHex(accentHue, 70, 52 + index % 2), hslToHex(hue, 28, 14)];
+  const visual = visualSources[family.source];
+  return {
+    id: slug(family.names[index]),
+    name: family.names[index],
+    description: family.description,
+    colors,
+    ...visual,
+    category: family.category,
+    tags: [...family.tags],
+    useCases: [...family.useCases]
+  };
+}
+
+const expandedPalettes = families.flatMap(family => family.names.map((_, index) => familyPalette(family, index)));
+
+export const palettes = [...originalPalettes, ...expandedPalettes];
