@@ -72,6 +72,14 @@ test('the current snapshot function validates every browser-controlled structure
   assert.match(paletteSync, /octet_length\(p_roles::text\) > 4096/i);
   assert.match(paletteSync, /octet_length\(p_editor_state::text\) > 16384/i);
   assert.match(paletteSync, /palettes\.id = p_source_palette_id and palettes\.is_published = true/i);
-  assert.match(paletteSync, /security invoker\s+set search_path = ''/i);
+  assert.match(paletteSync, /security definer\s+set search_path = ''/i);
   assert.match(paletteSync, /revoke all on function public\.save_project_snapshot[^;]+from public, anon/i);
+});
+
+test('project mutations are available only through the validated snapshot RPC', () => {
+  assert.match(paletteSync, /revoke insert, update, delete on table public\.projects, public\.project_versions from authenticated/i);
+  assert.match(paletteSync, /grant select on table public\.projects, public\.project_versions to authenticated/i);
+  assert.doesNotMatch(paletteSync, /p_user_id/i);
+  assert.match(paletteSync, /values \(\(select auth\.uid\(\)\), trim\(p_name\)/i);
+  assert.match(paletteSync, /where id = p_project_id and user_id = \(select auth\.uid\(\)\)/i);
 });

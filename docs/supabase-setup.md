@@ -66,7 +66,10 @@ blindly replay the initial migration.
 
 The current snapshot RPC validates project names, supported contexts, five
 six-digit HEX values, bounded role/editor objects, and published source palette
-references before writing a project and its version atomically.
+references before writing a project and its version atomically. Authenticated
+browser roles have read-only access to their RLS-visible project and version
+rows; project mutations are exposed only through this narrow RPC, which derives
+ownership from `auth.uid()` rather than accepting a user id from the browser.
 
 ## Next implementation work
 

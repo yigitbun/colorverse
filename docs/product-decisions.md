@@ -212,6 +212,36 @@ The project/template direction and proposed review-analysis method live in
   family. These replace invented portfolio/shop mockups and show functional
   roles across several components without depending on a source photograph.
 
+## Professional reference model — Vitra, CMF, and applied systems — 2026-09-19
+
+- The strongest professional reference is not a gallery of isolated five-color
+  strips. Vitra's Inspirations structure starts with real homes, offices,
+  public spaces, client projects, and use cases; color and material libraries
+  support those stories instead of replacing them. ColorVerse should likewise
+  lead from the thing being designed and reveal the palette as one layer of the
+  finished system.
+- Treat color as a chain of decisions: project character and constraints,
+  environment, light, material, finish, production, then the smallest useful
+  set of colors. The five HEX values are a portable output, not the whole work.
+- A future reference card should identify the designed object or space, designer
+  or studio when known, use case, constraints, palette roles, material/finish
+  cues, lighting context, and why the system works. Prefer real applied design
+  products—hospitality, mobility, devices, furniture, packaging, digital
+  products, and public spaces—over art or generic moodboards.
+- Vitra's bridge-colour principle is a particularly strong Studio direction: a
+  base color may connect several objects while appearing differently on woven
+  fabric, matte plastic, wood, paper, or metal. ColorVerse should eventually let
+  a user test one role across a small set of material and lighting conditions,
+  while clearly labeling the result as a visual simulation rather than a
+  production-accurate sample.
+- Professional inspiration should be organized first by context—home, work,
+  hospitality, public space, product, mobility, digital—and second by material
+  or design problem. Mood and hue can remain secondary discovery filters.
+- The product bar is “decision tool used during a project,” not a decorative
+  palette feed. Every reference should lead to a useful action: open its system
+  in Studio, extract a role structure, compare a bridge color, or save it into a
+  project collection with attribution and provenance.
+
 ## Mobile atlas interaction — 2026-09-19
 
 - On narrow screens, color worlds use one compact native selector above the

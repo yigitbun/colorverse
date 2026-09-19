@@ -49,8 +49,9 @@ on conflict (palette_id, position) do update set
   role = excluded.role,
   hex = excluded.hex;
 
--- Replace the initial snapshot function with strict input validation. RLS and
--- table grants remain the authorization boundary because this is an invoker.
+-- Replace the initial snapshot function with strict input validation. Direct
+-- browser writes are removed below; this narrowly scoped definer is the only
+-- project/version write path exposed to authenticated clients.
 create or replace function public.save_project_snapshot(
   p_project_id uuid,
   p_name text,
@@ -62,7 +63,7 @@ create or replace function public.save_project_snapshot(
 )
 returns uuid
 language plpgsql
-security invoker
+security definer
 set search_path = ''
 as \$\$
 declare
@@ -134,6 +135,12 @@ begin
   return v_project_id;
 end;
 \$\$;
+
+-- Authenticated clients can read only their RLS-visible rows. All writes pass
+-- through the validated snapshot function, which derives the owner from
+-- auth.uid() and never accepts a user id from the browser.
+revoke insert, update, delete on table public.projects, public.project_versions from authenticated;
+grant select on table public.projects, public.project_versions to authenticated;
 
 revoke all on function public.save_project_snapshot(uuid, text, text, text, jsonb, jsonb, jsonb) from public, anon;
 grant execute on function public.save_project_snapshot(uuid, text, text, text, jsonb, jsonb, jsonb) to authenticated;
