@@ -41,6 +41,10 @@ test('analytics events reject unknown names and user-authored values', () => {
     name: 'lab_feedback',
     detail: { experiment: 'roomkit', response: 'use' },
   });
+  assert.deepEqual(analyticsEvent('context_preview', { context: 'material', color: '#PRIVATE' }), {
+    name: 'context_preview',
+    detail: { context: 'material' },
+  });
   assert.equal(analyticsEvent('form_text', { value: 'secret' }), null);
 });
 

@@ -13,13 +13,13 @@
   <link rel="stylesheet" href="/styles.css?v=24">
   <link rel="stylesheet" href="/design-system.css?v=29">
   <link rel="stylesheet" href="/shade-studio.css?v=1">
-  <link rel="stylesheet" href="/studio-editor.css?v=5">
+  <link rel="stylesheet" href="/studio-editor.css?v=6">
   <link rel="stylesheet" href="/project-store.css?v=1">
   <link rel="stylesheet" href="/color-globe.css?v=1">
-  <link rel="stylesheet" href="/context-kits.css?v=1">
+  <link rel="stylesheet" href="/context-kits.css?v=2">
   <link rel="stylesheet" href="/privacy.css?v=2">
   <script src="/vendor/supabase.js?v=2.116.0" defer></script>
-  <script type="module" src="/app.js?v=39"></script>
+  <script type="module" src="/app.js?v=40"></script>
   <script type="module" src="/analytics.js?v=4"></script>
 </head>
 <body>
@@ -42,7 +42,7 @@
           <button class="button full-button" id="copyPalette">Copy palette <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="12" rx="2"/><path d="M15 8V4H4v12h4"/></svg></button>
         </aside>
         <div class="context-area">
-          <div class="context-tabs" role="tablist" aria-label="Preview context"><button role="tab" id="tab-landing" aria-selected="true" aria-controls="mockup" data-context="landing">Product</button><button role="tab" id="tab-presentation" aria-selected="false" aria-controls="mockup" tabindex="-1" data-context="presentation">Report</button><button role="tab" id="tab-social" aria-selected="false" aria-controls="mockup" tabindex="-1" data-context="social">Campaign</button><button role="tab" id="tab-shop" aria-selected="false" aria-controls="mockup" tabindex="-1" data-context="shop">Packaging</button><span class="context-live">Live preview</span></div>
+          <div class="context-tabs" role="tablist" aria-label="Preview context"><button role="tab" id="tab-landing" aria-selected="true" aria-controls="mockup" data-context="landing">Product</button><button role="tab" id="tab-presentation" aria-selected="false" aria-controls="mockup" tabindex="-1" data-context="presentation">Report</button><button role="tab" id="tab-social" aria-selected="false" aria-controls="mockup" tabindex="-1" data-context="social">Campaign</button><button role="tab" id="tab-shop" aria-selected="false" aria-controls="mockup" tabindex="-1" data-context="shop">Packaging</button><button role="tab" id="tab-material" aria-selected="false" aria-controls="mockup" tabindex="-1" data-context="material">Materials</button><span class="context-live">Live preview</span></div>
           <div class="mockup-stage"><div id="mockup" role="tabpanel" aria-labelledby="tab-landing" tabindex="0"></div></div>
           <div class="context-caption"><span>Applied system</span><span>Every role updates live · drag colors to swap.</span></div>
         </div>

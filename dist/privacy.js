@@ -20,7 +20,7 @@ export function analyticsEvent(name, detail = {}) {
     palette_open: { source: ['library', 'globe', 'image', 'community', 'project'] },
     palette_export: { format: ['css', 'scss', 'tailwind', 'json', 'hex'] },
     color_edit: { method: ['globe', 'shade', 'alternative', 'swap'] },
-    context_preview: { context: ['landing', 'presentation', 'social', 'shop', 'packaging', 'dashboard', 'menu'] },
+    context_preview: { context: ['landing', 'presentation', 'social', 'shop', 'material', 'packaging', 'dashboard', 'menu'] },
     image_extract: { result: ['success', 'error'] },
     lab_feedback: { experiment: ['roomkit'], response: ['use', 'gimmick'] },
     project_save: { storage: ['local', 'cloud'] },

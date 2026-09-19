@@ -9,6 +9,7 @@
     "generate:palette-migration": "node scripts/generate-palette-migration.mjs",
     "test:atlas": "node --test scripts/test-atlas-touch.mjs",
     "test:color-globe": "node --test scripts/test-color-globe.mjs",
+    "test:contexts": "node --test scripts/test-context-kits.mjs",
     "test:privacy": "node --test scripts/test-privacy.mjs",
     "test:database": "node --test scripts/test-database-schema.mjs",
     "test:palettes": "node --test scripts/test-palettes.mjs"

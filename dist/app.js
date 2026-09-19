@@ -193,7 +193,7 @@ function loadStudioSnapshot(snapshot) {
     tags: ['project'],
     sourcePaletteId: snapshot.sourcePaletteId || null,
   };
-  context = ['landing', 'presentation', 'social', 'shop'].includes(snapshot.context) ? snapshot.context : 'landing';
+  context = ['landing', 'presentation', 'social', 'shop', 'material'].includes(snapshot.context) ? snapshot.context : 'landing';
   activeColorIndex = 0;
   pendingSwapIndex = null;
   shadeSourceColors = [...colors];
@@ -377,6 +377,7 @@ function renderMockup() {
   for (const [name, value] of Object.entries({ bg, surface, primary, accent, text: ink })) panel.style.setProperty(`--p-${name}`, value);
   panel.style.setProperty('--on-primary', textOn(primary));
   panel.style.setProperty('--on-accent', textOn(accent));
+  panel.style.setProperty('--p-material', current.colors[activeColorIndex]);
   panel.setAttribute('aria-labelledby', `tab-${context}`);
   const layouts = {
     landing: `<div class="mockup context-kit product-kit">
@@ -388,6 +389,17 @@ function renderMockup() {
     presentation: `<div class="mockup context-kit report-kit"><header><span>North Region / Operations</span><b>Q3 REVIEW · 08 / 16</b></header><div class="report-body"><section class="report-copy"><span class="kit-kicker">Performance summary</span><h4>Strong demand.<br><em>Smarter pace.</em></h4><p>Revenue grew while delivery time fell across three core markets.</p><div class="report-stat"><strong>+24%</strong><span>Year-over-year<br>revenue growth</span></div></section><section class="report-data"><div class="report-legend"><span><i></i>Current period</span><span><i></i>Previous period</span></div><div class="report-lines" role="img" aria-label="Illustrative performance line chart"><svg viewBox="0 0 360 180" preserveAspectRatio="none" aria-hidden="true"><path d="M4 150 C58 142 72 116 112 121 S176 80 211 91 S267 50 356 24"/><path d="M4 164 C51 148 87 150 121 137 S187 124 218 113 S293 91 356 82"/></svg><span>Jan</span><span>Mar</span><span>May</span><span>Jul</span></div><div class="report-numbers"><p><span>Conversion</span><strong>6.8%</strong></p><p><span>Retention</span><strong>91%</strong></p><p><span>Delivery</span><strong>4.2d</strong></p></div></section></div><footer><span>Internal working document</span><span>ColorVerse palette preview</span></footer></div>`,
     social: `<div class="mockup context-kit campaign-kit"><section class="campaign-poster"><span class="kit-kicker">A one-day gathering</span><div class="campaign-orbit"><i></i><i></i><i></i></div><h4>Common<br>Ground</h4><p>Ideas for kinder cities<br>19.09 — Berlin</p></section><section class="campaign-stack"><article class="campaign-story"><span>COMMON GROUND</span><div><b>19</b><i>SEP</i></div><p>Talks · workshops · food</p></article><article class="campaign-ticket"><span>ADMIT ONE</span><strong>CG / 026</strong><i></i><small>Berlin · 10:00—18:00</small></article><article class="campaign-caption"><b>One palette.<br>Three campaign formats.</b><span>Poster / story / ticket</span></article></section></div>`,
     shop: `<div class="mockup context-kit packaging-kit"><header><span class="kit-kicker">Packaging system / small batch</span><b>Field & Form</b><small>Collection 03</small></header><div class="package-scene"><div class="package-box package-box-tall"><span>FIELD<br>& FORM</span><small>Botanical wash<br>250 ml</small><i>03</i></div><div class="package-box package-box-wide"><span>EVERYDAY<br>RITUALS</span><small>Five mineral soaps</small><i>05</i></div><div class="package-bottle"><span>F&F</span><small>01</small></div><div class="package-card"><span>Care notes</span><b>Made slowly.<br>Used daily.</b><p>Plant-based formulas / recyclable paper / batch no. 026</p><i></i></div></div><footer><span>Primary pack</span><span>Gift set</span><span>Label system</span><span>Insert card</span></footer></div>`,
+    material: `<div class="mockup context-kit material-kit">
+      <header class="material-kit-head"><div><span class="kit-kicker">Bridge colour / screen study</span><h4>One color.<br><em>Five surfaces.</em></h4></div><div class="material-role"><span>Selected role</span><strong>${escape(roles[activeColorIndex])}</strong><code>${current.colors[activeColorIndex]}</code></div></header>
+      <div class="material-samples" role="img" aria-label="Simulated appearance of ${current.colors[activeColorIndex]} on five material surfaces">
+        <article class="material-sample material-plaster"><i aria-hidden="true"></i><div><strong>Mineral paint</strong><span>soft scatter · low sheen</span></div></article>
+        <article class="material-sample material-textile"><i aria-hidden="true"></i><div><strong>Woven textile</strong><span>absorbed light · visible fibre</span></div></article>
+        <article class="material-sample material-paper"><i aria-hidden="true"></i><div><strong>Uncoated paper</strong><span>warm base · dry finish</span></div></article>
+        <article class="material-sample material-polymer"><i aria-hidden="true"></i><div><strong>Matte polymer</strong><span>even body · soft highlight</span></div></article>
+        <article class="material-sample material-metal"><i aria-hidden="true"></i><div><strong>Brushed metal</strong><span>directional light · cool reflection</span></div></article>
+      </div>
+      <footer class="material-kit-foot"><div class="material-palette" aria-label="Current palette">${current.colors.map(color => `<i style="--swatch:${color}" title="${color}"></i>`).join('')}</div><p><b>Visual comparison only.</b> Check physical samples before production.</p></footer>
+    </div>`,
   };
   panel.innerHTML = layouts[context] || layouts.landing;
 }

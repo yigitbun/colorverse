@@ -234,6 +234,10 @@ The project/template direction and proposed review-analysis method live in
   a user test one role across a small set of material and lighting conditions,
   while clearly labeling the result as a visual simulation rather than a
   production-accurate sample.
+- The first deliberately limited version now lives in Studio as Material Study.
+  It compares the selected palette role across mineral paint, woven textile,
+  uncoated paper, matte polymer, and brushed metal. It is explicitly labeled as
+  a screen comparison and never claims to replace physical production samples.
 - Professional inspiration should be organized first by context—home, work,
   hospitality, public space, product, mobility, digital—and second by material
   or design problem. Mood and hue can remain secondary discovery filters.

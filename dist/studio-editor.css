@@ -106,3 +106,13 @@
   #colorAlternativeGrid code{opacity:1}
   .vertical-shades button code{opacity:1}
 }
+
+@media(max-width:580px){
+  .context-tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:3px}
+  .context-tabs button{width:100%;padding-inline:5px;text-align:center}
+  .context-tabs button[data-context="landing"],
+  .context-tabs button[data-context="presentation"],
+  .context-tabs button[data-context="social"]{grid-column:span 2}
+  .context-tabs button[data-context="shop"],
+  .context-tabs button[data-context="material"]{grid-column:span 3}
+}
