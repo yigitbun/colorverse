@@ -10,16 +10,15 @@
   <meta property="og:title" content="Studio — ColorVerse">
   <meta property="og:description" content="Preview a palette in context and export it for your project.">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;650;700;750&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css?v=24">
   <link rel="stylesheet" href="/design-system.css?v=29">
   <link rel="stylesheet" href="/shade-studio.css?v=1">
   <link rel="stylesheet" href="/studio-editor.css?v=5">
+  <link rel="stylesheet" href="/project-store.css?v=1">
   <link rel="stylesheet" href="/color-globe.css?v=1">
   <link rel="stylesheet" href="/privacy.css?v=2">
-  <script type="module" src="/app.js?v=35"></script>
+  <script src="/vendor/supabase.js?v=2.116.0" defer></script>
+  <script type="module" src="/app.js?v=36"></script>
   <script type="module" src="/analytics.js?v=4"></script>
 </head>
 <body>
@@ -31,7 +30,7 @@
   </header>
   <main id="main">
     <section class="studio studio-page section-wrap" id="studio" aria-labelledby="studioTitle">
-      <div class="studio-compact-head reveal"><div><span class="eyebrow">Tool / Palette</span><h1 id="studioTitle">Palette Studio</h1></div><p>Edit roles, shades, and context.</p></div>
+      <div class="studio-compact-head reveal"><div><span class="eyebrow">Tool / Palette</span><h1 id="studioTitle">Palette Studio</h1></div><div class="project-bar"><span class="project-sync" id="projectSyncLabel">Local draft</span><button class="small-button" id="openProjects" type="button">Projects</button><button class="button primary" id="saveProject" type="button">Save</button></div></div>
       <div class="studio-workspace reveal">
         <aside class="palette-inspector">
           <div class="inspector-top"><span class="eyebrow">Your palette</span><span class="palette-order-hint">Tap swatch</span></div>
@@ -134,6 +133,21 @@
       </section>
     </div>
     <footer class="shade-studio-foot"><div class="shade-change"><i id="shadeChangeChip" aria-hidden="true"></i><code id="shadeSelectedHex"></code><span id="shadeSelectionStatus" role="status" aria-live="polite"></span></div><div class="shade-footer-actions"><button class="button" type="button" data-shade-close>Cancel</button><button class="button primary" type="button" id="applyShade">Apply shade <span aria-hidden="true">→</span></button></div></footer>
+  </dialog>
+  <dialog class="project-dialog" id="projectDialog" aria-labelledby="projectDialogTitle">
+    <header class="project-dialog-head"><div><span class="eyebrow">Private workspace</span><h2 id="projectDialogTitle">Projects</h2></div><button class="icon-button" type="button" data-project-close aria-label="Close projects"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header>
+    <div class="project-dialog-body">
+      <section class="project-auth-view" id="projectAuthView">
+        <div class="project-auth-copy"><h3>Keep the work, not just the HEX codes.</h3><p>Save a private project, return to its latest version, and build named templates next.</p><ul><li>Private by default</li><li>Five roles saved together</li><li>Every save creates a new version</li></ul></div>
+        <form class="project-auth-form" id="projectAuthForm"><label for="projectEmail">Email<input id="projectEmail" name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label><button class="button primary" type="submit">Email me a sign-in link</button><p class="project-private-note">No password. The secure link returns to ColorVerse Studio.</p></form>
+      </section>
+      <section class="project-workspace-view" id="projectWorkspaceView" hidden>
+        <div class="project-save-panel"><h3>Save this version</h3><form class="project-save-form" id="projectSaveForm"><label for="projectName">Project name<input id="projectName" name="name" maxlength="120" required></label><label for="projectContext">Working context<select id="projectContext" name="context"><option value="website">Website</option><option value="slides">Slides</option><option value="social">Social</option><option value="shop">Shop</option><option value="brand">Brand system</option><option value="roomkit">Living space</option><option value="editorial">Editorial</option><option value="custom">Custom</option></select></label><button class="button primary" type="submit">Save private version</button><p class="project-private-note">Saving never publishes the project or its source image.</p></form></div>
+        <div class="project-list-panel"><h3>Continue a project</h3><div class="project-list" id="projectList" aria-live="polite"></div></div>
+      </section>
+      <p class="project-message" id="projectMessage" role="status" aria-live="polite"></p>
+      <footer class="project-dialog-foot"><span id="projectAccount"></span><button id="projectSignOut" type="button" hidden>Sign out</button></footer>
+    </div>
   </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <noscript><div class="noscript">Enable JavaScript to use the ColorVerse studio.</div></noscript>

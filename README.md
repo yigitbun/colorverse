@@ -14,11 +14,11 @@ Serve the authored static output with `python3 -m http.server 4186 --directory d
 - CSS, SCSS, Tailwind, JSON, and hex-list export. Working clipboard actions and measured text/background contrast.
 - Client-side image extraction using weighted k-means, with file validation and transparent/monochrome-image handling. Images are not uploaded.
 - Dark/light theme, keyboard-operable tabs and carousel, reduced-motion support, and independently addressable `/explore/`, `/extract/`, `/studio/`, `/about/`, and `/worlds/` pages.
-- A focused MVP flow: the home page starts discovery, `/explore/` is the palette library, `/extract/` reads an image three ways, `/studio/` is the single preview/export workspace, and `/about/` contains only product and privacy context. There is no simulated account, payment, or waitlist backend. Personal attribution, biography, and external personal-site links are excluded from the published pages.
+- A focused MVP flow: the home page starts discovery, `/explore/` is the palette library, `/extract/` reads an image three ways, `/studio/` is the preview/export workspace with opt-in private projects, and `/about/` contains product and privacy context. There is no payment or waitlist flow.
 
 ## Source
 
-`dist/index.html` is the focused home page; each route entrypoint has one job for simple static hosting. `styles.css` contains the base components and miniature preview layouts. `design-system.css`, loaded after it, defines the current quiet product theme: Nunito Sans, neutral light/dark surfaces, restrained red accents, compact horizontal cards, and responsive controls. Nunito Sans is web-served so the Avenir-inspired direction is available beyond devices that have Avenir installed. `app.js` connects the product interactions. `geometry.js` builds the dual icosphere; `globe.js` renders it. `color.js` contains color math, extraction, and export. `palettes.js` preserves the original site's palette data. Two original photo URLs returned 404 (Tuscan Earth and Cyber Neon), so those use working landscape and abstract references from the existing studio collection.
+`dist/index.html` is the focused home page; each route entrypoint has one job for simple static hosting. `styles.css` contains the base components and miniature preview layouts. `design-system.css`, loaded after it, defines the current quiet product theme: Nunito Sans, neutral light/dark surfaces, restrained red accents, compact horizontal cards, and responsive controls. Nunito Sans is self-hosted with its OFL license. `app.js` connects the product interactions and `project-store.js` provides private Supabase project/version persistence. `geometry.js` builds the dual icosphere; `globe.js` renders it. `color.js` contains color math, extraction, and export. `palettes.js` preserves the current palette data.
 
 The earlier React component integration under `components/ui/` is retained and is independent of this static application. The v10 prototype is preserved in `docs/prototype-v10.html`.
 
@@ -30,7 +30,7 @@ release runbook is in [`docs/operations.md`](docs/operations.md).
 
 ## Backend infrastructure
 
-The workspace is linked through the Supabase CLI to the new **ColorVerse Studio**
-project (Free plan, Frankfurt). The website is not yet connected to it. See
-[Supabase setup](docs/supabase-setup.md) for project identity, credential storage,
-the preserved older project, and the remaining data-model work.
+The workspace is linked through the Supabase CLI to **ColorVerse Studio** (Free
+plan, Frankfurt). Studio uses passwordless authentication and owner-only RLS for
+private, versioned projects. See [Supabase setup](docs/supabase-setup.md) for the
+schema, security model, credential rules, and remaining backend work.

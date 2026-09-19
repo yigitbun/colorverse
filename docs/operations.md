@@ -50,6 +50,13 @@ traffic and are not evidence that the domain should be attached to Sites.
   `npm run build` rejects either pattern in HTML.
 - The public privacy notice lives at `/privacy/`. Keep it synchronized whenever
   storage, analytics, hosting, image delivery, or account behavior changes.
+- Nunito Sans is self-hosted under `dist/assets/fonts/` with its OFL license;
+  production pages must not request Google Fonts.
+- Supabase powers opt-in private Studio projects. The browser uses only the
+  publishable key; never place a secret or service-role key in `dist/`. Project
+  tables use explicit grants plus owner-only RLS, and uploaded images remain local.
+- Supabase Auth Site URL is `https://colorverse.byigit.dev`; the allowed magic-link
+  return URL is `https://colorverse.byigit.dev/studio/`.
 
 ## Release checklist
 

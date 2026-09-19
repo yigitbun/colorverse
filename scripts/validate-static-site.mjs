@@ -28,6 +28,9 @@ for (const file of files.filter((path) => path.endsWith(".html"))) {
   if (/\son[a-z]+\s*=/i.test(html)) {
     problems.push(`${relative(root, file)} -> inline event handler blocked by production CSP`);
   }
+  if (/https:\/\/fonts\.(?:googleapis|gstatic)\.com/i.test(html)) {
+    problems.push(`${relative(root, file)} -> external font request bypasses the local privacy baseline`);
+  }
   for (const match of html.matchAll(/(?:src|href)=["']([^"']+)["']/g)) {
     const url = match[1];
     if (/^(?:https?:|data:|mailto:|tel:|#)/.test(url)) continue;

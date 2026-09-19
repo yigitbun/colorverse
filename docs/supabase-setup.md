@@ -14,7 +14,8 @@ Infrastructure initialized on 2026-09-11 with Supabase CLI 2.117.0.
 | Dashboard | https://supabase.com/dashboard/project/ayzymeogptrqtouwnahh |
 | API URL | https://ayzymeogptrqtouwnahh.supabase.co |
 
-The workspace is linked to this project through the Supabase CLI. Local link metadata
+The project was restored from its free-plan pause on 2026-09-19 and the dashboard
+reports it as healthy. The workspace is linked to this project through the Supabase CLI. Local link metadata
 is ignored by Git in `supabase/.temp/`; another checkout must be linked explicitly.
 
 ```sh
@@ -28,10 +29,20 @@ the repository or the website. Use the existing CLI session and credential stora
 do not put database passwords or service-role keys in the static application.
 
 `supabase/config.toml` configures local development. Initializing and linking the
-workspace does not apply that configuration to the hosted project. No application
-schema, seed data, storage buckets, or website integration were deployed in this step.
-The published site continues to use its existing static palette data and client-side
-image extraction.
+workspace does not apply that configuration to the hosted project.
+
+The hosted database now has the schema recorded in `supabase/migrations/`. Curated
+palettes are read-only to browser roles. Projects, project versions, templates,
+collections, saved palette items, and extraction history are restricted to their
+authenticated owner with explicit grants and row-level security. The dashboard
+security advisor reported no issues after the schema was applied. There is no public
+upload, Community post, comment, or vote write path in the MVP schema.
+
+Studio uses the project's browser-safe publishable key with Supabase Auth and RLS;
+the secret key remains server-only and must never enter `dist/`. Image extraction and
+RoomKit image processing remain browser-local. A private project stores the project
+name, five colors, role assignments, preview context, and version history—not the
+source image.
 
 ## Existing project
 
@@ -42,11 +53,9 @@ before deciding whether any earlier data should be migrated into the new project
 
 ## Next implementation work
 
-- Agree on the Studio data model, including images, palette variants, extraction
-  parameters, provenance and versions, before creating application tables.
-- Track schema changes in SQL migrations and define explicit grants and row-level
-  security policies before exposing data to the browser.
 - Decide which assets are public and which uploads are private before setting up
   storage buckets and retention rules.
-- Connect application features after the schema and access policies are ready.
-  Keep product records in Postgres and behavior analytics in GA4.
+- Add automated two-user integration tests that prove one account cannot read or
+  modify another account's projects before opening broader account access.
+- Keep product records in Postgres and behavior analytics in GA4. Do not send
+  project names, colors, emails, or other user-authored values to GA4.

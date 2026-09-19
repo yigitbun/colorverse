@@ -133,6 +133,7 @@ function renderSelection(updateURL = false) {
   renderExport();
   renderColorLab();
   if (updateURL) setPaletteURL();
+  if (page === 'studio') window.dispatchEvent(new CustomEvent('colorverse:studiochange'));
 }
 
 function choosePalette(palette, notify = true) {
@@ -166,6 +167,47 @@ function replacePaletteColor(index, color, { keepShadeSource = false } = {}) {
   persistPalette(current);
   renderSelection(true);
 }
+
+function studioSnapshot() {
+  const sourcePaletteId = current.sourcePaletteId || (palettes.some(palette => palette.id === current.id) ? current.id : null);
+  return {
+    name: current.name || 'Untitled palette',
+    sourcePaletteId,
+    colors: current.colors.slice(0, 5).map(color => color.toUpperCase()),
+    roles: Object.fromEntries(roles.map((role, index) => [role.toLowerCase(), current.colors[index].toUpperCase()])),
+    context,
+  };
+}
+
+function loadStudioSnapshot(snapshot) {
+  if (!snapshot || !Array.isArray(snapshot.colors) || snapshot.colors.length !== 5 || !snapshot.colors.every(color => /^#[0-9a-f]{6}$/i.test(color))) return;
+  const colors = snapshot.colors.map(color => color.toUpperCase());
+  const source = signatureFor(colors[2]);
+  current = {
+    id: `project-${snapshot.id || Date.now()}`,
+    name: snapshot.name || 'Saved project',
+    description: 'A private ColorVerse project restored from your latest saved version.',
+    colors,
+    image: source.image,
+    category: 'Saved project',
+    tags: ['project'],
+    sourcePaletteId: snapshot.sourcePaletteId || null,
+  };
+  context = ['landing', 'presentation', 'social', 'shop'].includes(snapshot.context) ? snapshot.context : 'landing';
+  activeColorIndex = 0;
+  pendingSwapIndex = null;
+  shadeSourceColors = [...colors];
+  $$('[data-context]').forEach(button => {
+    const selected = button.dataset.context === context;
+    button.setAttribute('aria-selected', String(selected));
+    button.tabIndex = selected ? 0 : -1;
+  });
+  persistPalette(current);
+  renderSelection(false);
+  toast(`${current.name} resumed.`);
+}
+
+window.colorverseStudio = { getSnapshot: studioSnapshot, loadSnapshot: loadStudioSnapshot };
 
 function announcePaletteOrder(color, index) {
   const status = $('#paletteOrderStatus');
@@ -1050,6 +1092,11 @@ if (input && dropzone) {
 }
 
 renderSelection();
+if (page === 'studio') {
+  import('./project-store.js?v=1')
+    .then(({ initProjectWorkspace }) => initProjectWorkspace(window.colorverseStudio))
+    .catch(() => { const label = $('#projectSyncLabel'); if (label) label.textContent = 'Local draft'; });
+}
 document.documentElement.classList.add('js');
 if (window.IntersectionObserver) {
   const reveal = new IntersectionObserver(entries => {

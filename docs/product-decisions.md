@@ -185,3 +185,15 @@ The project/template direction and proposed review-analysis method live in
 - Imagery in the same collection follows one art direction, consistent light, crop logic, finish, and level of realism. Decorative filler is avoided.
 - Palette colors must be visibly traceable in the associated image. Captions and names describe the actual work rather than generic mood words.
 - High-resolution originals are optimized into project-bound web assets with explicit dimensions. Quality must not create a performance tax.
+
+## Private project MVP — 2026-09-19
+
+- Studio now offers opt-in passwordless sign-in and private, versioned projects.
+  The first save is a baseline; later saves append versions instead of overwriting
+  the previous state. Resume restores the five colors, roles, and preview context.
+- Project persistence uses Supabase with explicit table grants and owner-only RLS.
+  Community writing remains closed. Saving a project never uploads an Extract or
+  RoomKit source image, and project/user values are excluded from analytics.
+- Named reusable templates and the A/B workbench remain the next project-layer
+  increments; the database schema reserves those concepts without presenting
+  unfinished controls in the public interface.

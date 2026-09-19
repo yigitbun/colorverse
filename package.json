@@ -5,9 +5,13 @@
   "scripts": {
     "build": "node scripts/validate-static-site.mjs",
     "test:color-globe": "node --test scripts/test-color-globe.mjs",
-    "test:privacy": "node --test scripts/test-privacy.mjs"
+    "test:privacy": "node --test scripts/test-privacy.mjs",
+    "test:database": "node --test scripts/test-database-schema.mjs"
   },
   "devDependencies": {
     "supabase": "2.117.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.116.0"
   }
 }
