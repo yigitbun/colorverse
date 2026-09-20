@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const app = await readFile(new URL('../dist/app.js', import.meta.url), 'utf8');
 const studio = await readFile(new URL('../dist/studio/index.html', import.meta.url), 'utf8');
+const inspiration = await readFile(new URL('../dist/inspiration/index.html', import.meta.url), 'utf8');
 const styles = await readFile(new URL('../dist/context-kits.css', import.meta.url), 'utf8');
 const store = await readFile(new URL('../dist/project-store.js', import.meta.url), 'utf8');
 
@@ -40,9 +41,15 @@ test('the footwear Edition keeps its independent brand identity inside Studio', 
   assert.match(app, /name: 'Field 01'/);
   assert.match(app, /brand: 'DRIFT'/);
   assert.match(app, /current\.id === 'drift-field-01'/);
-  assert.match(app, /DRIFT Field 01 footwear study/);
+  assert.match(app, /DRIFT Field 01 footwear family/);
   assert.match(app, /edition-footwear-kit/);
   assert.match(styles, /\.edition-footwear-scene/);
+});
+
+test('Inspiration presents the footwear Edition as a three-colorway capsule', () => {
+  assert.match(inspiration, /drift-field-01-colorways-v1\.png/);
+  assert.match(inspiration, /One runner\.<br>Three directions\./);
+  for (const name of ['Stone', 'Meadow', 'Graphite']) assert.match(inspiration, new RegExp(name));
 });
 
 test('material context survives project snapshots without widening database input', () => {

@@ -32,9 +32,12 @@ do not put database passwords or service-role keys in the static application.
 workspace does not apply that configuration to the hosted project.
 
 The hosted database has the private workspace schema recorded in
-`supabase/migrations/`. A generated migration synchronizes the 100-item static
-palette library into Postgres; once applied, curated palettes remain read-only
-to browser roles. Projects, project versions, templates,
+`supabase/migrations/`. The initial schema was already present on the restored
+project, so its migration history was reconciled on 2026-09-20 instead of
+replaying table creation. The snapshot RPC and generated 100-item palette
+catalog migrations are now applied remotely; the hosted catalog contains 100
+palettes and 500 role-color rows. Curated palettes remain read-only to browser
+roles. Projects, project versions, templates,
 collections, saved palette items, and extraction history are restricted to their
 authenticated owner with explicit grants and row-level security. The dashboard
 security advisor reported no issues after the schema was applied. There is no public
@@ -60,9 +63,9 @@ npm run generate:palette-migration
 ```
 
 After applying it, verify that the anonymous published-palette count is 100.
-The current hosted project was initialized before CLI migration history was
-recorded, so reconcile that history only after comparing the live schema; do not
-blindly replay the initial migration.
+The hosted project was initialized before CLI migration history was recorded;
+that comparison and reconciliation is complete for the current schema. Do not
+blindly replay the initial migration in a fresh recovery or another project.
 
 The current snapshot RPC validates project names, supported contexts, five
 six-digit HEX values, bounded role/editor objects, and published source palette

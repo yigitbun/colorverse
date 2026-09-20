@@ -43,7 +43,7 @@ const specialEditions = [{
   series: 'DRIFT / Field 01',
   description: 'A quiet footwear system built from mineral tones, tactile materials, and one precise silhouette.',
   colors: ['#E8E1D5', '#8A927C', '#B68B70', '#A8A0AD', '#34383A'],
-  image: '/assets/editions/drift-field-01-v1.png',
+  image: '/assets/editions/drift-field-01-colorways-v1.png',
   category: 'ColorVerse Edition · Footwear study',
   tags: ['footwear', 'cmf', 'product'],
   useCases: ['footwear · product', 'retail · campaign'],
@@ -412,7 +412,7 @@ function renderMockup() {
     : current.id === 'drift-field-01'
       ? `<div class="mockup context-kit edition-footwear-kit">
       <header><span class="kit-kicker">ColorVerse Edition / footwear study</span><b>DRIFT</b><small>Field 01 · Series 01</small></header>
-      <div class="edition-footwear-scene"><div class="edition-footwear-image"><img src="/assets/editions/drift-field-01-v1.png" alt="DRIFT Field 01 footwear study showing mineral colour blocks and tactile materials"><span>FIELD 01</span></div><aside><span class="kit-kicker">Material map</span><strong>Quiet utility.</strong><p>One silhouette, five colour roles, four tactile surfaces.</p><dl><div><dt>Upper</dt><dd>Mesh · suede</dd></div><div><dt>Accent</dt><dd>Dusty lilac</dd></div><div><dt>Base</dt><dd>Mineral rubber</dd></div></dl></aside></div>
+      <div class="edition-footwear-scene"><div class="edition-footwear-image"><img src="/assets/editions/drift-field-01-colorways-v1.png" alt="DRIFT Field 01 footwear family in stone, meadow and graphite colorways"><span>FIELD 01</span></div><aside><span class="kit-kicker">Material map</span><strong>Quiet utility.</strong><p>One silhouette, three colorways, four tactile surfaces.</p><dl><div><dt>Upper</dt><dd>Mesh · suede</dd></div><div><dt>Colorways</dt><dd>Stone · Meadow · Graphite</dd></div><div><dt>Base</dt><dd>Modular rubber</dd></div></dl></aside></div>
       <footer><span>Everyday silhouette</span><span>Material-led colour</span><span>CMF direction</span><span>Original study</span></footer>
     </div>`
       : `<div class="mockup context-kit packaging-kit"><header><span class="kit-kicker">Packaging system / small batch</span><b>Field & Form</b><small>Collection 03</small></header><div class="package-scene"><div class="package-box package-box-tall"><span>FIELD<br>& FORM</span><small>Botanical wash<br>250 ml</small><i>03</i></div><div class="package-box package-box-wide"><span>EVERYDAY<br>RITUALS</span><small>Five mineral soaps</small><i>05</i></div><div class="package-bottle"><span>F&F</span><small>01</small></div><div class="package-card"><span>Care notes</span><b>Made slowly.<br>Used daily.</b><p>Plant-based formulas / recyclable paper / batch no. 026</p><i></i></div></div><footer><span>Primary pack</span><span>Gift set</span><span>Label system</span><span>Insert card</span></footer></div>`;
