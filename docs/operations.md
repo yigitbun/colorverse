@@ -57,6 +57,11 @@ traffic and are not evidence that the domain should be attached to Sites.
 - Supabase powers opt-in private Studio projects. The browser uses only the
   publishable key; never place a secret or service-role key in `dist/`. Project
   tables use explicit grants plus owner-only RLS, and uploaded images remain local.
+- Browser-local image tools accept only JPEG, PNG, and WebP after checking both
+  the declared MIME type and binary signature. Files over 20 MB, 25 megapixels,
+  or 12,000 pixels on either edge are rejected before browser decoding to limit
+  malformed-file and decompression-bomb risk. Keep `scripts/test-image-file.mjs`
+  in the release checks whenever upload handling changes.
 - Supabase Auth Site URL is `https://colorverse.byigit.dev`; the allowed magic-link
   return URL is `https://colorverse.byigit.dev/studio/`.
 

@@ -3,6 +3,7 @@ import { roles, clamp, contrast, textOn, rgb, toHex, oklab, oklch, paletteFromCo
 import { createAtlas, atlasWorlds } from './globe.js?v=27';
 import { buildShadeFamilies, createShadeStudio } from './shade-studio.js?v=1';
 import { createColorGlobe } from './color-globe.js?v=2';
+import { SUPPORTED_IMAGE_TYPES, validateImageFile } from './image-file.js?v=1';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -883,9 +884,8 @@ if (input && dropzone) {
   let extractionSample = null;
   let pickerPositions = [];
   let pickerDrag = null;
-  const supportedImageTypes = new Set(['image/png', 'image/jpeg', 'image/webp']);
-  const isSupportedImage = file => Boolean(file && supportedImageTypes.has(file.type));
-  const imageFileFromBlob = (blob, name = 'pasted-image.png') => new File([blob], name, { type: blob.type || 'image/png', lastModified: Date.now() });
+  const isSupportedImage = file => Boolean(file && SUPPORTED_IMAGE_TYPES.has(file.type));
+  const imageFileFromBlob = (blob, name = 'pasted-image') => new File([blob], name, { type: blob.type, lastModified: Date.now() });
   const clipboardImageFromItems = items => {
     const imageItem = [...(items || [])].find(item => item.kind === 'file' && isSupportedImage({ type: item.type }));
     return imageItem?.getAsFile?.() || null;
@@ -897,7 +897,7 @@ if (input && dropzone) {
     if (!navigator.clipboard?.read) return null;
     const clipboardItems = await navigator.clipboard.read();
     for (const item of clipboardItems) {
-      const imageType = item.types.find(type => supportedImageTypes.has(type));
+      const imageType = item.types.find(type => SUPPORTED_IMAGE_TYPES.has(type));
       if (imageType) return imageFileFromBlob(await item.getType(imageType));
     }
     return null;
@@ -997,9 +997,15 @@ if (input && dropzone) {
     if (!file) return;
     const sequence = ++extractionSequence;
     const status = $('#extractStatus');
-    if (!isSupportedImage(file)) { if (status) status.textContent = 'Choose a JPG, PNG, or WebP image.'; return; }
-    if (file.size > 20 * 1024 * 1024) { if (status) status.textContent = 'This image is a little large. Choose one smaller than 20 MB.'; return; }
     if (status) status.textContent = 'Finding the colors in your image…';
+    try {
+      await validateImageFile(file);
+    } catch (error) {
+      if (status) status.textContent = error.message;
+      track('image_extract', { result: 'error' });
+      input.value = '';
+      return;
+    }
     const nextURL = URL.createObjectURL(file);
     try {
       const image = new Image();

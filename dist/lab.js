@@ -1,4 +1,5 @@
 import { palettes } from './palettes.js?v=26';
+import { validateImageFile } from './image-file.js?v=1';
 
 const $ = selector => document.querySelector(selector);
 const roles = [
@@ -12,6 +13,7 @@ const roomPalettes = ['nordic-calm', 'warm-cafe', 'forest-floor', 'after-rain'].
 let activePalette = roomPalettes[0];
 let activeRole = 'wall';
 let photoURL = '';
+let photoSequence = 0;
 let feedback = {};
 
 try { feedback = JSON.parse(localStorage.getItem('colorverse-lab-feedback') || '{}'); } catch {}
@@ -99,23 +101,27 @@ function bindFeedback() {
   });
 }
 
-function setPhoto(file) {
+async function setPhoto(file) {
   const status = $('#roomStatus');
   if (!file) return;
-  if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
-    status.textContent = 'Choose a JPG, PNG, or WebP image for a private preview.';
+  const sequence = ++photoSequence;
+  let metadata;
+  try {
+    metadata = await validateImageFile(file);
+  } catch (error) {
+    status.textContent = error.message;
     return;
   }
-  if (file.size > 20 * 1024 * 1024) {
-    status.textContent = 'This image is too large. Choose one smaller than 20 MB.';
+  if (sequence !== photoSequence) return;
+  if (metadata.width < 480 || metadata.height < 320) {
+    status.textContent = 'Try a wider room photo with walls and furniture visible.';
     return;
   }
   const nextURL = URL.createObjectURL(file);
   const image = new Image();
   image.onload = () => {
-    if (image.width < 480 || image.height < 320) {
+    if (sequence !== photoSequence) {
       URL.revokeObjectURL(nextURL);
-      status.textContent = 'Try a wider room photo with walls and furniture visible.';
       return;
     }
     if (photoURL) URL.revokeObjectURL(photoURL);
@@ -133,6 +139,7 @@ function setPhoto(file) {
 }
 
 function resetRoom() {
+  photoSequence += 1;
   if (photoURL) URL.revokeObjectURL(photoURL);
   photoURL = '';
   $('#roomImage').removeAttribute('src');
@@ -145,7 +152,7 @@ function resetRoom() {
 }
 
 $('#uploadRoom')?.addEventListener('click', () => $('#roomInput')?.click());
-$('#roomInput')?.addEventListener('change', event => setPhoto(event.target.files?.[0]));
+$('#roomInput')?.addEventListener('change', event => { setPhoto(event.target.files?.[0]); event.target.value = ''; });
 $('#resetRoom')?.addEventListener('click', resetRoom);
 $('#compareRoom')?.addEventListener('click', event => {
   const pressed = event.currentTarget.getAttribute('aria-pressed') === 'true';

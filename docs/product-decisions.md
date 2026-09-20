@@ -8,6 +8,11 @@ The project/template direction and proposed review-analysis method live in
 ## Image rights and community sharing
 
 - Uploading an image for palette extraction does not publish it. Extraction stays private and browser-local by default.
+- Private image tools validate binary signatures, MIME type, byte size, and
+  pixel dimensions before decoding. The current safety limits are 20 MB,
+  25 megapixels, and 12,000 pixels per edge; rejected files never become a
+  preview. These technical checks reduce malformed-file risk but are not a
+  substitute for moderation if image publishing is introduced later.
 - Community sharing must be a separate, explicit action.
 - The safest default is “share palette only.” Sharing the source image requires the user to confirm that they own it or have permission to publish it.
 - Public images keep visible creator credit and provenance. Remix lineage should be preserved.
