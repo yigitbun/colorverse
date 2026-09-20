@@ -547,7 +547,7 @@ const editionOverrides = {
     name: "Skincare System 01",
     description: "A five-product skincare family where color identifies each formula while one structure keeps the range coherent.",
     colors: ["#E9E3D8", "#9B9F83", "#B66F56", "#AAA2AC", "#252B2F"],
-    image: "/assets/editions/skincare-system-01.jpg",
+    image: "/assets/editions/skincare-system-01-v1.jpg",
     source: "https://colorverse.byigit.dev/editions/skincare-system-01/",
     credit: "ColorVerse Editions · original concept",
     category: "Beauty packaging",

@@ -1,4 +1,4 @@
-import { palettes } from './palettes.js?v=25';
+import { palettes } from './palettes.js?v=26';
 import { roles, clamp, contrast, textOn, rgb, toHex, oklab, oklch, paletteFromColor, exportPalette, extractPaletteVariants, oklabDistance } from './color.js';
 import { createAtlas, atlasWorlds } from './globe.js?v=27';
 import { buildShadeFamilies, createShadeStudio } from './shade-studio.js?v=1';
@@ -704,7 +704,7 @@ $$('.desktop-nav a').forEach(link => { if (link.pathname.replace(/\/+$/, '') ===
 
 if (page === 'home') {
   const homeExplorePresentation = {
-    'skincare-system-01': { title: 'Skincare System 01', image: '/assets/editions/skincare-system-01.jpg', category: 'ColorVerse Edition 001', context: 'beauty · packaging', href: '/editions/skincare-system-01/' },
+    'skincare-system-01': { title: 'Skincare System 01', image: '/assets/editions/skincare-system-01-v1.jpg', category: 'ColorVerse Edition 001', context: 'beauty · packaging', href: '/editions/skincare-system-01/' },
     'warm-cafe': { title: 'Quiet House', image: '/assets/community/quiet-house-editorial.jpg', category: 'Brand system', context: 'hospitality · packaging' },
     'reef-current': { title: 'After Rain', image: '/assets/community/after-rain-editorial.jpg', category: 'Editorial system', context: 'print · culture' },
     'archive-green': { title: 'Archive Green', image: '/assets/community/archive-green-editorial.jpg', category: 'Material study', context: 'publishing · interiors' },
