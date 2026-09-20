@@ -13,6 +13,7 @@
     "test:image-file": "node --test scripts/test-image-file.mjs",
     "test:privacy": "node --test scripts/test-privacy.mjs",
     "test:database": "node --test scripts/test-database-schema.mjs",
+    "test:live": "node scripts/test-live-mvp.mjs",
     "test:palettes": "node --test scripts/test-palettes.mjs"
   },
   "devDependencies": {

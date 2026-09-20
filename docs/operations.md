@@ -68,12 +68,14 @@ traffic and are not evidence that the domain should be attached to Sites.
 ## Release checklist
 
 1. Run `npm run build`.
-2. Review `git status` and `git diff`; preserve unrelated changes.
-3. Commit only the intended files and push `main` to `origin`.
-4. Confirm the Cloudflare Pages production deployment completed.
-5. Verify the affected public routes on `https://colorverse.byigit.dev` return
+2. Run `npm run test:live` to verify production headers, consent-gated GA,
+   Supabase catalog counts, and anonymous private-write rejection.
+3. Review `git status` and `git diff`; preserve unrelated changes.
+4. Commit only the intended files and push `main` to `origin`.
+5. Confirm the Cloudflare Pages production deployment completed.
+6. Verify the affected public routes on `https://colorverse.byigit.dev` return
    HTTP 200 and do not show a ChatGPT sign-in screen.
-6. For releases touching `_headers`, verify the public response includes CSP,
+7. For releases touching `_headers`, verify the public response includes CSP,
    `X-Content-Type-Options`, `Referrer-Policy`, and `Permissions-Policy`, then
    check the browser console for blocked required assets.
 
