@@ -42,7 +42,7 @@ The project/template direction and proposed review-analysis method live in
 - Color worlds are navigational moods, not separate products. The default world includes the full spectrum; focused worlds provide three intentional starter palettes and a subtle site-wide atmosphere using CSS variables rather than heavy media.
 - The world rail uses six entries in a quiet reverse-crescent composition. One entry may rotate as a time-specific editorial edition without making the product dependent on weekly trends.
 - The public homepage is itself the primary Explore surface. The globe remains the distinctive creation entry, followed immediately by a visual feed of contextual palette examples. `/explore/` remains the complete searchable/filterable palette library rather than a duplicate landing page.
-- Global navigation uses one Explore entry for that combined discovery area; “All palettes” is reached contextually from Explore instead of appearing as a competing top-level destination. Studio is the persistent top-right action and is not duplicated inside the primary menu. On desktop, the primary menu begins directly beneath the ColorVerse wordmark.
+- Global navigation names the homepage `Explore`, the complete `/explore/` archive `Library`, and the in-house `/inspiration/` shelf `Inspiration`. This keeps user/community discovery, the searchable palette archive, and ColorVerse-owned fictional studies distinct. Studio is the persistent top-right action and is not duplicated inside the primary menu. On desktop, the primary menu begins directly beneath the ColorVerse wordmark.
 - World starter palettes are editorial starting points, not “best” or “popular” rankings. Until save/open data is reliable, prefer the strongest coherent systems already in the library and avoid unearned popularity claims.
 
 ## Working directions — 2026-09-14
@@ -216,6 +216,11 @@ The project/template direction and proposed review-analysis method live in
   product dashboard, an analytical report, a campaign set, and a packaging
   family. These replace invented portfolio/shop mockups and show functional
   roles across several components without depending on a source photograph.
+- Edition palettes may replace a generic context with their own named applied
+  system. `Skincare System 01`, for example, carries its five-formula `CV / 01`
+  packaging family into Studio instead of reverting to an unrelated mock brand.
+  This keeps the inspiration-to-edit journey coherent while remaining an
+  explicitly labeled visual study rather than a claim about a real client.
 
 ## Professional reference model — Vitra, CMF, and applied systems — 2026-09-19
 

@@ -16,18 +16,18 @@
   <link rel="stylesheet" href="/studio-editor.css?v=6">
   <link rel="stylesheet" href="/project-store.css?v=1">
   <link rel="stylesheet" href="/color-globe.css?v=1">
-  <link rel="stylesheet" href="/context-kits.css?v=2">
+  <link rel="stylesheet" href="/context-kits.css?v=3">
   <link rel="stylesheet" href="/privacy.css?v=2">
   <script src="/vendor/supabase.js?v=2.116.0" defer></script>
-  <script type="module" src="/app.js?v=43"></script>
+  <script type="module" src="/app.js?v=46"></script>
   <script type="module" src="/analytics.js?v=4"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="header">
     <a class="wordmark" href="/" aria-label="ColorVerse home"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2 28.1 9v14L16 30 3.9 23V9Z" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m16 8 6.9 4v8L16 24l-6.9-4v-8Z" fill="currentColor"/></svg><span>ColorVerse</span></a>
-    <nav class="desktop-nav" aria-label="Main navigation"><a href="/">Explore</a><a href="/extract/">Image to palette</a><a href="/community/">Community</a><a href="/lab/">Lab</a></nav>
-    <div class="header-actions"><button class="icon-button theme-toggle" id="themeToggle" aria-label="Switch to light theme" title="Change theme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 5a7 7 0 0 1 0 14Z" fill="currentColor"/></svg></button><a class="small-button" href="/explore/">Back to palettes</a></div>
+    <nav class="desktop-nav" aria-label="Main navigation"><a href="/">Explore</a><a href="/inspiration/">Inspiration</a><a href="/explore/">Library</a><a href="/extract/">Image to palette</a><a href="/community/">Community</a><a href="/lab/">Lab</a></nav>
+    <div class="header-actions"><button class="icon-button theme-toggle" id="themeToggle" aria-label="Switch to light theme" title="Change theme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 5a7 7 0 0 1 0 14Z" fill="currentColor"/></svg></button><a class="small-button" href="/explore/">Back to library</a></div>
   </header>
   <main id="main">
     <section class="studio studio-page section-wrap" id="studio" aria-labelledby="studioTitle">
@@ -73,7 +73,7 @@
     </section>
     <section class="route-next section-wrap" aria-label="Continue exploring"><a href="/explore/"><span class="eyebrow">Need another direction?</span><strong>Browse the library <b>→</b></strong></a><a href="/extract/"><span class="eyebrow">Have a reference?</span><strong>Read an image <b>→</b></strong></a></section>
   </main>
-  <footer class="footer section-wrap"><div class="footer-top"><a class="wordmark" href="/">ColorVerse</a><p>Color exploration, in context.</p><a class="back-top" href="#main">Back to top ↑</a></div><div class="footer-bottom"><span>© 2026 ColorVerse</span><nav aria-label="Footer navigation"><a href="/">Explore</a><a href="/explore/">All palettes</a><a href="/extract/">Image to palette</a><a href="/community/">Community</a><a href="/lab/">Lab</a><a href="/about/">Color guide</a></nav></div></footer>
+  <footer class="footer section-wrap"><div class="footer-top"><a class="wordmark" href="/">ColorVerse</a><p>Color exploration, in context.</p><a class="back-top" href="#main">Back to top ↑</a></div><div class="footer-bottom"><span>© 2026 ColorVerse</span><nav aria-label="Footer navigation"><a href="/">Explore</a><a href="/inspiration/">Inspiration</a><a href="/explore/">Library</a><a href="/extract/">Image to palette</a><a href="/studio/">Studio</a><a href="/community/">Community</a><a href="/lab/">Lab</a><a href="/about/">Color guide</a></nav></div></footer>
   <dialog class="color-globe" id="colorGlobe" aria-labelledby="colorGlobeTitle" aria-describedby="colorGlobeGuide">
     <header class="globe-picker-head">
       <div><span class="eyebrow">Editing <span id="globeRole">Background</span></span><h2 id="colorGlobeTitle">Color Globe</h2></div>

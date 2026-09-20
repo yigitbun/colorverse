@@ -26,6 +26,15 @@ test('the material study compares one selected role across five named surfaces',
   assert.match(styles, /\.material-metal/);
 });
 
+test('the first Edition keeps its packaging identity inside Studio', () => {
+  assert.match(app, /current\.id === 'skincare-system-01'/);
+  assert.match(app, /Skincare System 01 palette applied to five cosmetic tubes/);
+  assert.match(app, /Gentle<br>cleanser/);
+  assert.match(app, /Overnight<br>treatment/);
+  assert.match(styles, /\.edition-pack-scene/);
+  assert.match(styles, /\.edition-tube-5/);
+});
+
 test('material context survives project snapshots without widening database input', () => {
   assert.match(app, /'shop', 'material'/);
   assert.match(store, /material: 'brand'/);

@@ -10,7 +10,7 @@ const $$ = selector => [...document.querySelectorAll(selector)];
 const escape = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const route = location.pathname.replace(/\/+$/, '') || '/';
-const page = ({ '/explore': 'explore', '/extract': 'extract', '/studio': 'studio', '/about': 'about', '/community': 'community', '/lab': 'lab', '/editions/skincare-system-01': 'edition' })[route] || 'home';
+const page = ({ '/explore': 'explore', '/extract': 'extract', '/studio': 'studio', '/about': 'about', '/community': 'community', '/lab': 'lab', '/inspiration': 'inspiration', '/editions/skincare-system-01': 'edition' })[route] || 'home';
 const titles = {
   home: 'Explore palettes in context — ColorVerse',
   explore: 'Palette library — ColorVerse',
@@ -19,6 +19,7 @@ const titles = {
   about: 'Color guide — ColorVerse',
   community: 'Community — ColorVerse',
   lab: 'Lab — ColorVerse',
+  inspiration: 'Inspiration — ColorVerse',
   edition: 'Skincare System 01 — ColorVerse Editions',
 };
 const params = new URLSearchParams(location.search);
@@ -381,6 +382,19 @@ function renderMockup() {
   panel.style.setProperty('--on-accent', textOn(accent));
   panel.style.setProperty('--p-material', current.colors[activeColorIndex]);
   panel.setAttribute('aria-labelledby', `tab-${context}`);
+  const packagingKit = current.id === 'skincare-system-01'
+    ? `<div class="mockup context-kit edition-packaging-kit">
+      <header><span class="kit-kicker">ColorVerse Edition / skincare system</span><b>CV / 01</b><small>Five formulas · one structure</small></header>
+      <div class="edition-pack-scene" role="img" aria-label="Skincare System 01 palette applied to five cosmetic tubes">
+        <article class="edition-tube edition-tube-1" style="--pack:var(--p-bg);--pack-ink:var(--p-text)"><span>CV / 01</span><div><strong>Gentle<br>cleanser</strong><small>Balance · purify · refresh</small></div><b>100 ml</b></article>
+        <article class="edition-tube edition-tube-2" style="--pack:var(--p-surface);--pack-ink:var(--p-text)"><span>CV / 01</span><div><strong>Daily<br>moisturiser</strong><small>Hydrate · support · replenish</small></div><b>75 ml</b></article>
+        <article class="edition-tube edition-tube-3" style="--pack:var(--p-primary);--pack-ink:var(--on-primary)"><span>CV / 01</span><div><strong>Radiance<br>exfoliant</strong><small>Polish · smooth · renew</small></div><b>60 ml</b></article>
+        <article class="edition-tube edition-tube-4" style="--pack:var(--p-accent);--pack-ink:var(--p-text)"><span>CV / 01</span><div><strong>Nourishing<br>mask</strong><small>Soothe · restore · fortify</small></div><b>75 ml</b></article>
+        <article class="edition-tube edition-tube-5" style="--pack:var(--p-text);--pack-ink:var(--p-bg)"><span>CV / 01</span><div><strong>Overnight<br>treatment</strong><small>Repair · smooth · revive</small></div><b>75 ml</b></article>
+      </div>
+      <footer><span>Shared silhouette</span><span>Color-coded formula</span><span>Consistent hierarchy</span><span>Production study</span></footer>
+    </div>`
+    : `<div class="mockup context-kit packaging-kit"><header><span class="kit-kicker">Packaging system / small batch</span><b>Field & Form</b><small>Collection 03</small></header><div class="package-scene"><div class="package-box package-box-tall"><span>FIELD<br>& FORM</span><small>Botanical wash<br>250 ml</small><i>03</i></div><div class="package-box package-box-wide"><span>EVERYDAY<br>RITUALS</span><small>Five mineral soaps</small><i>05</i></div><div class="package-bottle"><span>F&F</span><small>01</small></div><div class="package-card"><span>Care notes</span><b>Made slowly.<br>Used daily.</b><p>Plant-based formulas / recyclable paper / batch no. 026</p><i></i></div></div><footer><span>Primary pack</span><span>Gift set</span><span>Label system</span><span>Insert card</span></footer></div>`;
   const layouts = {
     landing: `<div class="mockup context-kit product-kit">
       <header class="product-kit-head"><b>Northstar</b><label aria-hidden="true">Search workspace <span>⌘ K</span></label><i class="product-avatar">AY</i></header>
@@ -390,7 +404,7 @@ function renderMockup() {
       <div class="product-grid"><section class="product-chart"><header><div><span>Project momentum</span><strong>Last 8 weeks</strong></div><b>+18.4%</b></header><div class="chart-bars" aria-label="Illustrative project momentum chart"><i style="--h:34%"></i><i style="--h:48%"></i><i style="--h:43%"></i><i style="--h:61%"></i><i style="--h:56%"></i><i style="--h:74%"></i><i style="--h:82%"></i><i style="--h:92%"></i></div></section><section class="product-list"><header><span>Today</span><b>View all</b></header><p><i></i><span><strong>Review design system</strong><small>10:30 · Product</small></span></p><p><i></i><span><strong>Client workshop</strong><small>14:00 · Strategy</small></span></p><p><i></i><span><strong>Publish report</strong><small>16:45 · Research</small></span></p></section></div></main></div></div>`,
     presentation: `<div class="mockup context-kit report-kit"><header><span>North Region / Operations</span><b>Q3 REVIEW · 08 / 16</b></header><div class="report-body"><section class="report-copy"><span class="kit-kicker">Performance summary</span><h4>Strong demand.<br><em>Smarter pace.</em></h4><p>Revenue grew while delivery time fell across three core markets.</p><div class="report-stat"><strong>+24%</strong><span>Year-over-year<br>revenue growth</span></div></section><section class="report-data"><div class="report-legend"><span><i></i>Current period</span><span><i></i>Previous period</span></div><div class="report-lines" role="img" aria-label="Illustrative performance line chart"><svg viewBox="0 0 360 180" preserveAspectRatio="none" aria-hidden="true"><path d="M4 150 C58 142 72 116 112 121 S176 80 211 91 S267 50 356 24"/><path d="M4 164 C51 148 87 150 121 137 S187 124 218 113 S293 91 356 82"/></svg><span>Jan</span><span>Mar</span><span>May</span><span>Jul</span></div><div class="report-numbers"><p><span>Conversion</span><strong>6.8%</strong></p><p><span>Retention</span><strong>91%</strong></p><p><span>Delivery</span><strong>4.2d</strong></p></div></section></div><footer><span>Internal working document</span><span>ColorVerse palette preview</span></footer></div>`,
     social: `<div class="mockup context-kit campaign-kit"><section class="campaign-poster"><span class="kit-kicker">A one-day gathering</span><div class="campaign-orbit"><i></i><i></i><i></i></div><h4>Common<br>Ground</h4><p>Ideas for kinder cities<br>19.09 — Berlin</p></section><section class="campaign-stack"><article class="campaign-story"><span>COMMON GROUND</span><div><b>19</b><i>SEP</i></div><p>Talks · workshops · food</p></article><article class="campaign-ticket"><span>ADMIT ONE</span><strong>CG / 026</strong><i></i><small>Berlin · 10:00—18:00</small></article><article class="campaign-caption"><b>One palette.<br>Three campaign formats.</b><span>Poster / story / ticket</span></article></section></div>`,
-    shop: `<div class="mockup context-kit packaging-kit"><header><span class="kit-kicker">Packaging system / small batch</span><b>Field & Form</b><small>Collection 03</small></header><div class="package-scene"><div class="package-box package-box-tall"><span>FIELD<br>& FORM</span><small>Botanical wash<br>250 ml</small><i>03</i></div><div class="package-box package-box-wide"><span>EVERYDAY<br>RITUALS</span><small>Five mineral soaps</small><i>05</i></div><div class="package-bottle"><span>F&F</span><small>01</small></div><div class="package-card"><span>Care notes</span><b>Made slowly.<br>Used daily.</b><p>Plant-based formulas / recyclable paper / batch no. 026</p><i></i></div></div><footer><span>Primary pack</span><span>Gift set</span><span>Label system</span><span>Insert card</span></footer></div>`,
+    shop: packagingKit,
     material: `<div class="mockup context-kit material-kit">
       <header class="material-kit-head"><div><span class="kit-kicker">Bridge colour / screen study</span><h4>One color.<br><em>Five surfaces.</em></h4></div><div class="material-role"><span>Selected role</span><strong>${escape(roles[activeColorIndex])}</strong><code>${current.colors[activeColorIndex]}</code></div></header>
       <div class="material-samples" role="img" aria-label="Simulated appearance of ${current.colors[activeColorIndex]} on five material surfaces">
