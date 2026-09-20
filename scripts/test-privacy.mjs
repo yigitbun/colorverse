@@ -49,7 +49,7 @@ test('analytics events reject unknown names and user-authored values', () => {
 });
 
 test('palette imagery is self-hosted and third-party image CDNs are not allowed by CSP', () => {
-  palettes.forEach(palette => assert.match(palette.image, /^\/assets\/palette-library\/.+\.jpg$/, palette.id));
+  palettes.forEach(palette => assert.match(palette.image, /^\/assets\/(?:palette-library|editions)\/.+\.jpg$/, palette.id));
   assert.doesNotMatch(worlds, /images\.unsplash\.com/);
   assert.doesNotMatch(headers, /img-src[^\n]*images\.unsplash\.com/);
 });

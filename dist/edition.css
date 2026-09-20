@@ -1,0 +1,61 @@
+.edition-page{padding-bottom:60px}
+.edition-intro{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(280px,.75fr);align-items:end;gap:64px;padding-top:74px;padding-bottom:34px}
+.edition-title h1{max-width:900px;margin-top:18px;font-size:clamp(4.2rem,8.6vw,9rem);line-height:.82;letter-spacing:-.075em}
+.edition-lede{max-width:520px;padding-bottom:7px}
+.edition-lede p{color:var(--muted);font-size:1.05rem;line-height:1.7}
+.edition-actions{display:flex;align-items:center;gap:20px;margin-top:26px}
+.edition-actions .text-link{font-size:.82rem}
+.edition-hero{margin-top:12px}
+.edition-hero img{display:block;width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:12px;background:#d6d0c6}
+.edition-hero figcaption{display:flex;justify-content:space-between;gap:20px;padding:12px 3px;color:var(--muted);font:10px var(--mono);letter-spacing:.03em;text-transform:uppercase}
+.edition-palette,.edition-notes{padding-top:82px;padding-bottom:18px}
+.edition-section-head{display:grid;grid-template-columns:minmax(0,.45fr) minmax(0,1fr) minmax(260px,.55fr);align-items:end;gap:34px;margin-bottom:31px;padding-bottom:25px;border-bottom:1px solid var(--line)}
+.edition-section-head h2{font-size:clamp(2.5rem,5.2vw,5rem);line-height:.92;letter-spacing:-.06em}
+.edition-section-head p{color:var(--muted);font-size:.9rem;line-height:1.65}
+.edition-swatches{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));min-height:240px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.edition-swatches>div{display:flex;flex-direction:column;justify-content:space-between;gap:35px;padding:17px;background:var(--swatch);color:var(--on)}
+.edition-swatches span{font-size:.72rem;font-weight:700}
+.edition-swatches code{font:11px var(--mono)}
+.edition-note-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line);border-left:1px solid var(--line)}
+.edition-note-grid article{min-height:260px;padding:20px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.edition-note-grid article>span{display:block;margin-bottom:54px;color:var(--muted);font:10px var(--mono)}
+.edition-note-grid h3{margin-bottom:13px;font-size:1.3rem;letter-spacing:-.035em}
+.edition-note-grid p{color:var(--muted);font-size:.8rem;line-height:1.65}
+.edition-cta{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.6fr);gap:64px;margin-top:90px;padding-top:48px;padding-bottom:48px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.edition-cta h2{margin-top:13px;font-size:clamp(3rem,6.4vw,6.4rem);line-height:.88;letter-spacing:-.065em}
+.edition-cta>div:last-child{align-self:end;max-width:480px}
+.edition-cta p{margin-bottom:24px;color:var(--muted);font-size:.95rem;line-height:1.7}
+.edition-disclosure{display:grid;grid-template-columns:minmax(180px,.35fr) minmax(0,1fr);gap:40px;padding-top:25px;color:var(--muted);font-size:.72rem;line-height:1.6}
+.edition-disclosure strong{color:var(--ink)}
+.edition-disclosure p{max-width:800px}
+@media(max-width:860px){
+  .edition-intro{grid-template-columns:1fr;gap:28px;padding-top:48px}
+  .edition-title h1{font-size:clamp(4rem,14vw,7rem)}
+  .edition-lede{max-width:620px}
+  .edition-section-head{grid-template-columns:1fr 1.3fr}
+  .edition-section-head .eyebrow{grid-column:1/-1}
+  .edition-swatches{min-height:190px}
+  .edition-note-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .edition-cta{grid-template-columns:1fr;gap:32px}
+}
+@media(max-width:580px){
+  .edition-page{padding-bottom:30px}
+  .edition-intro{padding-top:42px;padding-bottom:22px}
+  .edition-title h1{font-size:clamp(3.8rem,18vw,5.4rem)}
+  .edition-lede p{font-size:.92rem}
+  .edition-actions{align-items:flex-start;flex-direction:column;gap:14px}
+  .edition-hero{margin-top:0;padding-inline:0}
+  .edition-hero img{aspect-ratio:1/1;border-radius:0;object-position:center}
+  .edition-hero figcaption{padding-inline:22px;font-size:8px}
+  .edition-palette,.edition-notes{padding-top:54px}
+  .edition-section-head{grid-template-columns:1fr;gap:16px;margin-bottom:20px}
+  .edition-section-head .eyebrow{grid-column:auto}
+  .edition-section-head h2{font-size:3.1rem}
+  .edition-swatches{grid-template-columns:1fr;min-height:0}
+  .edition-swatches>div{min-height:86px;flex-direction:row;align-items:flex-end;padding:14px 16px}
+  .edition-note-grid{grid-template-columns:1fr}
+  .edition-note-grid article{min-height:210px}
+  .edition-note-grid article>span{margin-bottom:38px}
+  .edition-cta{margin-top:58px;padding-top:38px;padding-bottom:38px}
+  .edition-disclosure{grid-template-columns:1fr;gap:10px}
+}

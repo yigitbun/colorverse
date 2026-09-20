@@ -1,4 +1,4 @@
-import { palettes } from './palettes.js?v=24';
+import { palettes } from './palettes.js?v=25';
 import { roles, clamp, contrast, textOn, rgb, toHex, oklab, oklch, paletteFromColor, exportPalette, extractPaletteVariants, oklabDistance } from './color.js';
 import { createAtlas, atlasWorlds } from './globe.js?v=27';
 import { buildShadeFamilies, createShadeStudio } from './shade-studio.js?v=1';
@@ -9,7 +9,7 @@ const $$ = selector => [...document.querySelectorAll(selector)];
 const escape = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const route = location.pathname.replace(/\/+$/, '') || '/';
-const page = ({ '/explore': 'explore', '/extract': 'extract', '/studio': 'studio', '/about': 'about', '/community': 'community', '/lab': 'lab' })[route] || 'home';
+const page = ({ '/explore': 'explore', '/extract': 'extract', '/studio': 'studio', '/about': 'about', '/community': 'community', '/lab': 'lab', '/editions/skincare-system-01': 'edition' })[route] || 'home';
 const titles = {
   home: 'Explore palettes in context — ColorVerse',
   explore: 'Palette library — ColorVerse',
@@ -18,6 +18,7 @@ const titles = {
   about: 'Color guide — ColorVerse',
   community: 'Community — ColorVerse',
   lab: 'Lab — ColorVerse',
+  edition: 'Skincare System 01 — ColorVerse Editions',
 };
 const params = new URLSearchParams(location.search);
 const track = (name, detail) => window.colorverseTrack?.(name, detail);
@@ -703,6 +704,7 @@ $$('.desktop-nav a').forEach(link => { if (link.pathname.replace(/\/+$/, '') ===
 
 if (page === 'home') {
   const homeExplorePresentation = {
+    'skincare-system-01': { title: 'Skincare System 01', image: '/assets/editions/skincare-system-01.jpg', category: 'ColorVerse Edition 001', context: 'beauty · packaging', href: '/editions/skincare-system-01/' },
     'warm-cafe': { title: 'Quiet House', image: '/assets/community/quiet-house-editorial.jpg', category: 'Brand system', context: 'hospitality · packaging' },
     'reef-current': { title: 'After Rain', image: '/assets/community/after-rain-editorial.jpg', category: 'Editorial system', context: 'print · culture' },
     'archive-green': { title: 'Archive Green', image: '/assets/community/archive-green-editorial.jpg', category: 'Material study', context: 'publishing · interiors' },
@@ -711,8 +713,8 @@ if (page === 'home') {
     'after-hours': { title: 'After Hours', image: '/assets/home-explore/after-hours-project.jpg', category: 'Cultural identity', context: 'music · digital' },
   };
   const homeExploreGroups = {
-    all: ['warm-cafe', 'reef-current', 'archive-green', 'civic-shadow', 'market-signal', 'after-hours'],
-    brand: ['warm-cafe', 'market-signal', 'archive-green'],
+    all: ['skincare-system-01', 'reef-current', 'archive-green', 'civic-shadow', 'market-signal', 'after-hours'],
+    brand: ['skincare-system-01', 'market-signal', 'archive-green'],
     digital: ['after-hours', 'civic-shadow', 'reef-current'],
     spaces: ['civic-shadow', 'archive-green', 'warm-cafe'],
     editorial: ['reef-current', 'archive-green', 'after-hours', 'civic-shadow'],
@@ -724,14 +726,16 @@ if (page === 'home') {
     grid.innerHTML = items.length ? items.map((palette, index) => {
       const presentation = homeExplorePresentation[palette.id] || {};
       const title = presentation.title || palette.name;
+      const studioHref = `/studio/?p=${encodeURIComponent(palette.id)}#studio`;
+      const mediaHref = presentation.href || studioHref;
       return `<article class="home-explore-card" style="--cover:${palette.colors[1]}">
-      <a class="home-explore-media" href="/studio/?p=${encodeURIComponent(palette.id)}#studio" data-select="${palette.id}" aria-label="Open ${escape(title)} in Studio">
+      <a class="home-explore-media" href="${escape(mediaHref)}"${presentation.href ? '' : ` data-select="${palette.id}"`} aria-label="${presentation.href ? 'View' : 'Open'} ${escape(title)}${presentation.href ? ' case study' : ' in Studio'}">
         <img src="${escape(presentation.image || palette.image)}" alt="${escape(title)} project presentation" width="1280" height="800" loading="${index < 3 ? 'eager' : 'lazy'}" decoding="async">
         <span class="home-explore-index">${String(index + 1).padStart(2, '0')}</span><span class="home-explore-category">${escape(presentation.category || palette.category)}</span>
         <span class="home-explore-caption"><strong>${escape(title)}</strong><span>${escape(presentation.context || (palette.useCases || []).slice(0, 2).join(' · '))}</span></span>
       </a>
       <div class="home-explore-colors" aria-label="${escape(title)} colors">${palette.colors.slice(0, 5).map(color => swatch(color)).join('')}</div>
-      <div class="home-explore-copy"><p>${escape(palette.description)}</p><a href="/studio/?p=${encodeURIComponent(palette.id)}#studio" data-select="${palette.id}">Use palette →</a></div>
+      <div class="home-explore-copy"><p>${escape(palette.description)}</p><a href="${studioHref}" data-select="${palette.id}">Use palette →</a></div>
     </article>`;
     }).join('') : '<p class="home-explore-empty">No directions in this view yet.</p>';
     grid.querySelectorAll('img').forEach(image => image.addEventListener('error', () => {

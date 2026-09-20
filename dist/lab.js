@@ -1,4 +1,4 @@
-import { palettes } from './palettes.js?v=24';
+import { palettes } from './palettes.js?v=25';
 
 const $ = selector => document.querySelector(selector);
 const roles = [

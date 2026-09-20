@@ -255,3 +255,30 @@ The project/template direction and proposed review-analysis method live in
   preserves normal page scrolling.
 - Keep zoom and pause controls outside the sphere so no world or utility control
   obscures the color field.
+
+## ColorVerse Editions — 2026-09-20
+
+- ColorVerse Editions is the editorial umbrella for original, applied design
+  studies. It is not a fictional conglomerate and should not pretend that
+  ColorVerse manufactures the products shown. Each edition begins with a
+  concrete brief and demonstrates how a five-color system behaves across a
+  product family, material, finish, hierarchy, and environment.
+- Category studies may use a temporary product-line identifier, but a fictional
+  consumer brand name must not be published until a basic collision check has
+  been completed. The first generated working name, “Oera,” was rejected after
+  that check found an existing skincare brand; the public study therefore uses
+  the neutral identifier “CV / 01.”
+- The first study, Skincare System 01, uses five tubes with one shared structure.
+  Color distinguishes the formulas while typography, cap geometry, finish, and
+  the deep anchor color preserve family recognition. Its five colors open
+  directly in Studio as editable functional roles.
+- Every Edition must be clearly labeled as an original fictional design study,
+  not a real client project or purchasable product. Synthetic visualization is
+  acceptable only when it is project-specific, deliberately art-directed, and
+  disclosed; do not imitate another brand's wordmark, trade dress, packaging
+  silhouette, or signature presentation.
+- The intended journey is: discover the applied system, understand the brief
+  and CMF decisions, open the same palette in Studio, adapt it, and save it as a
+  private project. Editions should gradually cover packaging, hospitality,
+  mobility, devices, interiors, and digital products rather than repeating
+  cosmetic still lifes.

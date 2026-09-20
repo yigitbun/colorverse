@@ -16,7 +16,7 @@ test('the public library contains 100 complete palettes', () => {
     assert.ok(palette.tags.length >= 3, palette.name);
     assert.ok(palette.useCases.length >= 3, palette.name);
     assert.ok(palette.image, palette.name);
-    assert.match(palette.credit, /^Unsplash/, palette.name);
+    assert.match(palette.credit, /^(?:Unsplash|ColorVerse Editions)/, palette.name);
   });
 });
 
@@ -27,7 +27,15 @@ test('palette identifiers and names are unique', () => {
 
 test('the complete collection uses documented local visual sources', () => {
   palettes.forEach(palette => {
-    assert.match(palette.image, /^\/assets\/palette-library\/.+\.jpg$/, palette.name);
-    assert.match(palette.source, /^https:\/\/(?:images\.)?unsplash\.com\//, palette.name);
+    assert.match(palette.image, /^\/assets\/(?:palette-library|editions)\/.+\.jpg$/, palette.name);
+    assert.match(palette.source, /^https:\/\/(?:(?:images\.)?unsplash\.com\/|colorverse\.byigit\.dev\/editions\/)/, palette.name);
   });
+});
+
+test('the first ColorVerse Edition is an applied packaging system', () => {
+  const edition = palettes.find(palette => palette.id === 'skincare-system-01');
+  assert.ok(edition);
+  assert.deepEqual(edition.colors, ['#E9E3D8', '#9B9F83', '#B66F56', '#AAA2AC', '#252B2F']);
+  assert.equal(edition.category, 'Beauty packaging');
+  assert.match(edition.credit, /^ColorVerse Editions/);
 });

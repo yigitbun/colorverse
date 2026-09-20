@@ -541,6 +541,21 @@ const families = [
 const hueOffsets = [-12, -5, 0, 7, 14];
 const accentOffsets = [0, 11, -9, 19, -17];
 
+const editionOverrides = {
+  "Powder Issue": {
+    id: "skincare-system-01",
+    name: "Skincare System 01",
+    description: "A five-product skincare family where color identifies each formula while one structure keeps the range coherent.",
+    colors: ["#E9E3D8", "#9B9F83", "#B66F56", "#AAA2AC", "#252B2F"],
+    image: "/assets/editions/skincare-system-01.jpg",
+    source: "https://colorverse.byigit.dev/editions/skincare-system-01/",
+    credit: "ColorVerse Editions · original concept",
+    category: "Beauty packaging",
+    tags: ["soft", "material", "considered"],
+    useCases: ["beauty", "packaging", "retail"]
+  }
+};
+
 function hslToHex(hue, saturation, lightness) {
   const h = ((hue % 360) + 360) % 360;
   const s = saturation / 100;
@@ -564,7 +579,7 @@ function familyPalette(family, index) {
     ? [hslToHex(hue, 31, 9 + index % 2), hslToHex(hue, 25, 16 + index % 3), hslToHex(hue, 68, 66), hslToHex(accentHue, 76, 62), hslToHex(hue, 22, 94)]
     : [hslToHex(hue, 34, 97), hslToHex(hue, 30, 89 - index % 2), hslToHex(hue, 56 + index * 2, 39 + index % 3), hslToHex(accentHue, 70, 52 + index % 2), hslToHex(hue, 28, 14)];
   const visual = visualSources[family.source];
-  return {
+  const generated = {
     id: slug(family.names[index]),
     name: family.names[index],
     description: family.description,
@@ -574,6 +589,7 @@ function familyPalette(family, index) {
     tags: [...family.tags],
     useCases: [...family.useCases]
   };
+  return { ...generated, ...(editionOverrides[family.names[index]] || {}) };
 }
 
 const expandedPalettes = families.flatMap(family => family.names.map((_, index) => familyPalette(family, index)));
