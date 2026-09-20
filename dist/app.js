@@ -10,7 +10,7 @@ const $$ = selector => [...document.querySelectorAll(selector)];
 const escape = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const route = location.pathname.replace(/\/+$/, '') || '/';
-const page = ({ '/explore': 'explore', '/extract': 'extract', '/studio': 'studio', '/about': 'about', '/community': 'community', '/lab': 'lab', '/inspiration': 'inspiration', '/editions/skincare-system-01': 'edition' })[route] || 'home';
+const page = ({ '/explore': 'explore', '/extract': 'extract', '/studio': 'studio', '/about': 'about', '/community': 'community', '/lab': 'lab', '/inspiration': 'inspiration', '/editions/skincare-system-01': 'edition', '/editions/drift-field-01': 'editionDrift' })[route] || 'home';
 const titles = {
   home: 'Explore palettes in context — ColorVerse',
   explore: 'Palette library — ColorVerse',
@@ -21,6 +21,7 @@ const titles = {
   lab: 'Lab — ColorVerse',
   inspiration: 'Inspiration — ColorVerse',
   edition: 'Soft Structure — ColorVerse Editions',
+  editionDrift: 'Field 01 — DRIFT — ColorVerse Editions',
 };
 const params = new URLSearchParams(location.search);
 const track = (name, detail) => window.colorverseTrack?.(name, detail);
@@ -34,7 +35,21 @@ function readStoredPalette() {
   return null;
 }
 
-const requestedPalette = palettes.find(palette => palette.id === params.get('p'));
+const specialEditions = [{
+  id: 'drift-field-01',
+  sourcePaletteId: 'drift-field-01',
+  name: 'Field 01',
+  brand: 'DRIFT',
+  series: 'DRIFT / Field 01',
+  description: 'A quiet footwear system built from mineral tones, tactile materials, and one precise silhouette.',
+  colors: ['#E8E1D5', '#8A927C', '#B68B70', '#A8A0AD', '#34383A'],
+  image: '/assets/editions/drift-field-01-v1.png',
+  category: 'ColorVerse Edition · Footwear study',
+  tags: ['footwear', 'cmf', 'product'],
+  useCases: ['footwear · product', 'retail · campaign'],
+}];
+const editionPalettes = [...palettes, ...specialEditions];
+const requestedPalette = editionPalettes.find(palette => palette.id === params.get('p'));
 const storedPalette = readStoredPalette();
 let current = requestedPalette || (storedPalette && (!params.get('p') || storedPalette.id === params.get('p')) ? storedPalette : palettes[0]);
 let context = 'landing';
@@ -394,7 +409,13 @@ function renderMockup() {
       </div>
       <footer><span>Shared silhouette</span><span>Color-coded formula</span><span>Consistent hierarchy</span><span>Production study</span></footer>
     </div>`
-    : `<div class="mockup context-kit packaging-kit"><header><span class="kit-kicker">Packaging system / small batch</span><b>Field & Form</b><small>Collection 03</small></header><div class="package-scene"><div class="package-box package-box-tall"><span>FIELD<br>& FORM</span><small>Botanical wash<br>250 ml</small><i>03</i></div><div class="package-box package-box-wide"><span>EVERYDAY<br>RITUALS</span><small>Five mineral soaps</small><i>05</i></div><div class="package-bottle"><span>F&F</span><small>01</small></div><div class="package-card"><span>Care notes</span><b>Made slowly.<br>Used daily.</b><p>Plant-based formulas / recyclable paper / batch no. 026</p><i></i></div></div><footer><span>Primary pack</span><span>Gift set</span><span>Label system</span><span>Insert card</span></footer></div>`;
+    : current.id === 'drift-field-01'
+      ? `<div class="mockup context-kit edition-footwear-kit">
+      <header><span class="kit-kicker">ColorVerse Edition / footwear study</span><b>DRIFT</b><small>Field 01 · Series 01</small></header>
+      <div class="edition-footwear-scene"><div class="edition-footwear-image"><img src="/assets/editions/drift-field-01-v1.png" alt="DRIFT Field 01 footwear study showing mineral colour blocks and tactile materials"><span>FIELD 01</span></div><aside><span class="kit-kicker">Material map</span><strong>Quiet utility.</strong><p>One silhouette, five colour roles, four tactile surfaces.</p><dl><div><dt>Upper</dt><dd>Mesh · suede</dd></div><div><dt>Accent</dt><dd>Dusty lilac</dd></div><div><dt>Base</dt><dd>Mineral rubber</dd></div></dl></aside></div>
+      <footer><span>Everyday silhouette</span><span>Material-led colour</span><span>CMF direction</span><span>Original study</span></footer>
+    </div>`
+      : `<div class="mockup context-kit packaging-kit"><header><span class="kit-kicker">Packaging system / small batch</span><b>Field & Form</b><small>Collection 03</small></header><div class="package-scene"><div class="package-box package-box-tall"><span>FIELD<br>& FORM</span><small>Botanical wash<br>250 ml</small><i>03</i></div><div class="package-box package-box-wide"><span>EVERYDAY<br>RITUALS</span><small>Five mineral soaps</small><i>05</i></div><div class="package-bottle"><span>F&F</span><small>01</small></div><div class="package-card"><span>Care notes</span><b>Made slowly.<br>Used daily.</b><p>Plant-based formulas / recyclable paper / batch no. 026</p><i></i></div></div><footer><span>Primary pack</span><span>Gift set</span><span>Label system</span><span>Insert card</span></footer></div>`;
   const layouts = {
     landing: `<div class="mockup context-kit product-kit">
       <header class="product-kit-head"><b>Northstar</b><label aria-hidden="true">Search workspace <span>⌘ K</span></label><i class="product-avatar">AY</i></header>

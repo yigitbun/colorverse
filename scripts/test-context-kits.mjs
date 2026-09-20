@@ -35,6 +35,16 @@ test('the first Edition keeps its packaging identity inside Studio', () => {
   assert.match(styles, /\.edition-tube-5/);
 });
 
+test('the footwear Edition keeps its independent brand identity inside Studio', () => {
+  assert.match(app, /id: 'drift-field-01'/);
+  assert.match(app, /name: 'Field 01'/);
+  assert.match(app, /brand: 'DRIFT'/);
+  assert.match(app, /current\.id === 'drift-field-01'/);
+  assert.match(app, /DRIFT Field 01 footwear study/);
+  assert.match(app, /edition-footwear-kit/);
+  assert.match(styles, /\.edition-footwear-scene/);
+});
+
 test('material context survives project snapshots without widening database input', () => {
   assert.match(app, /'shop', 'material'/);
   assert.match(store, /material: 'brand'/);

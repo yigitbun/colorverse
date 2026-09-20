@@ -284,6 +284,11 @@ The project/template direction and proposed review-analysis method live in
   the formulas while typography, cap geometry, finish, and the deep anchor
   color preserve family recognition. Its five colors open directly in Studio as
   editable functional roles.
+- The next applied study is an independent fictional footwear label rather than
+  another ColorVerse product: `DRIFT / Field 01`. `DRIFT` is the product brand
+  and `Field 01` is its first series. Do not use `CV` as the visible shoe mark;
+  ColorVerse remains the editorial publisher and makes the study's provenance
+  explicit.
 - Every Edition must be clearly labeled as an original fictional design study,
   not a real client project or purchasable product. Synthetic visualization is
   acceptable only when it is project-specific, deliberately art-directed, and
