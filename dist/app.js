@@ -1,4 +1,4 @@
-import { palettes } from './palettes.js?v=26';
+import { palettes } from './palettes.js?v=27';
 import { roles, clamp, contrast, textOn, rgb, toHex, oklab, oklch, paletteFromColor, exportPalette, extractPaletteVariants, oklabDistance } from './color.js';
 import { createAtlas, atlasWorlds } from './globe.js?v=27';
 import { buildShadeFamilies, createShadeStudio } from './shade-studio.js?v=1';
@@ -20,7 +20,7 @@ const titles = {
   community: 'Community — ColorVerse',
   lab: 'Lab — ColorVerse',
   inspiration: 'Inspiration — ColorVerse',
-  edition: 'Skincare System 01 — ColorVerse Editions',
+  edition: 'Soft Structure — ColorVerse Editions',
 };
 const params = new URLSearchParams(location.search);
 const track = (name, detail) => window.colorverseTrack?.(name, detail);
@@ -384,13 +384,13 @@ function renderMockup() {
   panel.setAttribute('aria-labelledby', `tab-${context}`);
   const packagingKit = current.id === 'skincare-system-01'
     ? `<div class="mockup context-kit edition-packaging-kit">
-      <header><span class="kit-kicker">ColorVerse Edition / skincare system</span><b>CV / 01</b><small>Five formulas · one structure</small></header>
-      <div class="edition-pack-scene" role="img" aria-label="Skincare System 01 palette applied to five cosmetic tubes">
-        <article class="edition-tube edition-tube-1" style="--pack:var(--p-bg);--pack-ink:var(--p-text)"><span>CV / 01</span><div><strong>Gentle<br>cleanser</strong><small>Balance · purify · refresh</small></div><b>100 ml</b></article>
-        <article class="edition-tube edition-tube-2" style="--pack:var(--p-surface);--pack-ink:var(--p-text)"><span>CV / 01</span><div><strong>Daily<br>moisturiser</strong><small>Hydrate · support · replenish</small></div><b>75 ml</b></article>
-        <article class="edition-tube edition-tube-3" style="--pack:var(--p-primary);--pack-ink:var(--on-primary)"><span>CV / 01</span><div><strong>Radiance<br>exfoliant</strong><small>Polish · smooth · renew</small></div><b>60 ml</b></article>
-        <article class="edition-tube edition-tube-4" style="--pack:var(--p-accent);--pack-ink:var(--p-text)"><span>CV / 01</span><div><strong>Nourishing<br>mask</strong><small>Soothe · restore · fortify</small></div><b>75 ml</b></article>
-        <article class="edition-tube edition-tube-5" style="--pack:var(--p-text);--pack-ink:var(--p-bg)"><span>CV / 01</span><div><strong>Overnight<br>treatment</strong><small>Repair · smooth · revive</small></div><b>75 ml</b></article>
+      <header><span class="kit-kicker">ColorVerse Edition / care objects</span><b>CV / SS</b><small>Soft Structure · Series 01</small></header>
+      <div class="edition-pack-scene" role="img" aria-label="Soft Structure palette applied to five care objects">
+        <article class="edition-tube edition-tube-1" style="--pack:var(--p-bg);--pack-ink:var(--p-text)"><span>CV / SS</span><div><strong>Cleanse</strong><small>Balance · purify · refresh</small></div><b>100 ml</b></article>
+        <article class="edition-tube edition-tube-2" style="--pack:var(--p-surface);--pack-ink:var(--p-text)"><span>CV / SS</span><div><strong>Veil</strong><small>Hydrate · support · replenish</small></div><b>75 ml</b></article>
+        <article class="edition-tube edition-tube-3" style="--pack:var(--p-primary);--pack-ink:var(--on-primary)"><span>CV / SS</span><div><strong>Polish</strong><small>Refine · smooth · renew</small></div><b>60 ml</b></article>
+        <article class="edition-tube edition-tube-4" style="--pack:var(--p-accent);--pack-ink:var(--p-text)"><span>CV / SS</span><div><strong>Mask</strong><small>Soothe · restore · fortify</small></div><b>75 ml</b></article>
+        <article class="edition-tube edition-tube-5" style="--pack:var(--p-text);--pack-ink:var(--p-bg)"><span>CV / SS</span><div><strong>Night</strong><small>Repair · smooth · revive</small></div><b>75 ml</b></article>
       </div>
       <footer><span>Shared silhouette</span><span>Color-coded formula</span><span>Consistent hierarchy</span><span>Production study</span></footer>
     </div>`
@@ -719,7 +719,7 @@ $$('.desktop-nav a').forEach(link => { if (link.pathname.replace(/\/+$/, '') ===
 
 if (page === 'home') {
   const homeExplorePresentation = {
-    'skincare-system-01': { title: 'Skincare System 01', image: '/assets/editions/skincare-system-01-v1.jpg', category: 'ColorVerse Edition 001', context: 'beauty · packaging', href: '/editions/skincare-system-01/' },
+    'skincare-system-01': { title: 'Soft Structure', image: '/assets/editions/skincare-system-01-v1.jpg', category: 'ColorVerse Edition · Series 01', context: 'care objects · packaging', href: '/editions/skincare-system-01/' },
     'warm-cafe': { title: 'Quiet House', image: '/assets/community/quiet-house-editorial.jpg', category: 'Brand system', context: 'hospitality · packaging' },
     'reef-current': { title: 'After Rain', image: '/assets/community/after-rain-editorial.jpg', category: 'Editorial system', context: 'print · culture' },
     'archive-green': { title: 'Archive Green', image: '/assets/community/archive-green-editorial.jpg', category: 'Material study', context: 'publishing · interiors' },

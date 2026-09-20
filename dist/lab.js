@@ -1,4 +1,4 @@
-import { palettes } from './palettes.js?v=26';
+import { palettes } from './palettes.js?v=27';
 import { validateImageFile } from './image-file.js?v=1';
 
 const $ = selector => document.querySelector(selector);

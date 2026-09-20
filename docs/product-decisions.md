@@ -217,7 +217,7 @@ The project/template direction and proposed review-analysis method live in
   family. These replace invented portfolio/shop mockups and show functional
   roles across several components without depending on a source photograph.
 - Edition palettes may replace a generic context with their own named applied
-  system. `Skincare System 01`, for example, carries its five-formula `CV / 01`
+  system. `Soft Structure`, for example, carries its five-product `CV / SS`
   packaging family into Studio instead of reverting to an unrelated mock brand.
   This keeps the inspiration-to-edit journey coherent while remaining an
   explicitly labeled visual study rather than a claim about a real client.
@@ -273,15 +273,17 @@ The project/template direction and proposed review-analysis method live in
   ColorVerse manufactures the products shown. Each edition begins with a
   concrete brief and demonstrates how a five-color system behaves across a
   product family, material, finish, hierarchy, and environment.
-- Category studies may use a temporary product-line identifier, but a fictional
-  consumer brand name must not be published until a basic collision check has
-  been completed. The first generated working name, “Oera,” was rejected after
-  that check found an existing skincare brand; the public study therefore uses
-  the neutral identifier “CV / 01.”
-- The first study, Skincare System 01, uses five tubes with one shared structure.
-  Color distinguishes the formulas while typography, cap geometry, finish, and
-  the deep anchor color preserve family recognition. Its five colors open
-  directly in Studio as editable functional roles.
+- Product naming follows a house architecture: `ColorVerse` is the master
+  brand, `ColorVerse Editions` is the owned-study umbrella, and each applied
+  product family receives its own series name and mark. The first series is
+  `Soft Structure` (`CV / SS`), with five products named `Cleanse`, `Veil`,
+  `Polish`, `Mask`, and `Night`. The stable internal route remains
+  `skincare-system-01` so links and saved projects do not break when the
+  editorial name evolves.
+- The first study uses five tubes with one shared structure. Color distinguishes
+  the formulas while typography, cap geometry, finish, and the deep anchor
+  color preserve family recognition. Its five colors open directly in Studio as
+  editable functional roles.
 - Every Edition must be clearly labeled as an original fictional design study,
   not a real client project or purchasable product. Synthetic visualization is
   acceptable only when it is project-specific, deliberately art-directed, and

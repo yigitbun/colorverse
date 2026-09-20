@@ -544,15 +544,17 @@ const accentOffsets = [0, 11, -9, 19, -17];
 const editionOverrides = {
   "Powder Issue": {
     id: "skincare-system-01",
-    name: "Skincare System 01",
-    description: "A five-product skincare family where color identifies each formula while one structure keeps the range coherent.",
+    name: "Soft Structure",
+    series: "Soft Structure",
+    seriesCode: "CV / SS",
+    description: "A five-product care-object series where color identifies each formula while one structure keeps the range coherent.",
     colors: ["#E9E3D8", "#9B9F83", "#B66F56", "#AAA2AC", "#252B2F"],
     image: "/assets/editions/skincare-system-01-v1.jpg",
     source: "https://colorverse.byigit.dev/editions/skincare-system-01/",
     credit: "ColorVerse Editions · original concept",
-    category: "Beauty packaging",
+    category: "Care objects",
     tags: ["soft", "material", "considered"],
-    useCases: ["beauty", "packaging", "retail"]
+    useCases: ["care", "packaging", "retail"]
   }
 };
 

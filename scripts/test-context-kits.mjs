@@ -28,9 +28,9 @@ test('the material study compares one selected role across five named surfaces',
 
 test('the first Edition keeps its packaging identity inside Studio', () => {
   assert.match(app, /current\.id === 'skincare-system-01'/);
-  assert.match(app, /Skincare System 01 palette applied to five cosmetic tubes/);
-  assert.match(app, /Gentle<br>cleanser/);
-  assert.match(app, /Overnight<br>treatment/);
+  assert.match(app, /Soft Structure palette applied to five care objects/);
+  assert.match(app, /<strong>Cleanse<\/strong>/);
+  assert.match(app, /<strong>Night<\/strong>/);
   assert.match(styles, /\.edition-pack-scene/);
   assert.match(styles, /\.edition-tube-5/);
 });

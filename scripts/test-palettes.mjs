@@ -36,6 +36,8 @@ test('the first ColorVerse Edition is an applied packaging system', () => {
   const edition = palettes.find(palette => palette.id === 'skincare-system-01');
   assert.ok(edition);
   assert.deepEqual(edition.colors, ['#E9E3D8', '#9B9F83', '#B66F56', '#AAA2AC', '#252B2F']);
-  assert.equal(edition.category, 'Beauty packaging');
+  assert.equal(edition.name, 'Soft Structure');
+  assert.equal(edition.seriesCode, 'CV / SS');
+  assert.equal(edition.category, 'Care objects');
   assert.match(edition.credit, /^ColorVerse Editions/);
 });
