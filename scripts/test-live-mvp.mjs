@@ -55,6 +55,12 @@ assert.match(studioHtml, /Save palette/);
 assert.match(studioHtml, /Prototype bench/);
 assert.match(studioHtml, /project-store\.css\?v=7/);
 
+const projectStore = await get('/project-store.js?v=16');
+assert.equal(projectStore.status, 200, 'private workspace script must be reachable');
+const projectStoreSource = await projectStore.text();
+assert.match(projectStoreSource, /authCooldownUntil = Date\.now\(\) \+ 20_000/);
+assert.match(projectStoreSource, /Link sent - resend in/);
+
 const analytics = await get('/analytics.js?v=4');
 const analyticsSource = await analytics.text();
 assert.match(analyticsSource, /G-TJG8M3VE03/);

@@ -63,6 +63,8 @@ export async function initProjectWorkspace(studio) {
   let activePrototype = null;
   let activeProjectId = null;
   let dirty = false;
+  let authCooldownTimer = null;
+  let authCooldownUntil = 0;
 
   try {
     const stored = localStorage.getItem(ACTIVE_PROJECT_KEY);
@@ -586,6 +588,7 @@ export async function initProjectWorkspace(studio) {
     event.preventDefault();
     const email = $('#projectEmail').value.trim();
     if (!email) return;
+    if (Date.now() < authCooldownUntil) return;
     const submit = authForm.querySelector('button[type="submit"]');
     submit.disabled = true;
     setMessage('Sending a secure sign-in link…');
@@ -594,6 +597,24 @@ export async function initProjectWorkspace(studio) {
       options: { emailRedirectTo: 'https://colorverse.byigit.dev/studio/' },
     });
     submit.disabled = false;
+    if (!error) {
+      authCooldownUntil = Date.now() + 20_000;
+      let seconds = 20;
+      submit.disabled = true;
+      submit.textContent = `Link sent - resend in ${seconds}s`;
+      authCooldownTimer = window.setInterval(() => {
+        seconds -= 1;
+        if (seconds <= 0) {
+          window.clearInterval(authCooldownTimer);
+          authCooldownTimer = null;
+          authCooldownUntil = 0;
+          submit.disabled = false;
+          submit.textContent = 'Email me a sign-in link';
+          return;
+        }
+        submit.textContent = `Link sent - resend in ${seconds}s`;
+      }, 1000);
+    }
     setMessage(error ? 'The sign-in link could not be sent. Check the address and try again.' : 'Check your email. The link returns you to this Studio.', error ? 'error' : 'success');
   });
 
