@@ -26,6 +26,11 @@ for (const route of publicRoutes.slice(1)) {
   assert.doesNotMatch(html, /chatgpt\.site|Sign in to ChatGPT/i, `public route ${route} must not be a ChatGPT Sites gate`);
 }
 
+const privacy = await get('/privacy/');
+const privacyHtml = await privacy.text();
+assert.match(privacyHtml, /Prototype 1\/2 versions/);
+assert.match(privacyHtml, /remove this private workspace data/);
+
 const inspiration = await get('/inspiration/');
 assert.equal(inspiration.status, 200, 'inspiration page must be reachable');
 const inspirationHtml = await inspiration.text();
