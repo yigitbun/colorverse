@@ -95,9 +95,10 @@ consumption still require a real inbox test.
   broader account access; the rollback-only two-identity RLS boundary probe is
   already verified. This requires a real inbox and is not safely simulated by
   an anonymous smoke test.
-- Decide which assets are public and which uploads are private before setting up
-  storage buckets and retention rules. RoomKit uploads remain browser-local and
-  are not public Community content.
+- No Supabase Storage bucket is used in the MVP: Extract and RoomKit uploads
+  remain browser-local, are never public Community content, and are discarded
+  when the local page state is cleared. Revisit storage only alongside an
+  explicit publish, moderation, rights, and retention design.
 - The project-level A/B prototype workbench now uses a validated RPC: Prototype
   1 is locked as a private baseline and Prototype 2 records a parent reference
   instead of overwriting it.

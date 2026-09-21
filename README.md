@@ -10,7 +10,7 @@ Serve the authored static output with `python3 -m http.server 4186 --directory d
 
 - A continuous geodesic color globe with 630 hexagonal cells, 12 topologically necessary pentagons, bevels, directional lighting, pointer rotation, keyboard selection, zoom, and pause.
 - A searchable library of 100 five-color directions, with a restrained set of credited Unsplash references cached as local assets.
-- Product, analytical report, campaign, and packaging previews that respond to the chosen palette.
+- Product, Interface, and analytical Report previews that respond to the chosen palette.
 - CSS, SCSS, Tailwind, JSON, and hex-list export. Working clipboard actions and measured text/background contrast.
 - Client-side image extraction using weighted k-means, with file validation and transparent/monochrome-image handling. Images are not uploaded.
 - Dark/light theme, keyboard-operable tabs and carousel, reduced-motion support, and independently addressable `/explore/`, `/extract/`, `/studio/`, `/about/`, and `/worlds/` pages.
