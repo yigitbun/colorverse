@@ -19,12 +19,20 @@ export function analyticsEvent(name, detail = {}) {
   const choices = {
     palette_open: { source: ['library', 'globe', 'image', 'community', 'project'] },
     palette_export: { format: ['css', 'scss', 'tailwind', 'json', 'hex'] },
-    color_edit: { method: ['globe', 'shade', 'alternative', 'swap'] },
-    context_preview: { context: ['landing', 'presentation', 'social', 'shop', 'material', 'packaging', 'dashboard', 'menu'] },
+    color_edit: { method: ['globe', 'shade', 'inline-shade', 'alternative', 'swap'] },
+    context_preview: { context: ['landing', 'interface', 'presentation', 'social', 'shop', 'material', 'packaging', 'dashboard', 'menu'] },
+    product_preview: { product: ['footwear', 'skincare', 'object'] },
+    studio_entry: { source: ['homepage_hero', 'header', 'palette_card', 'palette_footer', 'other'] },
     image_extract: { result: ['success', 'error'] },
     lab_feedback: { experiment: ['roomkit'], response: ['use', 'gimmick'] },
     project_save: { storage: ['local', 'cloud'] },
     project_resume: { storage: ['local', 'cloud'] },
+    prototype_save: { variant: ['baseline', 'alternative'], locked: ['yes', 'no'] },
+    prototype_resume: { variant: ['baseline', 'alternative'] },
+    template_save: { storage: ['cloud'] },
+    template_use: { storage: ['cloud'] },
+    palette_collection_save: { storage: ['cloud'] },
+    palette_collection_use: { storage: ['cloud'] },
   };
   if (!Object.hasOwn(choices, name)) return null;
   const clean = {};

@@ -45,6 +45,30 @@ test('analytics events reject unknown names and user-authored values', () => {
     name: 'context_preview',
     detail: { context: 'material' },
   });
+  assert.deepEqual(analyticsEvent('context_preview', { context: 'interface' }), {
+    name: 'context_preview',
+    detail: { context: 'interface' },
+  });
+  assert.deepEqual(analyticsEvent('product_preview', { product: 'skincare' }), {
+    name: 'product_preview',
+    detail: { product: 'skincare' },
+  });
+  assert.deepEqual(analyticsEvent('studio_entry', { source: 'homepage_hero', email: 'private@example.com' }), {
+    name: 'studio_entry',
+    detail: { source: 'homepage_hero' },
+  });
+  assert.deepEqual(analyticsEvent('color_edit', { method: 'inline-shade' }), {
+    name: 'color_edit',
+    detail: { method: 'inline-shade' },
+  });
+  assert.deepEqual(analyticsEvent('prototype_save', { variant: 'alternative', locked: 'no', name: 'private' }), {
+    name: 'prototype_save',
+    detail: { variant: 'alternative', locked: 'no' },
+  });
+  assert.deepEqual(analyticsEvent('template_use', { storage: 'cloud' }), {
+    name: 'template_use',
+    detail: { storage: 'cloud' },
+  });
   assert.equal(analyticsEvent('form_text', { value: 'secret' }), null);
 });
 

@@ -831,6 +831,15 @@ setTheme(savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : (matchMe
 const themeToggle = $('#themeToggle');
 if (themeToggle) themeToggle.addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light'));
 $$('.desktop-nav a').forEach(link => { if (link.pathname.replace(/\/+$/, '') === route) link.setAttribute('aria-current', 'page'); });
+document.addEventListener('click', event => {
+  const link = event.target.closest('a[href^="/studio/"]');
+  if (!link) return;
+  const source = link.closest('.hero-actions') ? 'homepage_hero'
+    : link.closest('.header-actions') ? 'header'
+      : link.dataset.select ? 'palette_card'
+        : link.closest('.hero-palette-foot') ? 'palette_footer' : 'other';
+  track('studio_entry', { source });
+});
 
 if (page === 'home') {
   const homeExplorePresentation = {
