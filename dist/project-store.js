@@ -136,6 +136,7 @@ export async function initProjectWorkspace(studio) {
       colors: version.colors,
       roles: version.roles,
       context: version.editor_state?.context || contextToStudio(project.context_type),
+      productKind: version.editor_state?.productKind || 'footwear',
     });
     activeProjectId = project.id;
     dirty = false;
@@ -184,7 +185,7 @@ export async function initProjectWorkspace(studio) {
       p_source_palette_id: snapshot.sourcePaletteId,
       p_colors: snapshot.colors,
       p_roles: snapshot.roles,
-      p_editor_state: { context: snapshot.context },
+      p_editor_state: { context: snapshot.context, productKind: snapshot.productKind },
     });
     submit.disabled = false;
     if (error || !validProjectId(data)) {

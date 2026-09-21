@@ -92,4 +92,6 @@ test('Focused Studio contexts map cleanly into project snapshots', () => {
   assert.match(app, /context,\n    productKind/);
   assert.match(store, /interface: 'website'/);
   assert.match(store, /brand: 'landing'/);
+  assert.match(store, /productKind: version\.editor_state\?\.productKind \|\| 'footwear'/);
+  assert.match(store, /p_editor_state: \{ context: snapshot\.context, productKind: snapshot\.productKind \}/);
 });
