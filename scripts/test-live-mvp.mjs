@@ -53,6 +53,14 @@ assert.match(analyticsSource, /send_page_view: false/);
 assert.match(analyticsSource, /allow_google_signals: false/);
 assert.match(analyticsSource, /allow_ad_personalization_signals: false/);
 
+const authSettingsResponse = await fetch(`${supabaseUrl}/auth/v1/settings`, {
+  headers: { apikey: publishableKey },
+});
+assert.equal(authSettingsResponse.status, 200, 'Supabase Auth settings must be readable');
+const authSettings = await authSettingsResponse.json();
+assert.equal(authSettings.external?.email, true, 'email sign-up must be enabled');
+assert.equal(authSettings.disable_signup, false, 'account creation must be enabled');
+
 async function supabaseGet(path, headers = {}) {
   return fetch(`${supabaseUrl}${path}`, { headers: { apikey: publishableKey, ...headers } });
 }

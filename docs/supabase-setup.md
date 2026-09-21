@@ -83,6 +83,9 @@ neither row, and a cross-user snapshot update returned `Project not found`. The
 temporary auth users and project were created inside one transaction and rolled
 back. This proves the database policy boundary without leaving test data behind;
 an actual email/magic-link end-to-end test remains a separate account-flow check.
+The production Auth settings endpoint has also been checked read-only: email
+sign-up is enabled and sign-up is not globally disabled. Delivery and link
+consumption still require a real inbox test.
 
 ## Next implementation work
 
