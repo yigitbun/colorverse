@@ -248,6 +248,21 @@ function saveColorTray() {
   try { localStorage.setItem('colorverse-color-tray', JSON.stringify(colorTray)); } catch {}
 }
 
+function announceColorTrayChange() {
+  window.dispatchEvent(new CustomEvent('colorverse:traychange', { detail: { colors: [...colorTray] } }));
+}
+
+window.addEventListener('colorverse:trayremote', event => {
+  const remote = Array.isArray(event.detail?.colors) ? event.detail.colors : [];
+  colorTray = [...new Set([...remote, ...colorTray])]
+    .filter(color => /^#[0-9a-f]{6}$/i.test(color))
+    .map(color => color.toUpperCase())
+    .slice(0, 18);
+  saveColorTray();
+  renderColorLab();
+  if (remote.length || colorTray.length) announceColorTrayChange();
+});
+
 function colorCoordinates(hex) {
   const [lightness, a, b] = oklab(hex);
   return { lightness, chroma: Math.hypot(a, b), hue: (Math.atan2(b, a) * 180 / Math.PI + 360) % 360 };
@@ -708,6 +723,7 @@ $('#colorLab')?.addEventListener('click', event => {
     colorTray = colorTray.filter(color => color !== remove.dataset.removeColor);
     saveColorTray();
     renderColorTray();
+    announceColorTrayChange();
     const next = [...$('#colorTray').querySelectorAll('[data-remove-color]')];
     (next[Math.min(index, next.length - 1)] || $('#addColorToTray')).focus({ preventScroll: true });
     $('#trayStatus').textContent = `${remove.dataset.removeColor} removed from color tray.`;
@@ -728,6 +744,7 @@ $('#addColorToTray')?.addEventListener('click', () => {
     colorTray = colorTray.slice(0, 18);
     saveColorTray();
     renderColorLab();
+    announceColorTrayChange();
     toast(`${color} added to your color tray.`);
   }
 });
@@ -1227,7 +1244,7 @@ if (input && dropzone) {
 
 renderSelection();
 if (page === 'studio') {
-  import('./project-store.js?v=4')
+  import('./project-store.js?v=5')
     .then(({ initProjectWorkspace }) => initProjectWorkspace(window.colorverseStudio))
     .catch(() => { const label = $('#projectSyncLabel'); if (label) label.textContent = 'Local draft'; });
 }

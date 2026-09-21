@@ -37,7 +37,7 @@ project, so its migration history was reconciled on 2026-09-20 instead of
 replaying table creation. The snapshot RPC and generated 100-item palette
 catalog migrations are now applied remotely; the hosted catalog contains 100
 palettes and 500 role-color rows. Curated palettes remain read-only to browser
-roles. Projects, project versions, templates,
+roles. Projects, project versions, templates, color tray items,
 collections, saved palette items, and extraction history are restricted to their
 authenticated owner with explicit grants and row-level security. The dashboard
 security advisor reported no issues after the schema was applied. There is no public
@@ -91,8 +91,9 @@ an actual email/magic-link end-to-end test remains a separate account-flow check
 - Exercise the real email/magic-link account flow end to end before opening
   broader account access; the rollback-only two-identity RLS boundary probe is
   already verified.
-- Continue the private workspace with template rename/delete and authenticated
-  Color Tray synchronization after the first reusable-template flow is tested
-  with a real account.
+- Continue the private workspace with template rename/delete and collection
+  management. Color Tray synchronization now stores only the user's bounded
+  HEX list through an authenticated RPC; no source image is copied to the
+  account database.
 - Keep product records in Postgres and behavior analytics in GA4. Do not send
   project names, colors, emails, or other user-authored values to GA4.

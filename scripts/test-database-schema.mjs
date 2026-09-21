@@ -10,6 +10,8 @@ const paletteSyncUrl = new URL('../supabase/migrations/20260919000200_sync_palet
 const paletteSync = await readFile(paletteSyncUrl, 'utf8');
 const templateRpcUrl = new URL('../supabase/migrations/20260921000100_template_snapshot_rpc.sql', import.meta.url);
 const templateRpc = await readFile(templateRpcUrl, 'utf8');
+const trayRpcUrl = new URL('../supabase/migrations/20260921000200_sync_color_tray.sql', import.meta.url);
+const trayRpc = await readFile(trayRpcUrl, 'utf8');
 
 const privateTables = [
   'projects',
@@ -94,4 +96,17 @@ test('template saves are validated and private', () => {
   assert.match(templateRpc, /projects\.user_id = \(select auth\.uid\(\)\)/i);
   assert.match(templateRpc, /revoke insert, update, delete on table public\.templates from authenticated/i);
   assert.match(templateRpc, /grant execute on function public\.save_template_snapshot[^;]+to authenticated/i);
+});
+
+test('color tray sync stores only bounded private HEX values', () => {
+  assert.match(trayRpc, /create table public\.color_tray_items/i);
+  assert.match(trayRpc, /alter table public\.color_tray_items enable row level security/i);
+  assert.match(trayRpc, /revoke all on table public\.color_tray_items from anon, authenticated/i);
+  assert.match(trayRpc, /create policy "Owners read color tray"/i);
+  assert.match(trayRpc, /hex text not null check \(hex ~ '\^#\[0-9A-Fa-f\]\{6\}\$'\)/i);
+  assert.match(trayRpc, /position between 1 and 18/i);
+  assert.match(trayRpc, /jsonb_array_length\(coalesce\(p_colors, '\[\]'::jsonb\)\) > 18/i);
+  assert.match(trayRpc, /delete from public\.color_tray_items where user_id = v_user_id/i);
+  assert.match(trayRpc, /revoke all on function public\.sync_color_tray\(jsonb\) from public, anon/i);
+  assert.match(trayRpc, /grant execute on function public\.sync_color_tray\(jsonb\) to authenticated/i);
 });

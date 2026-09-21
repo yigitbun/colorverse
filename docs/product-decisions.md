@@ -219,6 +219,17 @@ The project/template direction and proposed review-analysis method live in
   saves to the source project. The next increment is authenticated Color Tray
   synchronization, followed by explicit rename/delete controls.
 
+## Account-backed Color Tray — 2026-09-21
+
+- A signed-in user's Color Tray is synchronized to a private
+  `color_tray_items` table through a narrow RPC. It stores at most 18 normalized
+  six-digit HEX values and their order; uploaded images and project names never
+  enter this table.
+- Local tray colors are merged into the account on sign-in, so the first
+  account connection does not silently discard work. Anonymous visitors keep
+  the existing browser-local tray.
+- Anonymous reads and writes are rejected by grants and row-level security.
+
 ## Library and context systems — 2026-09-19
 
 - The public palette archive contains 100 five-color directions. Twenty-five

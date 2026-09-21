@@ -176,6 +176,23 @@ export async function initProjectWorkspace(studio) {
     renderTemplates();
   }
 
+  async function loadColorTray() {
+    if (!session) return;
+    const { data, error } = await client
+      .from('color_tray_items')
+      .select('hex,position')
+      .order('position', { ascending: true });
+    if (error) return;
+    window.dispatchEvent(new CustomEvent('colorverse:trayremote', {
+      detail: { colors: (data || []).map(item => item.hex) },
+    }));
+  }
+
+  async function syncColorTray(colors) {
+    if (!session || !Array.isArray(colors)) return;
+    await client.rpc('sync_color_tray', { p_colors: colors.slice(0, 18) });
+  }
+
   function openProject(project) {
     const version = latestVersion(project);
     if (!version) return;
@@ -320,7 +337,7 @@ export async function initProjectWorkspace(studio) {
   session = data.session;
   renderSession();
   if (session) {
-    await Promise.all([loadProjects(), loadTemplates()]);
+    await Promise.all([loadProjects(), loadTemplates(), loadColorTray()]);
     const active = projects.find(project => project.id === activeProjectId);
     const version = active && latestVersion(active);
     setSyncLabel(version ? `Saved · v${version.version_number}` : 'Cloud ready');
@@ -328,6 +345,10 @@ export async function initProjectWorkspace(studio) {
   client.auth.onAuthStateChange((_event, nextSession) => {
     session = nextSession;
     renderSession();
-    if (session) Promise.all([loadProjects(), loadTemplates()]);
+    if (session) Promise.all([loadProjects(), loadTemplates(), loadColorTray()]);
+  });
+
+  window.addEventListener('colorverse:traychange', event => {
+    syncColorTray(event.detail?.colors).catch(() => {});
   });
 }

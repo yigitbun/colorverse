@@ -71,6 +71,16 @@ assert.equal(projects.status, 401, 'private projects must reject anonymous reads
 const templates = await supabaseGet('/rest/v1/templates?select=id&limit=1');
 assert.equal(templates.status, 401, 'private templates must reject anonymous reads');
 
+const tray = await supabaseGet('/rest/v1/color_tray_items?select=id&limit=1');
+assert.equal(tray.status, 401, 'private color tray must reject anonymous reads');
+
+const trayRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/sync_color_tray`, {
+  method: 'POST',
+  headers: { apikey: publishableKey, 'content-type': 'application/json' },
+  body: JSON.stringify({ p_colors: ['#000000'] }),
+});
+assert.equal(trayRpc.status, 401, 'color tray RPC must reject anonymous writes');
+
 const templateRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/save_template_snapshot`, {
   method: 'POST',
   headers: { apikey: publishableKey, 'content-type': 'application/json' },
