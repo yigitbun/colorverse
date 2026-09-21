@@ -103,9 +103,13 @@ export async function initProjectWorkspace(studio) {
   }
 
   function latestPrototype(project, variantKey) {
+    return prototypeVersions(project, variantKey)[0] || null;
+  }
+
+  function prototypeVersions(project, variantKey) {
     return [...(project?.project_versions || [])]
       .filter(version => version.variant_key === variantKey)
-      .sort((a, b) => b.version_number - a.version_number)[0] || null;
+      .sort((a, b) => b.version_number - a.version_number);
   }
 
   function renderPrototypes() {
@@ -117,7 +121,8 @@ export async function initProjectWorkspace(studio) {
       { key: 'alternative', label: 'Prototype 2', note: 'Independent test' },
     ];
     for (const prototype of versions) {
-      const version = latestPrototype(project, prototype.key);
+      const history = prototypeVersions(project, prototype.key);
+      const version = history[0];
       const card = document.createElement('article');
       card.className = `prototype-card${activePrototype === prototype.key ? ' is-active' : ''}`;
       const copy = document.createElement('div');
@@ -125,18 +130,42 @@ export async function initProjectWorkspace(studio) {
       title.textContent = prototype.label;
       const meta = document.createElement('span');
       meta.textContent = version ? `${version.is_locked ? 'Locked' : prototype.note} · v${version.version_number}` : 'Not saved yet';
-      copy.append(title, meta);
+      const context = document.createElement('small');
+      context.textContent = version ? `${contextToStudio(version.editor_state?.context || project.context_type)}${version.editor_state?.productKind ? ` / ${version.editor_state.productKind}` : ''}` : 'Create a private direction';
+      const swatches = document.createElement('div');
+      swatches.className = 'prototype-swatches';
+      for (const color of version?.colors || []) {
+        const swatch = document.createElement('i');
+        swatch.style.setProperty('--swatch', color);
+        swatch.title = color;
+        swatches.append(swatch);
+      }
+      copy.append(title, meta, context, swatches);
+      const actions = document.createElement('div');
+      actions.className = 'prototype-card-actions';
       const open = document.createElement('button');
       open.type = 'button';
       open.className = 'project-open';
-      open.textContent = version ? 'Open' : 'Empty';
+      open.textContent = version ? 'Use in Studio' : 'Empty';
       open.disabled = !version;
       open.addEventListener('click', () => openPrototype(project, version, prototype.key));
-      card.append(copy, open);
+      actions.append(open);
+      if (prototype.key === 'alternative' && history.length > 1) {
+        const previous = document.createElement('button');
+        previous.type = 'button';
+        previous.className = 'prototype-previous';
+        previous.textContent = 'Previous';
+        previous.addEventListener('click', () => openPrototype(project, history[1], prototype.key));
+        actions.append(previous);
+      }
+      card.append(copy, actions);
       prototypeList.append(card);
     }
     if (savePrototype1) savePrototype1.disabled = Boolean(latestPrototype(project, 'baseline')?.is_locked);
-    if (savePrototype2) savePrototype2.disabled = !latestPrototype(project, 'baseline');
+    if (savePrototype2) {
+      savePrototype2.disabled = !latestPrototype(project, 'baseline');
+      savePrototype2.textContent = latestPrototype(project, 'alternative') ? 'Save Prototype 2' : 'Start Prototype 2 from Prototype 1';
+    }
   }
 
   function renderProjects() {
@@ -589,11 +618,23 @@ export async function initProjectWorkspace(studio) {
       setMessage('Save and lock Prototype 1 before starting Prototype 2.', 'error');
       return;
     }
-    const snapshot = studio.getSnapshot();
+    let snapshot = studio.getSnapshot();
     const submit = variantKey === 'baseline' ? savePrototype1 : savePrototype2;
     if (submit) submit.disabled = true;
     setMessage(`Saving ${variantKey === 'baseline' ? 'Prototype 1' : 'Prototype 2'}…`);
     const baseline = latestPrototype(project, 'baseline');
+    const alternative = latestPrototype(project, 'alternative');
+    if (variantKey === 'alternative' && !alternative && baseline) {
+      snapshot = {
+        name: project.name,
+        sourcePaletteId: project.source_palette_id,
+        colors: baseline.colors,
+        roles: baseline.roles || {},
+        context: baseline.editor_state?.context || contextToStudio(project.context_type),
+        productKind: baseline.editor_state?.productKind || 'footwear',
+      };
+      studio.loadSnapshot({ id: project.id, ...snapshot });
+    }
     const { data, error } = await client.rpc('save_project_prototype', {
       p_project_id: activeProjectId,
       p_variant_key: variantKey,
