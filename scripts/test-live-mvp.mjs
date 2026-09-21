@@ -35,7 +35,7 @@ assert.match(inspirationHtml, /One runner\.<br>Three directions\./);
 const studio = await get('/studio/');
 assert.equal(studio.status, 200, 'studio page must be reachable');
 const studioHtml = await studio.text();
-assert.match(studioHtml, /app\.js\?v=54/);
+assert.match(studioHtml, /app\.js\?v=55/);
 assert.match(studioHtml, /studio-editor\.css\?v=7/);
 assert.match(studioHtml, /context-kits\.css\?v=5/);
 assert.match(studioHtml, /data-context="landing"[^>]*>Product/);
