@@ -30,7 +30,7 @@ The project/template direction and proposed review-analysis method live in
 - Every primary route should end in a usable five-color palette and a clear path into Studio.
 - The globe supports one-to-five explicit color choices; missing roles are generated around those choices.
 - Studio preserves the chosen five colors. Reordering changes their functional roles and updates every preview and export live; it does not replace the palette with an unrelated one.
-- Studio shade editing starts with a vertical light-to-deep strip in the right panel, driven by the selected left-hand role (Background by default). Clicking a tone changes only that role and keeps the strip's source stable. An optional Full library dialog retains Pure, Soft, and Rich families with 21 samples each, continuous controls, and explicit Apply/Cancel. Applied changes survive reloads from a library link.
+- Studio shade editing keeps the right-side light-to-deep library for deliberate exploration, but the primary interaction is now a compact inline shade curtain on the selected left-hand role. It overlays the role row without changing its dimensions, opens from right to left, and closes with the reverse motion after a tone is chosen. The optional Full library dialog remains an advanced path.
 - Random generation is a first-class starting point.
 - Image extraction separates dominant colors, visual focus, and design-ready roles. Future work should expose small but meaningful accent colors and direct image sampling.
 - Community should support both contextual palette ideas and applied work, with clear labels distinguishing concepts from completed projects. Saves, remixes, creator attribution, and discovery should connect contributions to Studio.
@@ -86,9 +86,12 @@ The project/template direction and proposed review-analysis method live in
   clear “make this the active version” action. Saving a version should never
   overwrite the baseline.
 - The current generic Studio contexts (website, slides, social, shop) are a weak
-  product surface. The direction is stronger contextual prototypes: named
-  project templates, living-space/RoomKit scenes, and other task-specific kits.
-  Keep the generic contexts as fallback examples until replacement kits exist.
+  product surface. The public Studio now exposes three focused contexts:
+  Product, Interface, and Report. Product has Footwear, Skincare, and Object
+  directions; Interface is the former web-app preview under a clearer name;
+  Report keeps the KPI-led analytical preview. Campaign, Packaging, and
+  Materials are not primary tabs. RoomKit remains a separate Lab experiment,
+  and named project templates remain the next structural layer.
 - Shades should not force every user into a large modal. The preferred direction
   is a compact inline quick-shade strip for common neighboring tones, with the
   sophisticated full shade library available as an advanced expansion. A
@@ -212,10 +215,12 @@ The project/template direction and proposed review-analysis method live in
 - The expanded archive reuses a deliberately small set of credited, real-world
   Unsplash references stored locally. The archive itself remains color-first;
   imagery is supporting provenance, not a decorative card requirement.
-- Studio context previews now demonstrate four applied systems: a digital
-  product dashboard, an analytical report, a campaign set, and a packaging
-  family. These replace invented portfolio/shop mockups and show functional
-  roles across several components without depending on a source photograph.
+- Studio context previews now demonstrate three focused applied systems: a
+  Product direction with real ColorVerse product-study imagery, an Interface
+  dashboard, and an analytical Report with KPI cards above the chart. The
+  product direction can switch between Footwear, Skincare, and Object without
+  leaving the working surface. This keeps the palette attached to a thing being
+  designed instead of making the user choose a long list of generic mockups.
 - Edition palettes may replace a generic context with their own named applied
   system. `Soft Structure`, for example, carries its five-product `CV / SS`
   packaging family into Studio instead of reverting to an unrelated mock brand.

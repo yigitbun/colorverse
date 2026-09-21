@@ -24,6 +24,17 @@ const inspirationHtml = await inspiration.text();
 assert.match(inspirationHtml, /drift-field-01-colorways-v1\.png/);
 assert.match(inspirationHtml, /One runner\.<br>Three directions\./);
 
+const studio = await get('/studio/');
+assert.equal(studio.status, 200, 'studio page must be reachable');
+const studioHtml = await studio.text();
+assert.match(studioHtml, /app\.js\?v=50/);
+assert.match(studioHtml, /studio-editor\.css\?v=7/);
+assert.match(studioHtml, /context-kits\.css\?v=5/);
+assert.match(studioHtml, /data-context="landing"[^>]*>Product/);
+assert.match(studioHtml, /data-context="interface"[^>]*>Interface/);
+assert.match(studioHtml, /data-context="presentation"[^>]*>Report/);
+assert.doesNotMatch(studioHtml, /data-context="(?:social|shop|material)"/);
+
 const analytics = await get('/analytics.js?v=4');
 const analyticsSource = await analytics.text();
 assert.match(analyticsSource, /G-TJG8M3VE03/);
