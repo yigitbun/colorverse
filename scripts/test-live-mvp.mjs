@@ -68,6 +68,24 @@ assert.equal(colors.headers.get('content-range'), '0-499/500', 'catalog must con
 const projects = await supabaseGet('/rest/v1/projects?select=id&limit=1');
 assert.equal(projects.status, 401, 'private projects must reject anonymous reads');
 
+const templates = await supabaseGet('/rest/v1/templates?select=id&limit=1');
+assert.equal(templates.status, 401, 'private templates must reject anonymous reads');
+
+const templateRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/save_template_snapshot`, {
+  method: 'POST',
+  headers: { apikey: publishableKey, 'content-type': 'application/json' },
+  body: JSON.stringify({
+    p_template_id: null,
+    p_name: 'Anonymous template probe',
+    p_context_type: 'custom',
+    p_source_project_id: null,
+    p_colors: ['#000000', '#111111', '#222222', '#333333', '#444444'],
+    p_roles: {},
+    p_defaults: {},
+  }),
+});
+assert.equal(templateRpc.status, 401, 'template snapshot RPC must reject anonymous writes');
+
 const rpc = await fetch(`${supabaseUrl}/rest/v1/rpc/save_project_snapshot`, {
   method: 'POST',
   headers: { apikey: publishableKey, 'content-type': 'application/json' },

@@ -95,3 +95,11 @@ test('Focused Studio contexts map cleanly into project snapshots', () => {
   assert.match(store, /productKind: version\.editor_state\?\.productKind \|\| 'footwear'/);
   assert.match(store, /p_editor_state: \{ context: snapshot\.context, productKind: snapshot\.productKind \}/);
 });
+
+test('Studio exposes private reusable template actions', () => {
+  assert.match(studio, /projectTemplateForm/);
+  assert.match(studio, /Save as template/);
+  assert.match(studio, /templateList/);
+  assert.match(store, /save_template_snapshot/);
+  assert.match(store, /template_use/);
+});

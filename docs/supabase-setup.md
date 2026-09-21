@@ -69,10 +69,13 @@ blindly replay the initial migration in a fresh recovery or another project.
 
 The current snapshot RPC validates project names, supported contexts, five
 six-digit HEX values, bounded role/editor objects, and published source palette
-references before writing a project and its version atomically. Authenticated
-browser roles have read-only access to their RLS-visible project and version
-rows; project mutations are exposed only through this narrow RPC, which derives
-ownership from `auth.uid()` rather than accepting a user id from the browser.
+references before writing a project and its version atomically. The template
+snapshot RPC applies the same boundary to reusable private starts and validates
+the optional source project owner before writing. Authenticated browser roles
+have read-only access to their RLS-visible project, version, and template rows;
+project and template mutations are exposed only through these narrow RPCs,
+which derive ownership from `auth.uid()` rather than accepting a user id from
+the browser.
 
 On 2026-09-21, a rollback-only two-identity probe verified the linked database:
 the owner could read its project and baseline version, the second identity saw
@@ -88,5 +91,8 @@ an actual email/magic-link end-to-end test remains a separate account-flow check
 - Exercise the real email/magic-link account flow end to end before opening
   broader account access; the rollback-only two-identity RLS boundary probe is
   already verified.
+- Continue the private workspace with template rename/delete and authenticated
+  Color Tray synchronization after the first reusable-template flow is tested
+  with a real account.
 - Keep product records in Postgres and behavior analytics in GA4. Do not send
   project names, colors, emails, or other user-authored values to GA4.

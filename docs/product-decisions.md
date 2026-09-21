@@ -206,6 +206,19 @@ The project/template direction and proposed review-analysis method live in
   increments; the database schema reserves those concepts without presenting
   unfinished controls in the public interface.
 
+## Private templates — 2026-09-21
+
+- Studio now exposes a first private reusable-template flow inside the signed-in
+  Projects workspace. A template stores the five colors, role assignments,
+  preview context, and product direction as a starting point; it does not
+  publish a project or source image.
+- Template writes use a validated Supabase RPC and the source project, when
+  present, must belong to the signed-in user. Anonymous visitors cannot read
+  templates or call the write function.
+- Using a template creates a local draft rather than silently attaching future
+  saves to the source project. The next increment is authenticated Color Tray
+  synchronization, followed by explicit rename/delete controls.
+
 ## Library and context systems — 2026-09-19
 
 - The public palette archive contains 100 five-color directions. Twenty-five

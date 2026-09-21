@@ -8,6 +8,8 @@ const rpcUrl = new URL('../supabase/migrations/20260919000100_project_snapshot_r
 const rpc = await readFile(rpcUrl, 'utf8');
 const paletteSyncUrl = new URL('../supabase/migrations/20260919000200_sync_palette_library.sql', import.meta.url);
 const paletteSync = await readFile(paletteSyncUrl, 'utf8');
+const templateRpcUrl = new URL('../supabase/migrations/20260921000100_template_snapshot_rpc.sql', import.meta.url);
+const templateRpc = await readFile(templateRpcUrl, 'utf8');
 
 const privateTables = [
   'projects',
@@ -82,4 +84,14 @@ test('project mutations are available only through the validated snapshot RPC', 
   assert.doesNotMatch(paletteSync, /p_user_id/i);
   assert.match(paletteSync, /values \(\(select auth\.uid\(\)\), trim\(p_name\)/i);
   assert.match(paletteSync, /where id = p_project_id and user_id = \(select auth\.uid\(\)\)/i);
+});
+
+test('template saves are validated and private', () => {
+  assert.match(templateRpc, /create or replace function public\.save_template_snapshot/i);
+  assert.match(templateRpc, /p_context_type not in \('custom', 'website', 'slides', 'social', 'shop', 'brand', 'roomkit', 'editorial'\)/i);
+  assert.match(templateRpc, /jsonb_array_length\(p_colors\) <> 5/i);
+  assert.match(templateRpc, /color\.value !~ '\^#\[0-9A-Fa-f\]\{6\}\$'/i);
+  assert.match(templateRpc, /projects\.user_id = \(select auth\.uid\(\)\)/i);
+  assert.match(templateRpc, /revoke insert, update, delete on table public\.templates from authenticated/i);
+  assert.match(templateRpc, /grant execute on function public\.save_template_snapshot[^;]+to authenticated/i);
 });

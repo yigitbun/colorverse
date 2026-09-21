@@ -37,15 +37,19 @@ export async function initProjectWorkspace(studio) {
   const workspaceView = $('#projectWorkspaceView');
   const authForm = $('#projectAuthForm');
   const saveForm = $('#projectSaveForm');
+  const templateForm = $('#projectTemplateForm');
   const list = $('#projectList');
+  const templateList = $('#templateList');
   const message = $('#projectMessage');
   const syncLabel = $('#projectSyncLabel');
   const accountLabel = $('#projectAccount');
   const signOut = $('#projectSignOut');
   const nameInput = $('#projectName');
+  const templateNameInput = $('#templateName');
   const contextInput = $('#projectContext');
   let session = null;
   let projects = [];
+  let templates = [];
   let activeProjectId = null;
   let dirty = false;
 
@@ -72,7 +76,9 @@ export async function initProjectWorkspace(studio) {
     if (!signedIn) {
       setSyncLabel('Local draft');
       projects = [];
+      templates = [];
       renderProjects();
+      renderTemplates();
     }
   }
 
@@ -109,6 +115,34 @@ export async function initProjectWorkspace(studio) {
     }
   }
 
+  function renderTemplates() {
+    templateList.replaceChildren();
+    if (!templates.length) {
+      const empty = document.createElement('p');
+      empty.className = 'project-empty';
+      empty.textContent = 'Save a strong direction once and reuse it as a starting point.';
+      templateList.append(empty);
+      return;
+    }
+    for (const template of templates) {
+      const item = document.createElement('article');
+      item.className = 'template-item';
+      const copy = document.createElement('div');
+      const title = document.createElement('strong');
+      title.textContent = template.name;
+      const meta = document.createElement('span');
+      meta.textContent = relativeTime(template.updated_at);
+      copy.append(title, meta);
+      const use = document.createElement('button');
+      use.type = 'button';
+      use.className = 'project-open';
+      use.textContent = 'Use';
+      use.addEventListener('click', () => openTemplate(template));
+      item.append(copy, use);
+      templateList.append(item);
+    }
+  }
+
   async function loadProjects() {
     if (!session) return;
     list.setAttribute('aria-busy', 'true');
@@ -124,6 +158,22 @@ export async function initProjectWorkspace(studio) {
     }
     projects = data || [];
     renderProjects();
+  }
+
+  async function loadTemplates() {
+    if (!session) return;
+    templateList.setAttribute('aria-busy', 'true');
+    const { data, error } = await client
+      .from('templates')
+      .select('id,name,context_type,colors,roles,defaults,updated_at')
+      .order('updated_at', { ascending: false });
+    templateList.removeAttribute('aria-busy');
+    if (error) {
+      setMessage('Templates could not be loaded. Try again in a moment.', 'error');
+      return;
+    }
+    templates = data || [];
+    renderTemplates();
   }
 
   function openProject(project) {
@@ -146,13 +196,31 @@ export async function initProjectWorkspace(studio) {
     dialog.close();
   }
 
+  function openTemplate(template) {
+    studio.loadSnapshot({
+      name: template.name,
+      sourcePaletteId: null,
+      colors: template.colors,
+      roles: template.roles,
+      context: template.defaults?.context || contextToStudio(template.context_type),
+      productKind: template.defaults?.productKind || 'footwear',
+    });
+    activeProjectId = null;
+    dirty = true;
+    try { localStorage.removeItem(ACTIVE_PROJECT_KEY); } catch {}
+    setSyncLabel('Template · local draft');
+    window.colorverseTrack?.('template_use', { storage: 'cloud' });
+    dialog.close();
+  }
+
   async function openDialog(mode = 'save') {
     setMessage('');
     const snapshot = studio.getSnapshot();
     nameInput.value = activeProjectId ? (projects.find(project => project.id === activeProjectId)?.name || snapshot.name) : snapshot.name;
+    templateNameInput.value = snapshot.name;
     contextInput.value = contextToDatabase(snapshot.context);
     renderSession();
-    if (session) await loadProjects();
+    if (session) await Promise.all([loadProjects(), loadTemplates()]);
     dialog.showModal();
     requestAnimationFrame(() => (session && mode === 'save' ? nameInput : $('#projectEmail'))?.focus());
   }
@@ -202,10 +270,36 @@ export async function initProjectWorkspace(studio) {
     window.colorverseTrack?.('project_save', { storage: 'cloud' });
   });
 
+  templateForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    const snapshot = studio.getSnapshot();
+    const submit = templateForm.querySelector('button[type="submit"]');
+    submit.disabled = true;
+    setMessage('Saving a reusable template…');
+    const { data, error } = await client.rpc('save_template_snapshot', {
+      p_template_id: null,
+      p_name: templateNameInput.value.trim(),
+      p_context_type: contextToDatabase(snapshot.context),
+      p_source_project_id: activeProjectId,
+      p_colors: snapshot.colors,
+      p_roles: snapshot.roles,
+      p_defaults: { context: snapshot.context, productKind: snapshot.productKind },
+    });
+    submit.disabled = false;
+    if (error || !validProjectId(data)) {
+      setMessage('This template could not be saved. Your project is still intact.', 'error');
+      return;
+    }
+    await loadTemplates();
+    setMessage('Private template saved.', 'success');
+    window.colorverseTrack?.('template_save', { storage: 'cloud' });
+  });
+
   signOut.addEventListener('click', async () => {
     await client.auth.signOut();
     activeProjectId = null;
     dirty = false;
+    templates = [];
     try { localStorage.removeItem(ACTIVE_PROJECT_KEY); } catch {}
     setMessage('Signed out. The palette remains in this browser.', 'success');
   });
@@ -226,7 +320,7 @@ export async function initProjectWorkspace(studio) {
   session = data.session;
   renderSession();
   if (session) {
-    await loadProjects();
+    await Promise.all([loadProjects(), loadTemplates()]);
     const active = projects.find(project => project.id === activeProjectId);
     const version = active && latestVersion(active);
     setSyncLabel(version ? `Saved · v${version.version_number}` : 'Cloud ready');
@@ -234,6 +328,6 @@ export async function initProjectWorkspace(studio) {
   client.auth.onAuthStateChange((_event, nextSession) => {
     session = nextSession;
     renderSession();
-    if (session) loadProjects();
+    if (session) Promise.all([loadProjects(), loadTemplates()]);
   });
 }
