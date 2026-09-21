@@ -16,8 +16,8 @@ for (const header of ['content-security-policy', 'strict-transport-security', 'x
 }
 
 const homeHtml = await home.text();
-assert.match(homeHtml, /app\.js\?v=49/);
-assert.match(homeHtml, /analytics\.js\?v=4/);
+assert.match(homeHtml, /app\.js\?v=50/);
+assert.match(homeHtml, /analytics\.js\?v=5/);
 
 for (const route of publicRoutes.slice(1)) {
   const response = await get(route);
@@ -40,7 +40,7 @@ assert.match(inspirationHtml, /One runner\.<br>Three directions\./);
 const studio = await get('/studio/');
 assert.equal(studio.status, 200, 'studio page must be reachable');
 const studioHtml = await studio.text();
-assert.match(studioHtml, /app\.js\?v=58/);
+assert.match(studioHtml, /app\.js\?v=59/);
 assert.match(studioHtml, /studio-editor\.css\?v=7/);
 assert.match(studioHtml, /context-kits\.css\?v=5/);
 assert.match(studioHtml, /data-context="landing"[^>]*>Product/);
@@ -61,7 +61,7 @@ const projectStoreSource = await projectStore.text();
 assert.match(projectStoreSource, /authCooldownUntil = Date\.now\(\) \+ 20_000/);
 assert.match(projectStoreSource, /Link sent - resend in/);
 
-const analytics = await get('/analytics.js?v=4');
+const analytics = await get('/analytics.js?v=5');
 const analyticsSource = await analytics.text();
 assert.match(analyticsSource, /G-TJG8M3VE03/);
 assert.match(analyticsSource, /send_page_view: false/);
