@@ -12,6 +12,8 @@ const templateRpcUrl = new URL('../supabase/migrations/20260921000100_template_s
 const templateRpc = await readFile(templateRpcUrl, 'utf8');
 const trayRpcUrl = new URL('../supabase/migrations/20260921000200_sync_color_tray.sql', import.meta.url);
 const trayRpc = await readFile(trayRpcUrl, 'utf8');
+const lifecycleRpcUrl = new URL('../supabase/migrations/20260921000300_template_lifecycle_rpc.sql', import.meta.url);
+const lifecycleRpc = await readFile(lifecycleRpcUrl, 'utf8');
 
 const privateTables = [
   'projects',
@@ -109,4 +111,14 @@ test('color tray sync stores only bounded private HEX values', () => {
   assert.match(trayRpc, /delete from public\.color_tray_items where user_id = v_user_id/i);
   assert.match(trayRpc, /revoke all on function public\.sync_color_tray\(jsonb\) from public, anon/i);
   assert.match(trayRpc, /grant execute on function public\.sync_color_tray\(jsonb\) to authenticated/i);
+});
+
+test('template lifecycle mutations remain owner-scoped RPCs', () => {
+  assert.match(lifecycleRpc, /create or replace function public\.rename_template\(p_template_id uuid, p_name text\)/i);
+  assert.match(lifecycleRpc, /create or replace function public\.delete_template\(p_template_id uuid\)/i);
+  assert.match(lifecycleRpc, /where id = p_template_id and user_id = \(select auth\.uid\(\)\)/i);
+  assert.match(lifecycleRpc, /revoke all on function public\.rename_template\(uuid, text\) from public, anon/i);
+  assert.match(lifecycleRpc, /grant execute on function public\.rename_template\(uuid, text\) to authenticated/i);
+  assert.match(lifecycleRpc, /revoke all on function public\.delete_template\(uuid\) from public, anon/i);
+  assert.match(lifecycleRpc, /grant execute on function public\.delete_template\(uuid\) to authenticated/i);
 });

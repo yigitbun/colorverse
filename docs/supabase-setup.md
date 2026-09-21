@@ -92,7 +92,7 @@ an actual email/magic-link end-to-end test remains a separate account-flow check
   broader account access; the rollback-only two-identity RLS boundary probe is
   already verified.
 - Continue the private workspace with template rename/delete and collection
-  management. Color Tray synchronization now stores only the user's bounded
+  management. Template rename/delete now use owner-checked RPCs. Color Tray synchronization now stores only the user's bounded
   HEX list through an authenticated RPC; no source image is copied to the
   account database.
 - Keep product records in Postgres and behavior analytics in GA4. Do not send

@@ -138,9 +138,50 @@ export async function initProjectWorkspace(studio) {
       use.className = 'project-open';
       use.textContent = 'Use';
       use.addEventListener('click', () => openTemplate(template));
-      item.append(copy, use);
+      const actions = document.createElement('div');
+      actions.className = 'template-actions';
+      const rename = document.createElement('button');
+      rename.type = 'button';
+      rename.className = 'template-manage';
+      rename.textContent = 'Rename';
+      rename.addEventListener('click', () => renameTemplate(template));
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'template-manage template-delete';
+      remove.textContent = 'Delete';
+      remove.addEventListener('click', () => deleteTemplate(template));
+      actions.append(use, rename, remove);
+      item.append(copy, actions);
       templateList.append(item);
     }
+  }
+
+  async function renameTemplate(template) {
+    const nextName = window.prompt('Template name', template.name)?.trim();
+    if (!nextName || nextName === template.name) return;
+    setMessage('Renaming template…');
+    const { error } = await client.rpc('rename_template', {
+      p_template_id: template.id,
+      p_name: nextName,
+    });
+    if (error) {
+      setMessage('This template could not be renamed.', 'error');
+      return;
+    }
+    await loadTemplates();
+    setMessage('Template renamed.', 'success');
+  }
+
+  async function deleteTemplate(template) {
+    if (!window.confirm(`Delete “${template.name}”? This cannot be undone.`)) return;
+    setMessage('Deleting template…');
+    const { error } = await client.rpc('delete_template', { p_template_id: template.id });
+    if (error) {
+      setMessage('This template could not be deleted.', 'error');
+      return;
+    }
+    await loadTemplates();
+    setMessage('Template deleted.', 'success');
   }
 
   async function loadProjects() {

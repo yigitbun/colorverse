@@ -229,6 +229,8 @@ The project/template direction and proposed review-analysis method live in
   account connection does not silently discard work. Anonymous visitors keep
   the existing browser-local tray.
 - Anonymous reads and writes are rejected by grants and row-level security.
+- Template rename and delete actions also use owner-checked RPCs; direct
+  browser mutation of the template table remains revoked.
 
 ## Library and context systems — 2026-09-19
 

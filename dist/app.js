@@ -1244,7 +1244,7 @@ if (input && dropzone) {
 
 renderSelection();
 if (page === 'studio') {
-  import('./project-store.js?v=5')
+  import('./project-store.js?v=6')
     .then(({ initProjectWorkspace }) => initProjectWorkspace(window.colorverseStudio))
     .catch(() => { const label = $('#projectSyncLabel'); if (label) label.textContent = 'Local draft'; });
 }

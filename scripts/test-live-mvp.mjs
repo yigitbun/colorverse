@@ -81,6 +81,13 @@ const trayRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/sync_color_tray`, {
 });
 assert.equal(trayRpc.status, 401, 'color tray RPC must reject anonymous writes');
 
+const templateDeleteRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/delete_template`, {
+  method: 'POST',
+  headers: { apikey: publishableKey, 'content-type': 'application/json' },
+  body: JSON.stringify({ p_template_id: '00000000-0000-4000-8000-000000000000' }),
+});
+assert.equal(templateDeleteRpc.status, 401, 'template delete RPC must reject anonymous writes');
+
 const templateRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/save_template_snapshot`, {
   method: 'POST',
   headers: { apikey: publishableKey, 'content-type': 'application/json' },
