@@ -43,6 +43,8 @@ assert.match(studioHtml, /data-context="interface"[^>]*>Interface/);
 assert.match(studioHtml, /data-context="presentation"[^>]*>Report/);
 assert.doesNotMatch(studioHtml, /data-context="(?:social|shop|material)"/);
 assert.doesNotMatch(studioHtml, /shadeStudio|openShadeStudio|shade-studio\.css/);
+assert.match(studioHtml, /Private workspace/);
+assert.match(studioHtml, /Email me a sign-in link/);
 
 const analytics = await get('/analytics.js?v=4');
 const analyticsSource = await analytics.text();
