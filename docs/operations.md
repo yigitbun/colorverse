@@ -58,6 +58,9 @@ traffic and are not evidence that the domain should be attached to Sites.
 - Supabase powers opt-in private Studio projects. The browser uses only the
   publishable key; never place a secret or service-role key in `dist/`. Project
   tables use explicit grants plus owner-only RLS, and uploaded images remain local.
+- Browser-local extraction has no direct write grant to the reserved
+  `extraction_runs` table; add a validated RPC before persisting extraction
+  history.
 - Browser-local image tools accept only JPEG, PNG, and WebP after checking both
   the declared MIME type and binary signature. Files over 20 MB, 25 megapixels,
   or 12,000 pixels on either edge are rejected before browser decoding to limit

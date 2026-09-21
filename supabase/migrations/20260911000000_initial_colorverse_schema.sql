@@ -211,7 +211,6 @@ revoke all on table public.extraction_runs from anon, authenticated;
 grant select on table public.worlds, public.visual_sources, public.palettes, public.palette_colors to anon, authenticated;
 grant select, insert, update, delete on table public.projects, public.project_versions, public.templates,
   public.collections, public.saved_palette_items to authenticated;
-grant select, insert, delete on table public.extraction_runs to authenticated;
 
 create policy "Published worlds are readable"
   on public.worlds for select

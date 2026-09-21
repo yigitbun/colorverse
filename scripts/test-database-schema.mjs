@@ -57,6 +57,8 @@ test('private policies are scoped to authenticated owners', () => {
 
 test('the MVP has no public upload or community write table', () => {
   assert.doesNotMatch(sql, /create table public\.(?:uploads|comments|votes|community_posts)\b/i);
+  assert.match(sql, /create table public\.extraction_runs\b/i);
+  assert.doesNotMatch(sql, /grant[^;]+on table public\.extraction_runs to authenticated/i);
 });
 
 test('project snapshots always contain five colors', () => {

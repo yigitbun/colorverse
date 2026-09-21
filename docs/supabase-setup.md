@@ -39,7 +39,9 @@ catalog migrations are now applied remotely; the hosted catalog contains 100
 palettes and 500 role-color rows. Curated palettes remain read-only to browser
 roles. Projects, project versions, templates, color tray items,
 collections, saved palette items, and extraction history are restricted to their
-authenticated owner with explicit grants and row-level security. The dashboard
+authenticated owner with explicit grants and row-level security. Extraction
+history has no browser grant in the MVP because image extraction remains local;
+the table is reserved for a future validated RPC. The dashboard
 security advisor reported no issues after the schema was applied. There is no public
 upload, Community post, comment, or vote write path in the MVP schema.
 
