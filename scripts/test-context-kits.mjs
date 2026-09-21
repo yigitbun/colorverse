@@ -52,6 +52,13 @@ test('Inspiration presents the footwear Edition as a three-colorway capsule', ()
   for (const name of ['Stone', 'Meadow', 'Graphite']) assert.match(inspiration, new RegExp(name));
 });
 
+test('Inspiration presents RoomKit as an in-house experiment with a Lab path', () => {
+  assert.match(inspiration, /roomkit-living-spaces-v1\.png/);
+  assert.match(inspiration, /A palette<br>you can live in\./);
+  assert.match(inspiration, /Try RoomKit in the Lab/);
+  assert.match(inspiration, /private upload/);
+});
+
 test('material context survives project snapshots without widening database input', () => {
   assert.match(app, /'shop', 'material'/);
   assert.match(store, /material: 'brand'/);
