@@ -15,6 +15,7 @@ Serve the authored static output with `python3 -m http.server 4186 --directory d
 - Client-side image extraction using weighted k-means, with file validation and transparent/monochrome-image handling. Images are not uploaded.
 - Dark/light theme, keyboard-operable tabs and carousel, reduced-motion support, and independently addressable `/explore/`, `/extract/`, `/studio/`, `/about/`, and `/worlds/` pages.
 - A focused MVP flow: the home page starts discovery, `/explore/` is the palette library, `/extract/` reads an image three ways, `/studio/` is the preview/export workspace with opt-in private projects, and `/about/` contains product and privacy context. There is no payment or waitlist flow.
+- Signed-in Studio users can keep private projects, reusable templates, palette collections, and a Color Tray; the Prototype bench locks Prototype 1 and stores Prototype 2 as a separate alternative. Private workspace data can be removed from the account surface. Community writes remain closed until moderation and takedown are ready.
 
 ## Source
 
