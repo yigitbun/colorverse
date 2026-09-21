@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 const base = (process.env.COLORVERSE_LIVE_URL || 'https://colorverse.byigit.dev').replace(/\/$/, '');
 const supabaseUrl = 'https://ayzymeogptrqtouwnahh.supabase.co';
 const publishableKey = 'sb_publishable_TY49mfQAzRXvIWjlXKi9Ow_gTCaGid_';
+const publicRoutes = ['/', '/explore/', '/extract/', '/studio/', '/inspiration/', '/community/', '/lab/', '/about/', '/privacy/'];
 
 async function get(path, options = {}) {
   return fetch(`${base}${path}`, options);
@@ -17,6 +18,13 @@ for (const header of ['content-security-policy', 'strict-transport-security', 'x
 const homeHtml = await home.text();
 assert.match(homeHtml, /app\.js\?v=49/);
 assert.match(homeHtml, /analytics\.js\?v=4/);
+
+for (const route of publicRoutes.slice(1)) {
+  const response = await get(route);
+  assert.equal(response.status, 200, `public route ${route} must be reachable`);
+  const html = await response.text();
+  assert.doesNotMatch(html, /chatgpt\.site|Sign in to ChatGPT/i, `public route ${route} must not be a ChatGPT Sites gate`);
+}
 
 const inspiration = await get('/inspiration/');
 assert.equal(inspiration.status, 200, 'inspiration page must be reachable');
@@ -34,6 +42,7 @@ assert.match(studioHtml, /data-context="landing"[^>]*>Product/);
 assert.match(studioHtml, /data-context="interface"[^>]*>Interface/);
 assert.match(studioHtml, /data-context="presentation"[^>]*>Report/);
 assert.doesNotMatch(studioHtml, /data-context="(?:social|shop|material)"/);
+assert.doesNotMatch(studioHtml, /shadeStudio|openShadeStudio|shade-studio\.css/);
 
 const analytics = await get('/analytics.js?v=4');
 const analyticsSource = await analytics.text();
