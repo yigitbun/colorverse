@@ -12,14 +12,13 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/styles.css?v=24">
   <link rel="stylesheet" href="/design-system.css?v=29">
-  <link rel="stylesheet" href="/shade-studio.css?v=1">
   <link rel="stylesheet" href="/studio-editor.css?v=7">
   <link rel="stylesheet" href="/project-store.css?v=1">
   <link rel="stylesheet" href="/color-globe.css?v=1">
   <link rel="stylesheet" href="/context-kits.css?v=5">
   <link rel="stylesheet" href="/privacy.css?v=2">
   <script src="/vendor/supabase.js?v=2.116.0" defer></script>
-  <script type="module" src="/app.js?v=50"></script>
+  <script type="module" src="/app.js?v=51"></script>
   <script type="module" src="/analytics.js?v=4"></script>
 </head>
 <body>
@@ -55,7 +54,6 @@
               <div class="shade-endpoint"><span>Light</span><code id="shadeCurrentHex"></code></div>
               <div class="vertical-shades" id="colorShadeGrid" aria-label="Choose a shade"></div>
               <div class="shade-endpoint"><span>Deep</span><span id="shadeOptionCount"></span></div>
-              <button class="shade-library-link" id="openShadeStudio" type="button" aria-haspopup="dialog" aria-controls="shadeStudio">Full library <span aria-hidden="true">↗</span></button>
             </section>
             <div class="shade-companions">
               <section class="shade-alternatives" aria-labelledby="alternativeTitle"><h4 id="alternativeTitle">Alternatives</h4><p>Nearby hues</p><div class="color-choice-grid alternative-grid" id="colorAlternativeGrid"></div></section>
@@ -101,40 +99,6 @@
       </div>
     </div>
     <footer class="globe-picker-foot"><span id="globeStatus" role="status" aria-live="polite"></span><div><button class="button" type="button" data-globe-close>Cancel</button><button class="button primary" type="button" id="applyGlobeColor">Apply color <span aria-hidden="true">↗</span></button></div></footer>
-  </dialog>
-  <dialog class="shade-studio" id="shadeStudio" aria-labelledby="shadeStudioTitle" aria-describedby="shadeStudioDescription">
-    <header class="shade-studio-head">
-      <div><span class="shade-kicker">Color lab <span aria-hidden="true">/</span> Shades</span><h2 id="shadeStudioTitle">One color. Every nuance.</h2><p id="shadeStudioDescription">Explore the light, depth and character of your color.</p></div>
-      <button class="shade-close" type="button" data-shade-close aria-label="Close shades"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
-    </header>
-    <div class="shade-studio-body">
-      <aside class="shade-study" aria-label="Color comparison">
-        <div class="shade-study-label"><span>Editing</span><strong id="shadeRoleName"></strong></div>
-        <button class="shade-original" id="shadeOriginal" type="button" aria-label="Restore original color"><span>Original <code id="shadeOriginalHex"></code></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10a8 8 0 1 1 1 8M4 4v6h6"/></svg></button>
-        <div class="shade-sample" id="shadeSample"><span class="shade-sample-state" id="shadeSampleState">Selected shade</span><span class="shade-sample-type" aria-hidden="true">Aa</span><div><code id="shadeSampleHex"></code><span id="shadeSampleLightness"></span></div></div>
-        <div class="shade-palette-label"><span>In your palette</span><span>01—05</span></div>
-        <div class="shade-palette-preview" id="shadePalettePreview" aria-label="Palette with the proposed shade"></div>
-        <p class="shade-study-note">Try a shade, then apply it to your selected role.</p>
-      </aside>
-      <section class="shade-library" aria-label="Shade library">
-        <div class="shade-library-heading"><h3>Find your shade</h3><span id="shadeLibraryCount">63 possibilities</span></div>
-        <div class="shade-family-tabs" role="tablist" aria-label="Tone character">
-          <button type="button" role="tab" id="shade-tab-pure" aria-controls="shadeFamilyPanel" aria-selected="true" data-shade-family="pure">Pure <span>21</span></button>
-          <button type="button" role="tab" id="shade-tab-soft" aria-controls="shadeFamilyPanel" aria-selected="false" tabindex="-1" data-shade-family="soft">Soft <span>21</span></button>
-          <button type="button" role="tab" id="shade-tab-rich" aria-controls="shadeFamilyPanel" aria-selected="false" tabindex="-1" data-shade-family="rich">Rich <span>21</span></button>
-        </div>
-        <div id="shadeFamilyPanel" role="tabpanel" aria-labelledby="shade-tab-pure">
-          <div class="shade-family-caption"><p id="shadeFamilyDescription">The character of your original, from light to deep.</p><span aria-hidden="true">Light → Deep</span></div>
-          <div class="shade-tile-grid" id="shadeTileGrid" aria-label="Select a shade"></div>
-        </div>
-        <div class="shade-fine-head"><h3>Fine-tune</h3><span>Stay within the same hue</span></div>
-        <div class="shade-fine-controls">
-          <label for="shadeLightness"><span>Lightness <output id="shadeLightnessValue" for="shadeLightness"></output></span><input id="shadeLightness" type="range" min="0" max="100" step="0.1"></label>
-          <label for="shadeChroma"><span>Color intensity <output id="shadeChromaValue" for="shadeChroma"></output></span><input id="shadeChroma" type="range" min="0" max="100" step="0.1"></label>
-        </div>
-      </section>
-    </div>
-    <footer class="shade-studio-foot"><div class="shade-change"><i id="shadeChangeChip" aria-hidden="true"></i><code id="shadeSelectedHex"></code><span id="shadeSelectionStatus" role="status" aria-live="polite"></span></div><div class="shade-footer-actions"><button class="button" type="button" data-shade-close>Cancel</button><button class="button primary" type="button" id="applyShade">Apply shade <span aria-hidden="true">→</span></button></div></footer>
   </dialog>
   <dialog class="project-dialog" id="projectDialog" aria-labelledby="projectDialogTitle">
     <header class="project-dialog-head"><div><span class="eyebrow">Private workspace</span><h2 id="projectDialogTitle">Projects</h2></div><button class="icon-button" type="button" data-project-close aria-label="Close projects"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header>

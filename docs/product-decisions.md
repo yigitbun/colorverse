@@ -30,7 +30,7 @@ The project/template direction and proposed review-analysis method live in
 - Every primary route should end in a usable five-color palette and a clear path into Studio.
 - The globe supports one-to-five explicit color choices; missing roles are generated around those choices.
 - Studio preserves the chosen five colors. Reordering changes their functional roles and updates every preview and export live; it does not replace the palette with an unrelated one.
-- Studio shade editing keeps the right-side light-to-deep library for deliberate exploration, but the primary interaction is now a compact inline shade curtain on the selected left-hand role. It overlays the role row without changing its dimensions, opens from right to left, and closes with the reverse motion after a tone is chosen. The optional Full library dialog remains an advanced path.
+- Studio shade editing keeps the right-side light-to-deep library for deliberate exploration, but the primary interaction is now a compact inline shade curtain on the selected left-hand role. It overlays the role row without changing its dimensions, opens from right to left, and closes with the reverse motion after a tone is chosen. Shade exploration does not open a separate window.
 - Random generation is a first-class starting point.
 - Image extraction separates dominant colors, visual focus, and design-ready roles. Future work should expose small but meaningful accent colors and direct image sampling.
 - Community should support both contextual palette ideas and applied work, with clear labels distinguishing concepts from completed projects. Saves, remixes, creator attribution, and discovery should connect contributions to Studio.

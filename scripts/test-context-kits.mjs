@@ -39,6 +39,8 @@ test('Palette rows open an in-card shade curtain', () => {
   assert.match(app, /data-inline-role-shade/);
   assert.match(studioStyles, /role-shade-in/);
   assert.match(studioStyles, /role-shade-out/);
+  assert.doesNotMatch(studio, /shadeStudio|openShadeStudio|shade-studio\.css/);
+  assert.doesNotMatch(app, /createShadeStudio|openShadeStudio/);
 });
 
 test('the material study compares one selected role across five named surfaces', () => {

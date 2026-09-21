@@ -1,7 +1,7 @@
 import { palettes } from './palettes.js?v=27';
 import { roles, clamp, contrast, textOn, rgb, toHex, oklab, oklch, paletteFromColor, exportPalette, extractPaletteVariants, oklabDistance } from './color.js';
 import { createAtlas, atlasWorlds } from './globe.js?v=27';
-import { buildShadeFamilies, createShadeStudio } from './shade-studio.js?v=1';
+import { buildShadeFamilies } from './shade-studio.js?v=1';
 import { createColorGlobe } from './color-globe.js?v=2';
 import { SUPPORTED_IMAGE_TYPES, validateImageFile } from './image-file.js?v=1';
 
@@ -566,12 +566,6 @@ const colorGlobe = createColorGlobe({
     paletteRoles?.querySelector(`[data-role-color="${index}"]`)?.focus({ preventScroll: true });
   },
 });
-const shadeStudio = createShadeStudio({
-  getPalette: () => current,
-  onApply(index, color) { replacePaletteColor(index, color); track('color_edit', { method: 'shade' }); toast(`${roles[index]} updated to ${color}.`); },
-  onClose(index) { paletteRoles?.querySelector(`[data-role-select="${index}"]`)?.focus({ preventScroll: true }); },
-});
-$('#openShadeStudio')?.addEventListener('click', event => shadeStudio.open(activeColorIndex, event.currentTarget));
 if (paletteRoles) {
   paletteRoles.addEventListener('click', event => {
     const inlineShade = event.target.closest('[data-inline-role-shade]');
