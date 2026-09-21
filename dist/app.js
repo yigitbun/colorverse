@@ -127,6 +127,9 @@ function renderSelection(updateURL = false) {
   const heroName = $('#heroPaletteName');
   const description = $('#paletteDescription');
   const heroSwatches = $('#heroSwatches');
+  const heroPaletteContext = $('#heroPaletteContext');
+  const heroPaletteImage = $('#heroPaletteImage');
+  const heroPaletteContextName = $('#heroPaletteContextName');
   const paletteRoles = $('#paletteRoles');
   const ratio = $('#contrastRatio');
   const verdict = $('#contrastVerdict');
@@ -134,6 +137,17 @@ function renderSelection(updateURL = false) {
   if (heroName) heroName.textContent = current.name;
   if (description) description.textContent = current.description || 'A five-color direction ready to test.';
   if (heroSwatches) heroSwatches.innerHTML = current.colors.slice(0, 5).map(color => swatch(color)).join('');
+  if (heroPaletteContext && heroPaletteImage) {
+    const image = typeof current.image === 'string' && current.image.startsWith('/') ? current.image : '';
+    heroPaletteContext.hidden = !image;
+    if (image) {
+      heroPaletteImage.src = image;
+      heroPaletteImage.alt = `${current.name || 'Current'} palette in context`;
+      if (heroPaletteContextName) heroPaletteContextName.textContent = current.name || 'Current direction';
+    } else {
+      heroPaletteImage.removeAttribute('src');
+    }
+  }
   renderPaletteRoles();
   if (ratio) {
     const value = contrast(current.colors[0], current.colors[4]);

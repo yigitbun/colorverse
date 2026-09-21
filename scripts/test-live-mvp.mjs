@@ -18,7 +18,10 @@ for (const header of ['content-security-policy', 'strict-transport-security', 'x
 const homeHtml = await home.text();
 assert.match(homeHtml, /app\.js\?v=50/);
 assert.match(homeHtml, /analytics\.js\?v=5/);
+assert.match(homeHtml, /home-explore\.css\?v=3/);
 assert.match(homeHtml, /class="small-button" href="\/studio\/">Studio<\/a>/);
+assert.match(homeHtml, /hero-palette-context/);
+assert.match(homeHtml, /heroPaletteImage/);
 
 for (const route of publicRoutes.slice(1)) {
   const response = await get(route);
