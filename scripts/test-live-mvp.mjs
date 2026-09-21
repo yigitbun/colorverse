@@ -91,6 +91,9 @@ assert.equal(templates.status, 401, 'private templates must reject anonymous rea
 const tray = await supabaseGet('/rest/v1/color_tray_items?select=id&limit=1');
 assert.equal(tray.status, 401, 'private color tray must reject anonymous reads');
 
+const extractionHistory = await supabaseGet('/rest/v1/extraction_runs?select=id&limit=1');
+assert.equal(extractionHistory.status, 401, 'reserved extraction history must reject anonymous reads');
+
 const trayRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/sync_color_tray`, {
   method: 'POST',
   headers: { apikey: publishableKey, 'content-type': 'application/json' },
