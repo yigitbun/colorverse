@@ -74,11 +74,19 @@ browser roles have read-only access to their RLS-visible project and version
 rows; project mutations are exposed only through this narrow RPC, which derives
 ownership from `auth.uid()` rather than accepting a user id from the browser.
 
+On 2026-09-21, a rollback-only two-identity probe verified the linked database:
+the owner could read its project and baseline version, the second identity saw
+neither row, and a cross-user snapshot update returned `Project not found`. The
+temporary auth users and project were created inside one transaction and rolled
+back. This proves the database policy boundary without leaving test data behind;
+an actual email/magic-link end-to-end test remains a separate account-flow check.
+
 ## Next implementation work
 
 - Decide which assets are public and which uploads are private before setting up
   storage buckets and retention rules.
-- Add automated two-user integration tests that prove one account cannot read or
-  modify another account's projects before opening broader account access.
+- Exercise the real email/magic-link account flow end to end before opening
+  broader account access; the rollback-only two-identity RLS boundary probe is
+  already verified.
 - Keep product records in Postgres and behavior analytics in GA4. Do not send
   project names, colors, emails, or other user-authored values to GA4.
