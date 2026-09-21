@@ -20,6 +20,8 @@ const restoreProjectRpcUrl = new URL('../supabase/migrations/20260921000500_rest
 const restoreProjectRpc = await readFile(restoreProjectRpcUrl, 'utf8');
 const collectionRpcUrl = new URL('../supabase/migrations/20260921000600_palette_collection_rpc.sql', import.meta.url);
 const collectionRpc = await readFile(collectionRpcUrl, 'utf8');
+const workspaceDeleteRpcUrl = new URL('../supabase/migrations/20260921000700_delete_private_workspace_rpc.sql', import.meta.url);
+const workspaceDeleteRpc = await readFile(workspaceDeleteRpcUrl, 'utf8');
 
 const privateTables = [
   'projects',
@@ -157,4 +159,15 @@ test('saved palette collections are bounded and owner-scoped RPCs', () => {
   assert.match(collectionRpc, /revoke insert, update, delete on table public\.collections, public\.saved_palette_items from authenticated/i);
   assert.match(collectionRpc, /grant execute on function public\.save_palette_to_collection[^;]+to authenticated/i);
   assert.match(collectionRpc, /grant execute on function public\.delete_saved_palette_item[^;]+to authenticated/i);
+});
+
+test('private workspace deletion is authenticated and scoped', () => {
+  assert.match(workspaceDeleteRpc, /create or replace function public\.delete_my_private_workspace\(\)/i);
+  assert.match(workspaceDeleteRpc, /security definer\s+set search_path = ''/i);
+  assert.match(workspaceDeleteRpc, /delete from public\.projects where user_id = v_user_id/i);
+  assert.match(workspaceDeleteRpc, /delete from public\.templates where user_id = v_user_id/i);
+  assert.match(workspaceDeleteRpc, /delete from public\.collections where user_id = v_user_id/i);
+  assert.match(workspaceDeleteRpc, /delete from public\.color_tray_items where user_id = v_user_id/i);
+  assert.match(workspaceDeleteRpc, /revoke all on function public\.delete_my_private_workspace\(\) from public, anon/i);
+  assert.match(workspaceDeleteRpc, /grant execute on function public\.delete_my_private_workspace\(\) to authenticated/i);
 });

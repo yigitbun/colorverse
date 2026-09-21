@@ -47,7 +47,7 @@ assert.match(studioHtml, /Private workspace/);
 assert.match(studioHtml, /Email me a sign-in link/);
 assert.match(studioHtml, /Palette collections/);
 assert.match(studioHtml, /Save palette/);
-assert.match(studioHtml, /project-store\.css\?v=3/);
+assert.match(studioHtml, /project-store\.css\?v=4/);
 
 const analytics = await get('/analytics.js?v=4');
 const analyticsSource = await analytics.text();
@@ -110,6 +110,12 @@ const collectionDeleteRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/delete_saved
   body: JSON.stringify({ p_item_id: '00000000-0000-4000-8000-000000000000' }),
 });
 assert.equal(collectionDeleteRpc.status, 401, 'palette collection delete RPC must reject anonymous writes');
+
+const workspaceDeleteRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/delete_my_private_workspace`, {
+  method: 'POST',
+  headers: { apikey: publishableKey, 'content-type': 'application/json' },
+});
+assert.equal(workspaceDeleteRpc.status, 401, 'private workspace deletion must reject anonymous writes');
 
 const templateDeleteRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/delete_template`, {
   method: 'POST',

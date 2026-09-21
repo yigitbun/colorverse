@@ -47,6 +47,7 @@ export async function initProjectWorkspace(studio) {
   const syncLabel = $('#projectSyncLabel');
   const accountLabel = $('#projectAccount');
   const signOut = $('#projectSignOut');
+  const deletePrivateData = $('#deletePrivateData');
   const nameInput = $('#projectName');
   const templateNameInput = $('#templateName');
   const collectionNameInput = $('#collectionName');
@@ -79,6 +80,7 @@ export async function initProjectWorkspace(studio) {
     workspaceView.hidden = !signedIn;
     accountLabel.textContent = signedIn ? session.user.email || 'Signed in' : '';
     signOut.hidden = !signedIn;
+    if (deletePrivateData) deletePrivateData.hidden = !signedIn;
     if (!signedIn) {
       setSyncLabel('Local draft');
       projects = [];
@@ -571,6 +573,26 @@ export async function initProjectWorkspace(studio) {
     savedPalettes = [];
     try { localStorage.removeItem(ACTIVE_PROJECT_KEY); } catch {}
     setMessage('Signed out. The palette remains in this browser.', 'success');
+  });
+
+  deletePrivateData?.addEventListener('click', async () => {
+    const confirmed = window.confirm('Delete your private projects, templates, collections, saved palettes, Color Tray, and extraction history? This cannot be undone.');
+    if (!confirmed) return;
+    deletePrivateData.disabled = true;
+    setMessage('Deleting private workspace data…');
+    const { error } = await client.rpc('delete_my_private_workspace');
+    deletePrivateData.disabled = false;
+    if (error) {
+      setMessage('Private workspace data could not be deleted.', 'error');
+      return;
+    }
+    try {
+      localStorage.removeItem(ACTIVE_PROJECT_KEY);
+      localStorage.removeItem('colorverse-color-tray');
+    } catch {}
+    setMessage('Private workspace data deleted. Signing out…', 'success');
+    await client.auth.signOut();
+    window.setTimeout(() => window.location.reload(), 250);
   });
 
   saveTrigger.addEventListener('click', () => openDialog('save'));

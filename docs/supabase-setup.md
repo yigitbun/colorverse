@@ -100,5 +100,9 @@ consumption still require a real inbox test.
   values plus minimal provenance. Color Tray synchronization now stores only the user's bounded
   HEX list through an authenticated RPC; no source image is copied to the
   account database.
+- An authenticated owner can remove the private workspace data held by
+  ColorVerse through a separate RPC. This clears projects, templates,
+  collections, saved items, Color Tray values, and extraction history; it does
+  not pretend to delete the Supabase Auth identity itself.
 - Keep product records in Postgres and behavior analytics in GA4. Do not send
   project names, colors, emails, or other user-authored values to GA4.
