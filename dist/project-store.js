@@ -38,20 +38,24 @@ export async function initProjectWorkspace(studio) {
   const authForm = $('#projectAuthForm');
   const saveForm = $('#projectSaveForm');
   const templateForm = $('#projectTemplateForm');
+  const savePaletteForm = $('#savePaletteForm');
   const list = $('#projectList');
   const archivedList = $('#archivedProjectList');
   const templateList = $('#templateList');
+  const savedPaletteList = $('#savedPaletteList');
   const message = $('#projectMessage');
   const syncLabel = $('#projectSyncLabel');
   const accountLabel = $('#projectAccount');
   const signOut = $('#projectSignOut');
   const nameInput = $('#projectName');
   const templateNameInput = $('#templateName');
+  const collectionNameInput = $('#collectionName');
   const contextInput = $('#projectContext');
   let session = null;
   let projects = [];
   let archivedProjects = [];
   let templates = [];
+  let savedPalettes = [];
   let activeProjectId = null;
   let dirty = false;
 
@@ -80,9 +84,11 @@ export async function initProjectWorkspace(studio) {
       projects = [];
       archivedProjects = [];
       templates = [];
+      savedPalettes = [];
       renderProjects();
       renderArchivedProjects();
       renderTemplates();
+      renderSavedPalettes();
     }
   }
 
@@ -226,6 +232,55 @@ export async function initProjectWorkspace(studio) {
     }
   }
 
+  function renderSavedPalettes() {
+    if (!savedPaletteList) return;
+    savedPaletteList.replaceChildren();
+    if (!savedPalettes.length) {
+      const empty = document.createElement('p');
+      empty.className = 'project-empty';
+      empty.textContent = 'Save a direction here when it is worth keeping for later.';
+      savedPaletteList.append(empty);
+      return;
+    }
+    for (const item of savedPalettes) {
+      const row = document.createElement('article');
+      row.className = 'saved-palette-item';
+      const copy = document.createElement('div');
+      const title = document.createElement('strong');
+      title.textContent = item.name || 'Untitled palette';
+      const meta = document.createElement('span');
+      meta.textContent = `${item.collections?.name || 'Saved palettes'} · ${relativeTime(item.created_at)}`;
+      const swatches = document.createElement('div');
+      swatches.className = 'saved-palette-swatches';
+      for (const color of item.colors || []) {
+        const swatch = document.createElement('i');
+        swatch.style.setProperty('--swatch', color);
+        swatch.title = color;
+        swatches.append(swatch);
+      }
+      copy.append(title, meta, swatches);
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'template-manage template-delete';
+      remove.textContent = 'Remove';
+      remove.addEventListener('click', () => deleteSavedPalette(item));
+      row.append(copy, remove);
+      savedPaletteList.append(row);
+    }
+  }
+
+  async function deleteSavedPalette(item) {
+    if (!window.confirm(`Remove “${item.name || 'Untitled palette'}” from this collection?`)) return;
+    setMessage('Removing saved palette…');
+    const { error } = await client.rpc('delete_saved_palette_item', { p_item_id: item.id });
+    if (error) {
+      setMessage('This saved palette could not be removed.', 'error');
+      return;
+    }
+    await loadSavedPalettes();
+    setMessage('Saved palette removed.', 'success');
+  }
+
   async function renameTemplate(template) {
     const nextName = window.prompt('Template name', template.name)?.trim();
     if (!nextName || nextName === template.name) return;
@@ -304,6 +359,23 @@ export async function initProjectWorkspace(studio) {
     renderTemplates();
   }
 
+  async function loadSavedPalettes() {
+    if (!session || !savedPaletteList) return;
+    savedPaletteList.setAttribute('aria-busy', 'true');
+    const { data, error } = await client
+      .from('saved_palette_items')
+      .select('id,name,colors,created_at,collections(name)')
+      .order('created_at', { ascending: false })
+      .limit(12);
+    savedPaletteList.removeAttribute('aria-busy');
+    if (error) {
+      setMessage('Saved palettes could not be loaded. Try again in a moment.', 'error');
+      return;
+    }
+    savedPalettes = data || [];
+    renderSavedPalettes();
+  }
+
   async function loadColorTray() {
     if (!session) return;
     const { data, error } = await client
@@ -369,7 +441,7 @@ export async function initProjectWorkspace(studio) {
     templateNameInput.value = snapshot.name;
     contextInput.value = contextToDatabase(snapshot.context);
     renderSession();
-    if (session) await Promise.all([loadProjects(), loadTemplates()]);
+    if (session) await Promise.all([loadProjects(), loadTemplates(), loadSavedPalettes()]);
     dialog.showModal();
     requestAnimationFrame(() => (session && mode === 'save' ? nameInput : $('#projectEmail'))?.focus());
   }
@@ -444,11 +516,34 @@ export async function initProjectWorkspace(studio) {
     window.colorverseTrack?.('template_save', { storage: 'cloud' });
   });
 
+  savePaletteForm?.addEventListener('submit', async event => {
+    event.preventDefault();
+    const snapshot = studio.getSnapshot();
+    const submit = savePaletteForm.querySelector('button[type="submit"]');
+    submit.disabled = true;
+    setMessage('Saving palette to your collection…');
+    const { error } = await client.rpc('save_palette_to_collection', {
+      p_collection_name: collectionNameInput.value.trim(),
+      p_name: snapshot.name,
+      p_palette_id: snapshot.sourcePaletteId,
+      p_colors: snapshot.colors,
+    });
+    submit.disabled = false;
+    if (error) {
+      setMessage('This palette could not be saved. Your project is still intact.', 'error');
+      return;
+    }
+    await loadSavedPalettes();
+    setMessage('Palette saved to your private collection.', 'success');
+    window.colorverseTrack?.('palette_collection_save', { storage: 'cloud' });
+  });
+
   signOut.addEventListener('click', async () => {
     await client.auth.signOut();
     activeProjectId = null;
     dirty = false;
     templates = [];
+    savedPalettes = [];
     try { localStorage.removeItem(ACTIVE_PROJECT_KEY); } catch {}
     setMessage('Signed out. The palette remains in this browser.', 'success');
   });
@@ -469,7 +564,7 @@ export async function initProjectWorkspace(studio) {
   session = data.session;
   renderSession();
   if (session) {
-    await Promise.all([loadProjects(), loadArchivedProjects(), loadTemplates(), loadColorTray()]);
+    await Promise.all([loadProjects(), loadArchivedProjects(), loadTemplates(), loadSavedPalettes(), loadColorTray()]);
     const active = projects.find(project => project.id === activeProjectId);
     const version = active && latestVersion(active);
     setSyncLabel(version ? `Saved · v${version.version_number}` : 'Cloud ready');
@@ -477,7 +572,7 @@ export async function initProjectWorkspace(studio) {
   client.auth.onAuthStateChange((_event, nextSession) => {
     session = nextSession;
     renderSession();
-    if (session) Promise.all([loadProjects(), loadArchivedProjects(), loadTemplates(), loadColorTray()]);
+    if (session) Promise.all([loadProjects(), loadArchivedProjects(), loadTemplates(), loadSavedPalettes(), loadColorTray()]);
   });
 
   window.addEventListener('colorverse:traychange', event => {

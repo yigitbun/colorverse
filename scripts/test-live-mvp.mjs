@@ -45,6 +45,8 @@ assert.doesNotMatch(studioHtml, /data-context="(?:social|shop|material)"/);
 assert.doesNotMatch(studioHtml, /shadeStudio|openShadeStudio|shade-studio\.css/);
 assert.match(studioHtml, /Private workspace/);
 assert.match(studioHtml, /Email me a sign-in link/);
+assert.match(studioHtml, /Palette collections/);
+assert.match(studioHtml, /Save palette/);
 
 const analytics = await get('/analytics.js?v=4');
 const analyticsSource = await analytics.text();
@@ -88,6 +90,25 @@ const trayRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/sync_color_tray`, {
   body: JSON.stringify({ p_colors: ['#000000'] }),
 });
 assert.equal(trayRpc.status, 401, 'color tray RPC must reject anonymous writes');
+
+const collectionRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/save_palette_to_collection`, {
+  method: 'POST',
+  headers: { apikey: publishableKey, 'content-type': 'application/json' },
+  body: JSON.stringify({
+    p_collection_name: 'Anonymous collection probe',
+    p_name: 'Anonymous palette probe',
+    p_palette_id: null,
+    p_colors: ['#000000', '#111111', '#222222', '#333333', '#444444'],
+  }),
+});
+assert.equal(collectionRpc.status, 401, 'palette collection RPC must reject anonymous writes');
+
+const collectionDeleteRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/delete_saved_palette_item`, {
+  method: 'POST',
+  headers: { apikey: publishableKey, 'content-type': 'application/json' },
+  body: JSON.stringify({ p_item_id: '00000000-0000-4000-8000-000000000000' }),
+});
+assert.equal(collectionDeleteRpc.status, 401, 'palette collection delete RPC must reject anonymous writes');
 
 const templateDeleteRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/delete_template`, {
   method: 'POST',

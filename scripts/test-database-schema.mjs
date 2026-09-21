@@ -18,6 +18,8 @@ const projectLifecycleRpcUrl = new URL('../supabase/migrations/20260921000400_pr
 const projectLifecycleRpc = await readFile(projectLifecycleRpcUrl, 'utf8');
 const restoreProjectRpcUrl = new URL('../supabase/migrations/20260921000500_restore_project_rpc.sql', import.meta.url);
 const restoreProjectRpc = await readFile(restoreProjectRpcUrl, 'utf8');
+const collectionRpcUrl = new URL('../supabase/migrations/20260921000600_palette_collection_rpc.sql', import.meta.url);
+const collectionRpc = await readFile(collectionRpcUrl, 'utf8');
 
 const privateTables = [
   'projects',
@@ -142,4 +144,17 @@ test('archived projects can be restored only by their owner', () => {
   assert.match(restoreProjectRpc, /where id = p_project_id and user_id = \(select auth\.uid\(\)\)/i);
   assert.match(restoreProjectRpc, /revoke all on function public\.restore_project\(uuid\) from public, anon/i);
   assert.match(restoreProjectRpc, /grant execute on function public\.restore_project\(uuid\) to authenticated/i);
+});
+
+test('saved palette collections are bounded and owner-scoped RPCs', () => {
+  assert.match(collectionRpc, /create or replace function public\.save_palette_to_collection\(\s*p_collection_name text,\s*p_name text,\s*p_palette_id text,\s*p_colors jsonb\s*\)/i);
+  assert.match(collectionRpc, /security definer\s+set search_path = ''/i);
+  assert.match(collectionRpc, /jsonb_array_length\(p_colors\) <> 5/i);
+  assert.match(collectionRpc, /color\.value !~ '\^#\[0-9A-Fa-f\]\{6\}\$'/i);
+  assert.match(collectionRpc, /collections \(user_id, name\)/i);
+  assert.match(collectionRpc, /create or replace function public\.delete_saved_palette_item\(p_item_id uuid\)/i);
+  assert.match(collectionRpc, /collection\.user_id = \(select auth\.uid\(\)\)/i);
+  assert.match(collectionRpc, /revoke insert, update, delete on table public\.collections, public\.saved_palette_items from authenticated/i);
+  assert.match(collectionRpc, /grant execute on function public\.save_palette_to_collection[^;]+to authenticated/i);
+  assert.match(collectionRpc, /grant execute on function public\.delete_saved_palette_item[^;]+to authenticated/i);
 });

@@ -238,6 +238,18 @@ The project/template direction and proposed review-analysis method live in
   history; the active list stays focused while the data remains recoverable for
   an Archived projects restore surface.
 
+## Private palette collections — 2026-09-21
+
+- Signed-in Studio users can save the current five-color direction into a named
+  private collection and remove it later. This is the first account surface for
+  keeping useful palette references separate from an in-progress project.
+- The collection path stores only normalized palette values, optional published
+  palette provenance, and a bounded display name. It never stores an uploaded
+  source image and remains unavailable to anonymous visitors.
+- Collection writes use owner-checked RPCs; browser roles retain read access but
+  do not receive direct insert/update/delete privileges. Public Community saves,
+  comments, and votes remain intentionally out of scope until moderation exists.
+
 ## Library and context systems — 2026-09-19
 
 - The public palette archive contains 100 five-color directions. Twenty-five

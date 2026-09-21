@@ -95,7 +95,9 @@ consumption still require a real inbox test.
   broader account access; the rollback-only two-identity RLS boundary probe is
   already verified.
 - Continue the private workspace with template rename/delete and collection
-  management. Template rename/delete now use owner-checked RPCs. Color Tray synchronization now stores only the user's bounded
+  management. Template rename/delete now use owner-checked RPCs. Palette
+  collection save/remove now use owner-checked RPCs and store only five HEX
+  values plus minimal provenance. Color Tray synchronization now stores only the user's bounded
   HEX list through an authenticated RPC; no source image is copied to the
   account database.
 - Keep product records in Postgres and behavior analytics in GA4. Do not send
