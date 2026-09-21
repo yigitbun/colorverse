@@ -78,6 +78,22 @@ export async function initProjectWorkspace(studio) {
     syncLabel.textContent = value;
   }
 
+  function readAuthLinkError() {
+    const sources = [location.hash.replace(/^#/, ''), location.search.replace(/^\?/, '')];
+    for (const [index, source] of sources.entries()) {
+      const params = new URLSearchParams(source);
+      const code = params.get('error_code') || params.get('error');
+      const description = params.get('error_description');
+      if (code || description) {
+        try { history.replaceState(null, '', `${location.pathname}${index === 0 ? location.search : ''}`); } catch {}
+        return code === 'otp_expired' || /expired|invalid/i.test(description || code || '')
+          ? 'This sign-in link has expired. Request a fresh link below.'
+          : 'This sign-in link could not be verified. Request a fresh link below.';
+      }
+    }
+    return '';
+  }
+
   function renderSession() {
     const signedIn = Boolean(session?.user);
     authView.hidden = signedIn;
@@ -760,6 +776,11 @@ export async function initProjectWorkspace(studio) {
   const { data } = await client.auth.getSession();
   session = data.session;
   renderSession();
+  const authLinkError = readAuthLinkError();
+  if (authLinkError && !session) {
+    dialog.showModal();
+    setMessage(authLinkError, 'error');
+  }
   if (session) {
     await Promise.all([loadProjects(), loadArchivedProjects(), loadTemplates(), loadSavedPalettes(), loadColorTray()]);
     const active = projects.find(project => project.id === activeProjectId);

@@ -53,7 +53,7 @@ assert.match(studioHtml, /Email me a sign-in link/);
 assert.match(studioHtml, /Palette collections/);
 assert.match(studioHtml, /Save palette/);
 assert.match(studioHtml, /Prototype bench/);
-assert.match(studioHtml, /project-store\.css\?v=6/);
+assert.match(studioHtml, /project-store\.css\?v=7/);
 
 const analytics = await get('/analytics.js?v=4');
 const analyticsSource = await analytics.text();
