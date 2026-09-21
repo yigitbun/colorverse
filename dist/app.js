@@ -263,6 +263,12 @@ window.addEventListener('colorverse:trayremote', event => {
   if (remote.length || colorTray.length) announceColorTrayChange();
 });
 
+window.addEventListener('colorverse:trayerror', () => {
+  const status = $('#trayStatus');
+  if (status) status.textContent = 'Account sync is unavailable. Your colors remain saved in this browser.';
+  toast('Account sync is unavailable; your local tray is safe.');
+});
+
 function colorCoordinates(hex) {
   const [lightness, a, b] = oklab(hex);
   return { lightness, chroma: Math.hypot(a, b), hue: (Math.atan2(b, a) * 180 / Math.PI + 360) % 360 };
@@ -1244,7 +1250,7 @@ if (input && dropzone) {
 
 renderSelection();
 if (page === 'studio') {
-  import('./project-store.js?v=6')
+  import('./project-store.js?v=7')
     .then(({ initProjectWorkspace }) => initProjectWorkspace(window.colorverseStudio))
     .catch(() => { const label = $('#projectSyncLabel'); if (label) label.textContent = 'Local draft'; });
 }

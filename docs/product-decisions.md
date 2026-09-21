@@ -231,6 +231,9 @@ The project/template direction and proposed review-analysis method live in
 - Anonymous reads and writes are rejected by grants and row-level security.
 - Template rename and delete actions also use owner-checked RPCs; direct
   browser mutation of the template table remains revoked.
+- If account sync is temporarily unavailable, Studio keeps the local tray and
+  tells the user that the account copy needs another attempt; it never presents
+  a failed cloud write as a successful save.
 
 ## Library and context systems — 2026-09-19
 

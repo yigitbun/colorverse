@@ -223,7 +223,10 @@ export async function initProjectWorkspace(studio) {
       .from('color_tray_items')
       .select('hex,position')
       .order('position', { ascending: true });
-    if (error) return;
+    if (error) {
+      window.dispatchEvent(new CustomEvent('colorverse:trayerror'));
+      return;
+    }
     window.dispatchEvent(new CustomEvent('colorverse:trayremote', {
       detail: { colors: (data || []).map(item => item.hex) },
     }));
@@ -231,7 +234,8 @@ export async function initProjectWorkspace(studio) {
 
   async function syncColorTray(colors) {
     if (!session || !Array.isArray(colors)) return;
-    await client.rpc('sync_color_tray', { p_colors: colors.slice(0, 18) });
+    const { error } = await client.rpc('sync_color_tray', { p_colors: colors.slice(0, 18) });
+    if (error) window.dispatchEvent(new CustomEvent('colorverse:trayerror'));
   }
 
   function openProject(project) {
