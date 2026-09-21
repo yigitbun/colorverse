@@ -11,7 +11,7 @@ async function get(path, options = {}) {
 
 const home = await get('/');
 assert.equal(home.status, 200, 'production home must be reachable');
-for (const header of ['content-security-policy', 'strict-transport-security', 'x-frame-options', 'x-content-type-options', 'permissions-policy', 'referrer-policy']) {
+for (const header of ['content-security-policy', 'strict-transport-security', 'x-frame-options', 'cross-origin-opener-policy', 'cross-origin-resource-policy', 'origin-agent-cluster', 'x-content-type-options', 'permissions-policy', 'referrer-policy']) {
   assert.ok(home.headers.get(header), `production must send ${header}`);
 }
 

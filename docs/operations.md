@@ -45,7 +45,8 @@ traffic and are not evidence that the domain should be attached to Sites.
   views and allowlisted product events. GA event data and user data retention
   are both set to two months, with “reset on new user activity” disabled.
 - `dist/_headers` is the Cloudflare Pages source for CSP, frame blocking,
-  content-type protection, referrer policy, permissions policy, and HSTS.
+  cross-origin isolation, content-type protection, referrer policy, permissions
+  policy, and HSTS.
   The production CSP intentionally blocks inline scripts and event handlers;
   `npm run build` rejects either pattern in HTML.
 - The public privacy notice lives at `/privacy/`. Keep it synchronized whenever
