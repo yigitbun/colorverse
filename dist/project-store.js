@@ -110,9 +110,34 @@ export async function initProjectWorkspace(studio) {
       open.className = 'project-open';
       open.textContent = project.id === activeProjectId ? 'Open' : 'Resume';
       open.addEventListener('click', () => openProject(project));
-      item.append(copy, open);
+      const actions = document.createElement('div');
+      actions.className = 'project-actions';
+      const archive = document.createElement('button');
+      archive.type = 'button';
+      archive.className = 'project-manage';
+      archive.textContent = 'Archive';
+      archive.addEventListener('click', () => archiveProject(project));
+      actions.append(open, archive);
+      item.append(copy, actions);
       list.append(item);
     }
+  }
+
+  async function archiveProject(project) {
+    if (!window.confirm(`Archive “${project.name}”? Its version history will be kept.`)) return;
+    setMessage('Archiving project…');
+    const { error } = await client.rpc('archive_project', { p_project_id: project.id });
+    if (error) {
+      setMessage('This project could not be archived.', 'error');
+      return;
+    }
+    if (project.id === activeProjectId) {
+      activeProjectId = null;
+      try { localStorage.removeItem(ACTIVE_PROJECT_KEY); } catch {}
+      setSyncLabel('Local draft');
+    }
+    await loadProjects();
+    setMessage('Project archived. Its history remains private.', 'success');
   }
 
   function renderTemplates() {

@@ -96,6 +96,13 @@ const templateDeleteRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/delete_templat
 });
 assert.equal(templateDeleteRpc.status, 401, 'template delete RPC must reject anonymous writes');
 
+const projectArchiveRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/archive_project`, {
+  method: 'POST',
+  headers: { apikey: publishableKey, 'content-type': 'application/json' },
+  body: JSON.stringify({ p_project_id: '00000000-0000-4000-8000-000000000000' }),
+});
+assert.equal(projectArchiveRpc.status, 401, 'project archive RPC must reject anonymous writes');
+
 const templateRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/save_template_snapshot`, {
   method: 'POST',
   headers: { apikey: publishableKey, 'content-type': 'application/json' },

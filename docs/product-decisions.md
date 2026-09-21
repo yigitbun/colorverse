@@ -234,6 +234,9 @@ The project/template direction and proposed review-analysis method live in
 - If account sync is temporarily unavailable, Studio keeps the local tray and
   tells the user that the account copy needs another attempt; it never presents
   a failed cloud write as a successful save.
+- Active projects can be archived without deleting their private version
+  history; the active list stays focused while the data remains recoverable for
+  a future restore surface.
 
 ## Library and context systems — 2026-09-19
 

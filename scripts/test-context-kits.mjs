@@ -105,4 +105,5 @@ test('Studio exposes private reusable template actions', () => {
   assert.match(store, /rename_template/);
   assert.match(store, /delete_template/);
   assert.match(store, /colorverse:trayerror/);
+  assert.match(store, /archive_project/);
 });

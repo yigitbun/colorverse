@@ -14,6 +14,8 @@ const trayRpcUrl = new URL('../supabase/migrations/20260921000200_sync_color_tra
 const trayRpc = await readFile(trayRpcUrl, 'utf8');
 const lifecycleRpcUrl = new URL('../supabase/migrations/20260921000300_template_lifecycle_rpc.sql', import.meta.url);
 const lifecycleRpc = await readFile(lifecycleRpcUrl, 'utf8');
+const projectLifecycleRpcUrl = new URL('../supabase/migrations/20260921000400_project_lifecycle_rpc.sql', import.meta.url);
+const projectLifecycleRpc = await readFile(projectLifecycleRpcUrl, 'utf8');
 
 const privateTables = [
   'projects',
@@ -121,4 +123,12 @@ test('template lifecycle mutations remain owner-scoped RPCs', () => {
   assert.match(lifecycleRpc, /grant execute on function public\.rename_template\(uuid, text\) to authenticated/i);
   assert.match(lifecycleRpc, /revoke all on function public\.delete_template\(uuid\) from public, anon/i);
   assert.match(lifecycleRpc, /grant execute on function public\.delete_template\(uuid\) to authenticated/i);
+});
+
+test('project archiving is owner-scoped and preserves history', () => {
+  assert.match(projectLifecycleRpc, /create or replace function public\.archive_project\(p_project_id uuid\)/i);
+  assert.match(projectLifecycleRpc, /set status = 'archived'/i);
+  assert.match(projectLifecycleRpc, /where id = p_project_id and user_id = \(select auth\.uid\(\)\)/i);
+  assert.match(projectLifecycleRpc, /revoke all on function public\.archive_project\(uuid\) from public, anon/i);
+  assert.match(projectLifecycleRpc, /grant execute on function public\.archive_project\(uuid\) to authenticated/i);
 });
