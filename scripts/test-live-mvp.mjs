@@ -103,6 +103,13 @@ const projectArchiveRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/archive_projec
 });
 assert.equal(projectArchiveRpc.status, 401, 'project archive RPC must reject anonymous writes');
 
+const projectRestoreRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/restore_project`, {
+  method: 'POST',
+  headers: { apikey: publishableKey, 'content-type': 'application/json' },
+  body: JSON.stringify({ p_project_id: '00000000-0000-4000-8000-000000000000' }),
+});
+assert.equal(projectRestoreRpc.status, 401, 'project restore RPC must reject anonymous writes');
+
 const templateRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/save_template_snapshot`, {
   method: 'POST',
   headers: { apikey: publishableKey, 'content-type': 'application/json' },

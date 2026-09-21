@@ -39,6 +39,7 @@ export async function initProjectWorkspace(studio) {
   const saveForm = $('#projectSaveForm');
   const templateForm = $('#projectTemplateForm');
   const list = $('#projectList');
+  const archivedList = $('#archivedProjectList');
   const templateList = $('#templateList');
   const message = $('#projectMessage');
   const syncLabel = $('#projectSyncLabel');
@@ -49,6 +50,7 @@ export async function initProjectWorkspace(studio) {
   const contextInput = $('#projectContext');
   let session = null;
   let projects = [];
+  let archivedProjects = [];
   let templates = [];
   let activeProjectId = null;
   let dirty = false;
@@ -76,8 +78,10 @@ export async function initProjectWorkspace(studio) {
     if (!signedIn) {
       setSyncLabel('Local draft');
       projects = [];
+      archivedProjects = [];
       templates = [];
       renderProjects();
+      renderArchivedProjects();
       renderTemplates();
     }
   }
@@ -123,6 +127,36 @@ export async function initProjectWorkspace(studio) {
     }
   }
 
+  function renderArchivedProjects() {
+    if (!archivedList) return;
+    archivedList.replaceChildren();
+    if (!archivedProjects.length) {
+      const empty = document.createElement('p');
+      empty.className = 'project-empty';
+      empty.textContent = 'Archived projects will appear here.';
+      archivedList.append(empty);
+      return;
+    }
+    for (const project of archivedProjects) {
+      const item = document.createElement('article');
+      item.className = 'project-item';
+      const copy = document.createElement('div');
+      const title = document.createElement('strong');
+      title.textContent = project.name;
+      const version = latestVersion(project);
+      const meta = document.createElement('span');
+      meta.textContent = `${version ? `v${version.version_number}` : 'Empty'} · ${relativeTime(project.updated_at)}`;
+      copy.append(title, meta);
+      const restore = document.createElement('button');
+      restore.type = 'button';
+      restore.className = 'project-manage';
+      restore.textContent = 'Restore';
+      restore.addEventListener('click', () => restoreProject(project));
+      item.append(copy, restore);
+      archivedList.append(item);
+    }
+  }
+
   async function archiveProject(project) {
     if (!window.confirm(`Archive “${project.name}”? Its version history will be kept.`)) return;
     setMessage('Archiving project…');
@@ -136,8 +170,19 @@ export async function initProjectWorkspace(studio) {
       try { localStorage.removeItem(ACTIVE_PROJECT_KEY); } catch {}
       setSyncLabel('Local draft');
     }
-    await loadProjects();
+    await Promise.all([loadProjects(), loadArchivedProjects()]);
     setMessage('Project archived. Its history remains private.', 'success');
+  }
+
+  async function restoreProject(project) {
+    setMessage('Restoring project…');
+    const { error } = await client.rpc('restore_project', { p_project_id: project.id });
+    if (error) {
+      setMessage('This project could not be restored.', 'error');
+      return;
+    }
+    await Promise.all([loadProjects(), loadArchivedProjects()]);
+    setMessage('Project restored to your active list.', 'success');
   }
 
   function renderTemplates() {
@@ -224,6 +269,23 @@ export async function initProjectWorkspace(studio) {
     }
     projects = data || [];
     renderProjects();
+  }
+
+  async function loadArchivedProjects() {
+    if (!session || !archivedList) return;
+    archivedList.setAttribute('aria-busy', 'true');
+    const { data, error } = await client
+      .from('projects')
+      .select('id,name,context_type,source_palette_id,updated_at,project_versions(id,version_number,name,colors,roles,editor_state,created_at)')
+      .eq('status', 'archived')
+      .order('updated_at', { ascending: false });
+    archivedList.removeAttribute('aria-busy');
+    if (error) {
+      setMessage('Archived projects could not be loaded.', 'error');
+      return;
+    }
+    archivedProjects = data || [];
+    renderArchivedProjects();
   }
 
   async function loadTemplates() {
@@ -407,7 +469,7 @@ export async function initProjectWorkspace(studio) {
   session = data.session;
   renderSession();
   if (session) {
-    await Promise.all([loadProjects(), loadTemplates(), loadColorTray()]);
+    await Promise.all([loadProjects(), loadArchivedProjects(), loadTemplates(), loadColorTray()]);
     const active = projects.find(project => project.id === activeProjectId);
     const version = active && latestVersion(active);
     setSyncLabel(version ? `Saved · v${version.version_number}` : 'Cloud ready');
@@ -415,7 +477,7 @@ export async function initProjectWorkspace(studio) {
   client.auth.onAuthStateChange((_event, nextSession) => {
     session = nextSession;
     renderSession();
-    if (session) Promise.all([loadProjects(), loadTemplates(), loadColorTray()]);
+    if (session) Promise.all([loadProjects(), loadArchivedProjects(), loadTemplates(), loadColorTray()]);
   });
 
   window.addEventListener('colorverse:traychange', event => {

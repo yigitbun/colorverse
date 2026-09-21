@@ -16,6 +16,8 @@ const lifecycleRpcUrl = new URL('../supabase/migrations/20260921000300_template_
 const lifecycleRpc = await readFile(lifecycleRpcUrl, 'utf8');
 const projectLifecycleRpcUrl = new URL('../supabase/migrations/20260921000400_project_lifecycle_rpc.sql', import.meta.url);
 const projectLifecycleRpc = await readFile(projectLifecycleRpcUrl, 'utf8');
+const restoreProjectRpcUrl = new URL('../supabase/migrations/20260921000500_restore_project_rpc.sql', import.meta.url);
+const restoreProjectRpc = await readFile(restoreProjectRpcUrl, 'utf8');
 
 const privateTables = [
   'projects',
@@ -131,4 +133,13 @@ test('project archiving is owner-scoped and preserves history', () => {
   assert.match(projectLifecycleRpc, /where id = p_project_id and user_id = \(select auth\.uid\(\)\)/i);
   assert.match(projectLifecycleRpc, /revoke all on function public\.archive_project\(uuid\) from public, anon/i);
   assert.match(projectLifecycleRpc, /grant execute on function public\.archive_project\(uuid\) to authenticated/i);
+});
+
+test('archived projects can be restored only by their owner', () => {
+  assert.match(restoreProjectRpc, /create or replace function public\.restore_project\(p_project_id uuid\)/i);
+  assert.match(restoreProjectRpc, /set status = 'active'/i);
+  assert.match(restoreProjectRpc, /status = 'archived'/i);
+  assert.match(restoreProjectRpc, /where id = p_project_id and user_id = \(select auth\.uid\(\)\)/i);
+  assert.match(restoreProjectRpc, /revoke all on function public\.restore_project\(uuid\) from public, anon/i);
+  assert.match(restoreProjectRpc, /grant execute on function public\.restore_project\(uuid\) to authenticated/i);
 });

@@ -236,7 +236,7 @@ The project/template direction and proposed review-analysis method live in
   a failed cloud write as a successful save.
 - Active projects can be archived without deleting their private version
   history; the active list stays focused while the data remains recoverable for
-  a future restore surface.
+  an Archived projects restore surface.
 
 ## Library and context systems — 2026-09-19
 
