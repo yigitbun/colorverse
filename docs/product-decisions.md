@@ -243,6 +243,9 @@ The project/template direction and proposed review-analysis method live in
 - Signed-in Studio users can save the current five-color direction into a named
   private collection and remove it later. This is the first account surface for
   keeping useful palette references separate from an in-progress project.
+- A saved item can be opened back into Studio as a new local draft, so a
+  collection is a working shelf rather than a dead archive. It never silently
+  attaches the new work to the original project.
 - The collection path stores only normalized palette values, optional published
   palette provenance, and a bounded display name. It never stores an uploaded
   source image and remains unavailable to anonymous visitors.

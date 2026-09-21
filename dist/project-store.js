@@ -256,17 +256,42 @@ export async function initProjectWorkspace(studio) {
         const swatch = document.createElement('i');
         swatch.style.setProperty('--swatch', color);
         swatch.title = color;
-        swatches.append(swatch);
+      swatches.append(swatch);
       }
       copy.append(title, meta, swatches);
+      const actions = document.createElement('div');
+      actions.className = 'template-actions';
+      const use = document.createElement('button');
+      use.type = 'button';
+      use.className = 'project-open';
+      use.textContent = 'Use';
+      use.addEventListener('click', () => openSavedPalette(item));
       const remove = document.createElement('button');
       remove.type = 'button';
       remove.className = 'template-manage template-delete';
       remove.textContent = 'Remove';
       remove.addEventListener('click', () => deleteSavedPalette(item));
-      row.append(copy, remove);
+      actions.append(use, remove);
+      row.append(copy, actions);
       savedPaletteList.append(row);
     }
+  }
+
+  function openSavedPalette(item) {
+    studio.loadSnapshot({
+      name: item.name || 'Saved palette',
+      sourcePaletteId: item.palette_id || null,
+      colors: item.colors,
+      roles: {},
+      context: 'landing',
+      productKind: 'footwear',
+    });
+    activeProjectId = null;
+    dirty = true;
+    try { localStorage.removeItem(ACTIVE_PROJECT_KEY); } catch {}
+    setSyncLabel('Saved palette · local draft');
+    window.colorverseTrack?.('palette_collection_use', { storage: 'cloud' });
+    dialog.close();
   }
 
   async function deleteSavedPalette(item) {
@@ -364,7 +389,7 @@ export async function initProjectWorkspace(studio) {
     savedPaletteList.setAttribute('aria-busy', 'true');
     const { data, error } = await client
       .from('saved_palette_items')
-      .select('id,name,colors,created_at,collections(name)')
+      .select('id,name,palette_id,colors,created_at,collections(name)')
       .order('created_at', { ascending: false })
       .limit(12);
     savedPaletteList.removeAttribute('aria-busy');
