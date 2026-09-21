@@ -16,7 +16,7 @@ for (const header of ['content-security-policy', 'strict-transport-security', 'x
 }
 
 const homeHtml = await home.text();
-assert.match(homeHtml, /app\.js\?v=50/);
+assert.match(homeHtml, /app\.js\?v=51/);
 assert.match(homeHtml, /analytics\.js\?v=5/);
 assert.match(homeHtml, /home-explore\.css\?v=3/);
 assert.match(homeHtml, /class="small-button" href="\/studio\/">Studio<\/a>/);
@@ -44,7 +44,7 @@ assert.match(inspirationHtml, /One runner\.<br>Three directions\./);
 const studio = await get('/studio/');
 assert.equal(studio.status, 200, 'studio page must be reachable');
 const studioHtml = await studio.text();
-assert.match(studioHtml, /app\.js\?v=59/);
+assert.match(studioHtml, /app\.js\?v=60/);
 assert.match(studioHtml, /studio-editor\.css\?v=7/);
 assert.match(studioHtml, /context-kits\.css\?v=5/);
 assert.match(studioHtml, /data-context="landing"[^>]*>Product/);
