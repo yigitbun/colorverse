@@ -277,6 +277,21 @@ function renderPaletteRoles() {
   </div>`).join('');
 }
 
+function closeInlineShade(index, after) {
+  const overlay = document.querySelector(`[data-shade-overlay="${index}"]`);
+  openShadeIndex = null;
+  if (!overlay) { after?.(); return; }
+  overlay.classList.add('is-closing');
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    after?.();
+  };
+  overlay.addEventListener('animationend', finish, { once: true });
+  window.setTimeout(finish, 230);
+}
+
 function renderColorTray() {
   const tray = $('#colorTray');
   if (!tray) return;
@@ -563,10 +578,11 @@ if (paletteRoles) {
     if (inlineShade) {
       const index = Number(inlineShade.dataset.inlineRoleShade);
       const color = inlineShade.dataset.inlineShade;
-      openShadeIndex = null;
-      activeColorIndex = index;
-      replacePaletteColor(index, color, { keepShadeSource: true });
-      track('color_edit', { method: 'inline-shade' });
+      closeInlineShade(index, () => {
+        activeColorIndex = index;
+        replacePaletteColor(index, color, { keepShadeSource: true });
+        track('color_edit', { method: 'inline-shade' });
+      });
       return;
     }
     const edit = event.target.closest('[data-role-color]');
@@ -612,8 +628,11 @@ if (paletteRoles) {
       announcePaletteOrder(current.colors[index], index);
     } else {
       activeColorIndex = index;
-      openShadeIndex = openShadeIndex === index ? null : index;
-      renderSelection();
+      if (openShadeIndex === index) closeInlineShade(index, () => renderSelection());
+      else {
+        openShadeIndex = index;
+        renderSelection();
+      }
     }
     paletteRoles.querySelector(`[data-role-select="${index}"]`)?.focus({ preventScroll: true });
   });

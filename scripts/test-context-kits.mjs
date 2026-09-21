@@ -38,6 +38,7 @@ test('Palette rows open an in-card shade curtain', () => {
   assert.match(app, /role-shade-overlay/);
   assert.match(app, /data-inline-role-shade/);
   assert.match(studioStyles, /role-shade-in/);
+  assert.match(studioStyles, /role-shade-out/);
 });
 
 test('the material study compares one selected role across five named surfaces', () => {
