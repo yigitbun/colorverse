@@ -4,8 +4,8 @@ const ACTIVE_PROJECT_KEY = 'colorverse-active-project';
 
 const $ = selector => document.querySelector(selector);
 const validProjectId = value => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value || '');
-const contextToDatabase = value => ({ landing: 'website', presentation: 'slides', social: 'social', shop: 'shop', material: 'brand' })[value] || 'custom';
-const contextToStudio = value => ({ website: 'landing', slides: 'presentation', social: 'social', shop: 'shop' })[value] || 'landing';
+const contextToDatabase = value => ({ landing: 'brand', interface: 'website', presentation: 'slides' })[value] || 'custom';
+const contextToStudio = value => ({ brand: 'landing', website: 'interface', slides: 'presentation' })[value] || 'landing';
 
 function relativeTime(value) {
   const then = new Date(value).getTime();

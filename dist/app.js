@@ -53,6 +53,7 @@ const requestedPalette = editionPalettes.find(palette => palette.id === params.g
 const storedPalette = readStoredPalette();
 let current = requestedPalette || (storedPalette && (!params.get('p') || storedPalette.id === params.get('p')) ? storedPalette : palettes[0]);
 let context = 'landing';
+let productKind = current.id === 'skincare-system-01' ? 'skincare' : current.id === 'drift-field-01' ? 'footwear' : 'footwear';
 let format = 'css';
 let extracted = null;
 let extractedVariants = [];
@@ -61,6 +62,7 @@ let imageURL = null;
 let roleDrag = null;
 let activeColorIndex = 0;
 let pendingSwapIndex = null;
+let openShadeIndex = null;
 document.body.dataset.page = page;
 document.title = titles[page];
 
@@ -157,6 +159,8 @@ function renderSelection(updateURL = false) {
 function choosePalette(palette, notify = true) {
   if (!palette || !Array.isArray(palette.colors) || palette.colors.length < 5) return;
   current = palette;
+  if (palette.id === 'skincare-system-01') productKind = 'skincare';
+  else if (palette.id === 'drift-field-01') productKind = 'footwear';
   shadeSourceColors = current.colors.slice(0, 5);
   persistPalette(palette);
   renderSelection(true);
@@ -194,6 +198,7 @@ function studioSnapshot() {
     colors: current.colors.slice(0, 5).map(color => color.toUpperCase()),
     roles: Object.fromEntries(roles.map((role, index) => [role.toLowerCase(), current.colors[index].toUpperCase()])),
     context,
+    productKind,
   };
 }
 
@@ -211,15 +216,19 @@ function loadStudioSnapshot(snapshot) {
     tags: ['project'],
     sourcePaletteId: snapshot.sourcePaletteId || null,
   };
-  context = ['landing', 'presentation', 'social', 'shop', 'material'].includes(snapshot.context) ? snapshot.context : 'landing';
+  context = ['landing', 'interface', 'presentation'].includes(snapshot.context) ? snapshot.context : 'landing';
+  productKind = snapshot.productKind && ['footwear', 'skincare', 'object'].includes(snapshot.productKind) ? snapshot.productKind : 'footwear';
   activeColorIndex = 0;
   pendingSwapIndex = null;
+  openShadeIndex = null;
   shadeSourceColors = [...colors];
   $$('[data-context]').forEach(button => {
     const selected = button.dataset.context === context;
     button.setAttribute('aria-selected', String(selected));
     button.tabIndex = selected ? 0 : -1;
   });
+  renderProductPicker();
+  renderContextCaption();
   persistPalette(current);
   renderSelection(false);
   toast(`${current.name} resumed.`);
@@ -248,16 +257,23 @@ function colorCoordinates(hex) {
 let shadeSourceColors = current.colors.slice(0, 5);
 const trashIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7"/></svg>';
 
+function inlineShadeValues(index) {
+  const source = shadeSourceColors[index] || current.colors[index];
+  const family = buildShadeFamilies(source)[0]?.colors || [source];
+  return [...new Set(family)].sort((a, b) => colorCoordinates(b).lightness - colorCoordinates(a).lightness);
+}
+
 function renderPaletteRoles() {
   const container = $('#paletteRoles');
   if (!container) return;
   container.innerHTML = current.colors.slice(0, 5).map((color, index) => `<div class="role-swatch${activeColorIndex === index ? ' is-selected' : ''}${pendingSwapIndex === index ? ' is-swap-source' : ''}" data-role-index="${index}">
     <span class="role-grip" aria-hidden="true" title="Drag onto another color to swap"><svg viewBox="0 0 10 16"><circle cx="2" cy="3" r="1.2"/><circle cx="8" cy="3" r="1.2"/><circle cx="2" cy="8" r="1.2"/><circle cx="8" cy="8" r="1.2"/><circle cx="2" cy="13" r="1.2"/><circle cx="8" cy="13" r="1.2"/></svg></span>
     <button class="role-color-control" type="button" data-role-color="${index}" style="--swatch:${color}" title="Explore ${roles[index]} in Color Globe" aria-label="Change ${roles[index]} color in Color Globe" aria-haspopup="dialog" aria-controls="colorGlobe"><span aria-hidden="true"></span></button>
-    <button class="role-select" type="button" data-role-select="${index}" aria-pressed="${activeColorIndex === index}" aria-label="Select ${roles[index]} for shades" aria-controls="colorLab">
+    <button class="role-select" type="button" data-role-select="${index}" aria-pressed="${activeColorIndex === index}" aria-label="Show shades for ${roles[index]}" aria-controls="paletteRoles">
       <span class="role-name">${roles[index]}</span><code>${color}</code>
     </button>
     <button class="role-action" type="button" data-role-swap="${index}" aria-label="${pendingSwapIndex === index ? 'Cancel swap' : `Swap ${roles[index]} with another role`}" title="Swap colors">↔</button>
+    ${openShadeIndex === index ? `<div class="role-shade-overlay" data-shade-overlay="${index}"><div class="inline-shade-strip" role="listbox" aria-label="Choose a shade for ${roles[index]}">${inlineShadeValues(index).map(value => `<button type="button" data-inline-role-shade="${index}" data-inline-shade="${value}" aria-selected="${value === color}" title="${value}" style="--tone:${value};--tone-ink:${textOn(value)}"><span class="sr-only">${value}</span></button>`).join('')}</div></div>` : ''}
   </div>`).join('');
 }
 
@@ -416,14 +432,21 @@ function renderMockup() {
       <footer><span>Everyday silhouette</span><span>Material-led colour</span><span>CMF direction</span><span>Original study</span></footer>
     </div>`
       : `<div class="mockup context-kit packaging-kit"><header><span class="kit-kicker">Packaging system / small batch</span><b>Field & Form</b><small>Collection 03</small></header><div class="package-scene"><div class="package-box package-box-tall"><span>FIELD<br>& FORM</span><small>Botanical wash<br>250 ml</small><i>03</i></div><div class="package-box package-box-wide"><span>EVERYDAY<br>RITUALS</span><small>Five mineral soaps</small><i>05</i></div><div class="package-bottle"><span>F&F</span><small>01</small></div><div class="package-card"><span>Care notes</span><b>Made slowly.<br>Used daily.</b><p>Plant-based formulas / recyclable paper / batch no. 026</p><i></i></div></div><footer><span>Primary pack</span><span>Gift set</span><span>Label system</span><span>Insert card</span></footer></div>`;
+  const productConfig = {
+    footwear: { label: 'Footwear / Field study', title: 'Field 01', image: '/assets/editions/drift-field-01-colorways-v1.png', detail: 'One silhouette. Three directions.', specs: 'Mesh · suede · modular rubber' },
+    skincare: { label: 'Skincare / Series study', title: 'Soft Structure', image: '/assets/editions/skincare-system-01-v1.jpg', detail: 'Five objects. One quiet system.', specs: 'Matte polymer · ribbed cap · mono print' },
+    object: { label: 'Object / Material study', title: 'Everyday object', image: '/assets/palette-library/ceramic-still-life.jpg', detail: 'A useful object with a considered surface.', specs: 'Ceramic · dry glaze · tactile form' },
+  }[productKind] || { label: 'Footwear / Field study', title: 'Field 01', image: '/assets/editions/drift-field-01-colorways-v1.png', detail: 'One silhouette. Three directions.', specs: 'Mesh · suede · modular rubber' };
+  const productPreview = `<div class="mockup context-kit product-preview-kit"><header><div><span class="kit-kicker">${escape(productConfig.label)}</span><h4>${escape(productConfig.title)}</h4></div><span class="product-preview-meta">ColorVerse / product direction</span></header><div class="product-preview-stage"><div class="product-preview-image"><img src="${productConfig.image}" alt="${escape(productConfig.title)} product preview"><span>Palette in context</span></div><aside><strong>${escape(productConfig.detail)}</strong><p>${escape(productConfig.specs)}</p><div class="product-preview-swatches" aria-label="Applied product colors">${current.colors.slice(0, 5).map((color, index) => `<i style="--swatch:${color}" title="${roles[index]} ${color}"></i>`).join('')}</div><small>Click a color to tune the direction.</small></aside></div><footer><span>Product study</span><span>Colour / material direction</span><span>Original ColorVerse concept</span></footer></div>`;
   const layouts = {
-    landing: `<div class="mockup context-kit product-kit">
+    landing: productPreview,
+    interface: `<div class="mockup context-kit product-kit">
       <header class="product-kit-head"><b>Northstar</b><label aria-hidden="true">Search workspace <span>⌘ K</span></label><i class="product-avatar">AY</i></header>
       <div class="product-kit-shell"><aside><strong>Overview</strong><span>Projects</span><span>Customers</span><span>Reports</span><small>Workspace</small><span>Team</span><span>Settings</span></aside>
       <main><div class="product-title"><div><span class="kit-kicker">Monday, September 19</span><h4>Good morning.</h4></div><button type="button">New report <b>＋</b></button></div>
       <div class="metric-row"><article><span>Active projects</span><strong>24</strong><small>+4 this month</small></article><article><span>Completion</span><strong>78%</strong><small>On target</small></article><article class="metric-accent"><span>Next milestone</span><strong>08d</strong><small>Brand handoff</small></article></div>
       <div class="product-grid"><section class="product-chart"><header><div><span>Project momentum</span><strong>Last 8 weeks</strong></div><b>+18.4%</b></header><div class="chart-bars" aria-label="Illustrative project momentum chart"><i style="--h:34%"></i><i style="--h:48%"></i><i style="--h:43%"></i><i style="--h:61%"></i><i style="--h:56%"></i><i style="--h:74%"></i><i style="--h:82%"></i><i style="--h:92%"></i></div></section><section class="product-list"><header><span>Today</span><b>View all</b></header><p><i></i><span><strong>Review design system</strong><small>10:30 · Product</small></span></p><p><i></i><span><strong>Client workshop</strong><small>14:00 · Strategy</small></span></p><p><i></i><span><strong>Publish report</strong><small>16:45 · Research</small></span></p></section></div></main></div></div>`,
-    presentation: `<div class="mockup context-kit report-kit"><header><span>North Region / Operations</span><b>Q3 REVIEW · 08 / 16</b></header><div class="report-body"><section class="report-copy"><span class="kit-kicker">Performance summary</span><h4>Strong demand.<br><em>Smarter pace.</em></h4><p>Revenue grew while delivery time fell across three core markets.</p><div class="report-stat"><strong>+24%</strong><span>Year-over-year<br>revenue growth</span></div></section><section class="report-data"><div class="report-legend"><span><i></i>Current period</span><span><i></i>Previous period</span></div><div class="report-lines" role="img" aria-label="Illustrative performance line chart"><svg viewBox="0 0 360 180" preserveAspectRatio="none" aria-hidden="true"><path d="M4 150 C58 142 72 116 112 121 S176 80 211 91 S267 50 356 24"/><path d="M4 164 C51 148 87 150 121 137 S187 124 218 113 S293 91 356 82"/></svg><span>Jan</span><span>Mar</span><span>May</span><span>Jul</span></div><div class="report-numbers"><p><span>Conversion</span><strong>6.8%</strong></p><p><span>Retention</span><strong>91%</strong></p><p><span>Delivery</span><strong>4.2d</strong></p></div></section></div><footer><span>Internal working document</span><span>ColorVerse palette preview</span></footer></div>`,
+    presentation: `<div class="mockup context-kit report-kit"><header><span>North Region / Operations</span><b>Q3 REVIEW · 08 / 16</b></header><div class="report-body"><section class="report-copy"><span class="kit-kicker">Performance summary</span><h4>Strong demand.<br><em>Smarter pace.</em></h4><p>Revenue grew while delivery time fell across three core markets.</p><div class="report-stat"><strong>+24%</strong><span>Year-over-year<br>revenue growth</span></div></section><section class="report-data"><div class="report-legend"><span><i></i>Current period</span><span><i></i>Previous period</span></div><div class="report-numbers"><p><span>Conversion</span><strong>6.8%</strong><em class="trend-up">↑ 1.4%</em></p><p><span>Retention</span><strong>91%</strong><em class="trend-up">↑ 3.2%</em></p><p><span>Delivery</span><strong>4.2d</strong><em class="trend-down">↓ 0.6d</em></p></div><div class="report-lines" role="img" aria-label="Illustrative performance line chart"><svg viewBox="0 0 360 180" preserveAspectRatio="none" aria-hidden="true"><path d="M4 150 C58 142 72 116 112 121 S176 80 211 91 S267 50 356 24"/><path d="M4 164 C51 148 87 150 121 137 S187 124 218 113 S293 91 356 82"/></svg><span>Jan</span><span>Mar</span><span>May</span><span>Jul</span></div></section></div><footer><span>Internal working document</span><span>ColorVerse palette preview</span></footer></div>`,
     social: `<div class="mockup context-kit campaign-kit"><section class="campaign-poster"><span class="kit-kicker">A one-day gathering</span><div class="campaign-orbit"><i></i><i></i><i></i></div><h4>Common<br>Ground</h4><p>Ideas for kinder cities<br>19.09 — Berlin</p></section><section class="campaign-stack"><article class="campaign-story"><span>COMMON GROUND</span><div><b>19</b><i>SEP</i></div><p>Talks · workshops · food</p></article><article class="campaign-ticket"><span>ADMIT ONE</span><strong>CG / 026</strong><i></i><small>Berlin · 10:00—18:00</small></article><article class="campaign-caption"><b>One palette.<br>Three campaign formats.</b><span>Poster / story / ticket</span></article></section></div>`,
     shop: packagingKit,
     material: `<div class="mockup context-kit material-kit">
@@ -446,6 +469,23 @@ function renderExport() {
   if (!code) return;
   code.textContent = exportPalette(current, format);
   code.setAttribute('aria-labelledby', `format-${format}`);
+}
+
+function renderProductPicker() {
+  const picker = $('#productContextPicker');
+  if (!picker) return;
+  picker.hidden = context !== 'landing';
+  picker.querySelectorAll('[data-product-kind]').forEach(button => {
+    const selected = button.dataset.productKind === productKind;
+    button.setAttribute('aria-selected', String(selected));
+    button.tabIndex = selected ? 0 : -1;
+  });
+}
+
+function renderContextCaption() {
+  const label = $('#contextCaptionLabel');
+  if (!label) return;
+  label.textContent = context === 'presentation' ? 'Report preview' : context === 'interface' ? 'Interface preview' : 'Product preview';
 }
 
 function setupTabs(selector, callback) {
@@ -472,8 +512,11 @@ function setupTabs(selector, callback) {
   });
 }
 
-setupTabs('[data-context]', button => { context = button.dataset.context; renderMockup(); track('context_preview', { context }); });
+setupTabs('[data-context]', button => { context = button.dataset.context; renderProductPicker(); renderContextCaption(); renderMockup(); track('context_preview', { context }); });
+setupTabs('[data-product-kind]', button => { productKind = button.dataset.productKind; renderProductPicker(); renderMockup(); track('product_preview', { product: productKind }); });
 setupTabs('[data-format]', button => { format = button.dataset.format; renderExport(); });
+renderProductPicker();
+renderContextCaption();
 
 document.addEventListener('click', event => {
   const color = event.target.closest('[data-copy]');
@@ -516,10 +559,21 @@ const shadeStudio = createShadeStudio({
 $('#openShadeStudio')?.addEventListener('click', event => shadeStudio.open(activeColorIndex, event.currentTarget));
 if (paletteRoles) {
   paletteRoles.addEventListener('click', event => {
+    const inlineShade = event.target.closest('[data-inline-role-shade]');
+    if (inlineShade) {
+      const index = Number(inlineShade.dataset.inlineRoleShade);
+      const color = inlineShade.dataset.inlineShade;
+      openShadeIndex = null;
+      activeColorIndex = index;
+      replacePaletteColor(index, color, { keepShadeSource: true });
+      track('color_edit', { method: 'inline-shade' });
+      return;
+    }
     const edit = event.target.closest('[data-role-color]');
     if (edit) {
       activeColorIndex = Number(edit.dataset.roleColor);
       pendingSwapIndex = null;
+      openShadeIndex = null;
       renderSelection();
       colorGlobe.open(activeColorIndex);
       return;
@@ -530,6 +584,7 @@ if (paletteRoles) {
       if (pendingSwapIndex === null) {
         pendingSwapIndex = index;
         activeColorIndex = index;
+        openShadeIndex = null;
         renderSelection();
         toast(`Choose another role to swap with ${roles[index]}.`);
       } else if (pendingSwapIndex === index) {
@@ -538,6 +593,7 @@ if (paletteRoles) {
       } else {
         const from = pendingSwapIndex;
         pendingSwapIndex = null;
+        openShadeIndex = null;
         activeColorIndex = index;
         swapPaletteColors(from, index);
         announcePaletteOrder(current.colors[index], index);
@@ -550,11 +606,13 @@ if (paletteRoles) {
     if (pendingSwapIndex !== null && pendingSwapIndex !== index) {
       const from = pendingSwapIndex;
       pendingSwapIndex = null;
+      openShadeIndex = null;
       activeColorIndex = index;
       swapPaletteColors(from, index);
       announcePaletteOrder(current.colors[index], index);
     } else {
       activeColorIndex = index;
+      openShadeIndex = openShadeIndex === index ? null : index;
       renderSelection();
     }
     paletteRoles.querySelector(`[data-role-select="${index}"]`)?.focus({ preventScroll: true });
@@ -1156,7 +1214,7 @@ if (input && dropzone) {
 
 renderSelection();
 if (page === 'studio') {
-  import('./project-store.js?v=1')
+  import('./project-store.js?v=2')
     .then(({ initProjectWorkspace }) => initProjectWorkspace(window.colorverseStudio))
     .catch(() => { const label = $('#projectSyncLabel'); if (label) label.textContent = 'Local draft'; });
 }

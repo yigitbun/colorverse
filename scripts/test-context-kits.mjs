@@ -6,12 +6,38 @@ const app = await readFile(new URL('../dist/app.js', import.meta.url), 'utf8');
 const studio = await readFile(new URL('../dist/studio/index.html', import.meta.url), 'utf8');
 const inspiration = await readFile(new URL('../dist/inspiration/index.html', import.meta.url), 'utf8');
 const styles = await readFile(new URL('../dist/context-kits.css', import.meta.url), 'utf8');
+const studioStyles = await readFile(new URL('../dist/studio-editor.css', import.meta.url), 'utf8');
 const store = await readFile(new URL('../dist/project-store.js', import.meta.url), 'utf8');
 
-test('Studio exposes five applied contexts including the material study', () => {
+test('Studio exposes focused Product, Interface, and Report contexts', () => {
   const contexts = [...studio.matchAll(/data-context="([^"]+)"/g)].map(match => match[1]);
-  assert.deepEqual(contexts, ['landing', 'presentation', 'social', 'shop', 'material']);
-  assert.match(app, /material:\s*`<div class="mockup context-kit material-kit">/);
+  assert.deepEqual(contexts, ['landing', 'interface', 'presentation']);
+  assert.match(studio, /Product/);
+  assert.match(studio, /Interface/);
+  assert.match(studio, /Report/);
+  assert.match(app, /interface:\s*`<div class="mockup context-kit product-kit">/);
+  assert.match(app, /landing: productPreview/);
+});
+
+test('Product preview offers real product directions', () => {
+  for (const kind of ['footwear', 'skincare', 'object']) assert.match(studio, new RegExp(`data-product-kind="${kind}"`));
+  assert.match(app, /product-preview-kit/);
+  assert.match(app, /drift-field-01-colorways-v1\.png/);
+  assert.match(app, /skincare-system-01-v1\.jpg/);
+  assert.match(app, /ceramic-still-life\.jpg/);
+});
+
+test('Report puts KPI cards above its chart', () => {
+  const report = app.match(/presentation:\s*`([\s\S]*?)`,\s*social:/)?.[1] || '';
+  assert.ok(report.indexOf('report-numbers') < report.indexOf('report-lines'));
+  assert.match(report, /trend-up/);
+  assert.match(report, /trend-down/);
+});
+
+test('Palette rows open an in-card shade curtain', () => {
+  assert.match(app, /role-shade-overlay/);
+  assert.match(app, /data-inline-role-shade/);
+  assert.match(studioStyles, /role-shade-in/);
 });
 
 test('the material study compares one selected role across five named surfaces', () => {
@@ -59,7 +85,8 @@ test('Inspiration presents RoomKit as an in-house experiment with a Lab path', (
   assert.match(inspiration, /private upload/);
 });
 
-test('material context survives project snapshots without widening database input', () => {
-  assert.match(app, /'shop', 'material'/);
-  assert.match(store, /material: 'brand'/);
+test('Focused Studio contexts map cleanly into project snapshots', () => {
+  assert.match(app, /context,\n    productKind/);
+  assert.match(store, /interface: 'website'/);
+  assert.match(store, /brand: 'landing'/);
 });
