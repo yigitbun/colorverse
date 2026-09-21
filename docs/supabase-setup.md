@@ -87,22 +87,19 @@ The production Auth settings endpoint has also been checked read-only: email
 sign-up is enabled and sign-up is not globally disabled. Delivery and link
 consumption still require a real inbox test.
 
-## Next implementation work
+## Remaining implementation checks
 
-- Decide which assets are public and which uploads are private before setting up
-  storage buckets and retention rules.
 - Exercise the real email/magic-link account flow end to end before opening
   broader account access; the rollback-only two-identity RLS boundary probe is
-  already verified.
-- Continue the private workspace with template rename/delete and collection
-  management. Template rename/delete now use owner-checked RPCs. Palette
-  collection save/remove now use owner-checked RPCs and store only five HEX
-  values plus minimal provenance. Color Tray synchronization now stores only the user's bounded
-  HEX list through an authenticated RPC; no source image is copied to the
-  account database.
-- An authenticated owner can remove the private workspace data held by
-  ColorVerse through a separate RPC. This clears projects, templates,
-  collections, saved items, Color Tray values, and extraction history; it does
-  not pretend to delete the Supabase Auth identity itself.
+  already verified. This requires a real inbox and is not safely simulated by
+  an anonymous smoke test.
+- Decide which assets are public and which uploads are private before setting up
+  storage buckets and retention rules. RoomKit uploads remain browser-local and
+  are not public Community content.
+- The next product-layer increment is the project-level A/B prototype
+  workbench. Its baseline/alternative versions should use the existing private
+  project boundary and must not silently overwrite Prototype 1.
+- Public Community posts, comments, votes, reports, and moderation remain
+  closed until the shared-content review and takedown path exists.
 - Keep product records in Postgres and behavior analytics in GA4. Do not send
   project names, colors, emails, or other user-authored values to GA4.
