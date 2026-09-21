@@ -96,9 +96,9 @@ consumption still require a real inbox test.
 - Decide which assets are public and which uploads are private before setting up
   storage buckets and retention rules. RoomKit uploads remain browser-local and
   are not public Community content.
-- The next product-layer increment is the project-level A/B prototype
-  workbench. Its baseline/alternative versions should use the existing private
-  project boundary and must not silently overwrite Prototype 1.
+- The project-level A/B prototype workbench now uses a validated RPC: Prototype
+  1 is locked as a private baseline and Prototype 2 records a parent reference
+  instead of overwriting it.
 - Public Community posts, comments, votes, reports, and moderation remain
   closed until the shared-content review and takedown path exists.
 - Keep product records in Postgres and behavior analytics in GA4. Do not send

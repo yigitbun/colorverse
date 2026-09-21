@@ -47,7 +47,8 @@ assert.match(studioHtml, /Private workspace/);
 assert.match(studioHtml, /Email me a sign-in link/);
 assert.match(studioHtml, /Palette collections/);
 assert.match(studioHtml, /Save palette/);
-assert.match(studioHtml, /project-store\.css\?v=4/);
+assert.match(studioHtml, /Prototype bench/);
+assert.match(studioHtml, /project-store\.css\?v=5/);
 
 const analytics = await get('/analytics.js?v=4');
 const analyticsSource = await analytics.text();
@@ -116,6 +117,25 @@ const workspaceDeleteRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/delete_my_pri
   headers: { apikey: publishableKey, 'content-type': 'application/json' },
 });
 assert.equal(workspaceDeleteRpc.status, 401, 'private workspace deletion must reject anonymous writes');
+
+const prototypeRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/save_project_prototype`, {
+  method: 'POST',
+  headers: { apikey: publishableKey, 'content-type': 'application/json' },
+  body: JSON.stringify({
+    p_project_id: null,
+    p_variant_key: 'baseline',
+    p_project_name: 'Anonymous prototype probe',
+    p_version_name: 'Prototype 1',
+    p_context_type: 'custom',
+    p_source_palette_id: null,
+    p_colors: ['#000000', '#111111', '#222222', '#333333', '#444444'],
+    p_roles: {},
+    p_editor_state: {},
+    p_parent_version_id: null,
+    p_lock: true,
+  }),
+});
+assert.equal(prototypeRpc.status, 401, 'prototype RPC must reject anonymous writes');
 
 const templateDeleteRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/delete_template`, {
   method: 'POST',

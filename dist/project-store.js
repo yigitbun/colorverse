@@ -37,12 +37,15 @@ export async function initProjectWorkspace(studio) {
   const workspaceView = $('#projectWorkspaceView');
   const authForm = $('#projectAuthForm');
   const saveForm = $('#projectSaveForm');
+  const savePrototype1 = $('#savePrototype1');
+  const savePrototype2 = $('#savePrototype2');
   const templateForm = $('#projectTemplateForm');
   const savePaletteForm = $('#savePaletteForm');
   const list = $('#projectList');
   const archivedList = $('#archivedProjectList');
   const templateList = $('#templateList');
   const savedPaletteList = $('#savedPaletteList');
+  const prototypeList = $('#prototypeList');
   const message = $('#projectMessage');
   const syncLabel = $('#projectSyncLabel');
   const accountLabel = $('#projectAccount');
@@ -57,6 +60,7 @@ export async function initProjectWorkspace(studio) {
   let archivedProjects = [];
   let templates = [];
   let savedPalettes = [];
+  let activePrototype = null;
   let activeProjectId = null;
   let dirty = false;
 
@@ -98,8 +102,46 @@ export async function initProjectWorkspace(studio) {
     return [...(project.project_versions || [])].sort((a, b) => b.version_number - a.version_number)[0] || null;
   }
 
+  function latestPrototype(project, variantKey) {
+    return [...(project?.project_versions || [])]
+      .filter(version => version.variant_key === variantKey)
+      .sort((a, b) => b.version_number - a.version_number)[0] || null;
+  }
+
+  function renderPrototypes() {
+    if (!prototypeList) return;
+    prototypeList.replaceChildren();
+    const project = projects.find(item => item.id === activeProjectId);
+    const versions = [
+      { key: 'baseline', label: 'Prototype 1', note: 'Locked baseline' },
+      { key: 'alternative', label: 'Prototype 2', note: 'Independent test' },
+    ];
+    for (const prototype of versions) {
+      const version = latestPrototype(project, prototype.key);
+      const card = document.createElement('article');
+      card.className = `prototype-card${activePrototype === prototype.key ? ' is-active' : ''}`;
+      const copy = document.createElement('div');
+      const title = document.createElement('strong');
+      title.textContent = prototype.label;
+      const meta = document.createElement('span');
+      meta.textContent = version ? `${version.is_locked ? 'Locked' : prototype.note} · v${version.version_number}` : 'Not saved yet';
+      copy.append(title, meta);
+      const open = document.createElement('button');
+      open.type = 'button';
+      open.className = 'project-open';
+      open.textContent = version ? 'Open' : 'Empty';
+      open.disabled = !version;
+      open.addEventListener('click', () => openPrototype(project, version, prototype.key));
+      card.append(copy, open);
+      prototypeList.append(card);
+    }
+    if (savePrototype1) savePrototype1.disabled = Boolean(latestPrototype(project, 'baseline')?.is_locked);
+    if (savePrototype2) savePrototype2.disabled = !latestPrototype(project, 'baseline');
+  }
+
   function renderProjects() {
     list.replaceChildren();
+    renderPrototypes();
     if (!projects.length) {
       const empty = document.createElement('p');
       empty.className = 'project-empty';
@@ -341,7 +383,7 @@ export async function initProjectWorkspace(studio) {
     list.setAttribute('aria-busy', 'true');
     const { data, error } = await client
       .from('projects')
-      .select('id,name,context_type,source_palette_id,updated_at,project_versions(id,version_number,name,colors,roles,editor_state,created_at)')
+      .select('id,name,context_type,source_palette_id,updated_at,project_versions(id,version_number,name,variant_key,is_locked,parent_version_id,colors,roles,editor_state,created_at)')
       .eq('status', 'active')
       .order('updated_at', { ascending: false });
     list.removeAttribute('aria-busy');
@@ -358,7 +400,7 @@ export async function initProjectWorkspace(studio) {
     archivedList.setAttribute('aria-busy', 'true');
     const { data, error } = await client
       .from('projects')
-      .select('id,name,context_type,source_palette_id,updated_at,project_versions(id,version_number,name,colors,roles,editor_state,created_at)')
+      .select('id,name,context_type,source_palette_id,updated_at,project_versions(id,version_number,name,variant_key,is_locked,parent_version_id,colors,roles,editor_state,created_at)')
       .eq('status', 'archived')
       .order('updated_at', { ascending: false });
     archivedList.removeAttribute('aria-busy');
@@ -437,10 +479,31 @@ export async function initProjectWorkspace(studio) {
       productKind: version.editor_state?.productKind || 'footwear',
     });
     activeProjectId = project.id;
+    activePrototype = version.variant_key === 'baseline' || version.variant_key === 'alternative' ? version.variant_key : null;
     dirty = false;
     try { localStorage.setItem(ACTIVE_PROJECT_KEY, activeProjectId); } catch {}
     setSyncLabel(`Saved · v${version.version_number}`);
     window.colorverseTrack?.('project_resume', { storage: 'cloud' });
+    dialog.close();
+  }
+
+  function openPrototype(project, version, prototypeKey) {
+    if (!project || !version) return;
+    studio.loadSnapshot({
+      id: project.id,
+      name: project.name,
+      sourcePaletteId: project.source_palette_id,
+      colors: version.colors,
+      roles: version.roles,
+      context: version.editor_state?.context || contextToStudio(project.context_type),
+      productKind: version.editor_state?.productKind || 'footwear',
+    });
+    activeProjectId = project.id;
+    activePrototype = prototypeKey;
+    dirty = false;
+    try { localStorage.setItem(ACTIVE_PROJECT_KEY, activeProjectId); } catch {}
+    setSyncLabel(`${prototypeKey === 'baseline' ? 'Prototype 1' : 'Prototype 2'} · v${version.version_number}`);
+    window.colorverseTrack?.('prototype_resume', { variant: prototypeKey });
     dialog.close();
   }
 
@@ -469,6 +532,7 @@ export async function initProjectWorkspace(studio) {
     contextInput.value = contextToDatabase(snapshot.context);
     renderSession();
     if (session) await Promise.all([loadProjects(), loadTemplates(), loadSavedPalettes()]);
+    renderPrototypes();
     dialog.showModal();
     requestAnimationFrame(() => (session && mode === 'save' ? nameInput : $('#projectEmail'))?.focus());
   }
@@ -517,6 +581,50 @@ export async function initProjectWorkspace(studio) {
     setMessage('Private project saved.', 'success');
     window.colorverseTrack?.('project_save', { storage: 'cloud' });
   });
+
+  async function savePrototype(variantKey, lock = false) {
+    if (!session) return;
+    const project = projects.find(item => item.id === activeProjectId);
+    if (variantKey === 'alternative' && !latestPrototype(project, 'baseline')) {
+      setMessage('Save and lock Prototype 1 before starting Prototype 2.', 'error');
+      return;
+    }
+    const snapshot = studio.getSnapshot();
+    const submit = variantKey === 'baseline' ? savePrototype1 : savePrototype2;
+    if (submit) submit.disabled = true;
+    setMessage(`Saving ${variantKey === 'baseline' ? 'Prototype 1' : 'Prototype 2'}…`);
+    const baseline = latestPrototype(project, 'baseline');
+    const { data, error } = await client.rpc('save_project_prototype', {
+      p_project_id: activeProjectId,
+      p_variant_key: variantKey,
+      p_project_name: project?.name || snapshot.name,
+      p_version_name: variantKey === 'baseline' ? 'Prototype 1' : 'Prototype 2',
+      p_context_type: contextToDatabase(snapshot.context),
+      p_source_palette_id: snapshot.sourcePaletteId,
+      p_colors: snapshot.colors,
+      p_roles: snapshot.roles,
+      p_editor_state: { context: snapshot.context, productKind: snapshot.productKind },
+      p_parent_version_id: baseline?.id || null,
+      p_lock: lock,
+    });
+    if (submit) submit.disabled = false;
+    if (error || !data?.project_id) {
+      setMessage(error?.message?.includes('locked') ? 'Prototype 1 is already locked.' : 'This prototype could not be saved. Your project is still intact.', 'error');
+      renderPrototypes();
+      return;
+    }
+    activeProjectId = data.project_id;
+    activePrototype = variantKey;
+    dirty = false;
+    try { localStorage.setItem(ACTIVE_PROJECT_KEY, activeProjectId); } catch {}
+    await loadProjects();
+    setSyncLabel(`${variantKey === 'baseline' ? 'Prototype 1 locked' : 'Prototype 2 saved'} · v${data.version_number}`);
+    setMessage(`${variantKey === 'baseline' ? 'Prototype 1 is locked as your baseline.' : 'Prototype 2 saved as a separate version.'}`, 'success');
+    window.colorverseTrack?.('prototype_save', { variant: variantKey, locked: lock ? 'yes' : 'no' });
+  }
+
+  savePrototype1?.addEventListener('click', () => savePrototype('baseline', true));
+  savePrototype2?.addEventListener('click', () => savePrototype('alternative'));
 
   templateForm.addEventListener('submit', async event => {
     event.preventDefault();
@@ -571,6 +679,7 @@ export async function initProjectWorkspace(studio) {
     dirty = false;
     templates = [];
     savedPalettes = [];
+    activePrototype = null;
     try { localStorage.removeItem(ACTIVE_PROJECT_KEY); } catch {}
     setMessage('Signed out. The palette remains in this browser.', 'success');
   });

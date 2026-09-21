@@ -253,6 +253,16 @@ The project/template direction and proposed review-analysis method live in
   do not receive direct insert/update/delete privileges. Public Community saves,
   comments, and votes remain intentionally out of scope until moderation exists.
 
+## A/B prototype workbench — 2026-09-21
+
+- Studio now supports a project-level Prototype 1 / Prototype 2 flow. Prototype
+  1 is saved as a locked baseline; Prototype 2 is saved as an alternative with
+  a parent reference to that baseline. Neither action overwrites the other.
+- The workbench remains private and uses the same validated five-color and
+  owner-scoped Supabase boundary as regular project saves. Opening either
+  prototype creates the corresponding Studio state; Community publishing is
+  still separate and unavailable.
+
 ## Library and context systems — 2026-09-19
 
 - The public palette archive contains 100 five-color directions. Twenty-five

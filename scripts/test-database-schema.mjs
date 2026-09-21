@@ -22,6 +22,8 @@ const collectionRpcUrl = new URL('../supabase/migrations/20260921000600_palette_
 const collectionRpc = await readFile(collectionRpcUrl, 'utf8');
 const workspaceDeleteRpcUrl = new URL('../supabase/migrations/20260921000700_delete_private_workspace_rpc.sql', import.meta.url);
 const workspaceDeleteRpc = await readFile(workspaceDeleteRpcUrl, 'utf8');
+const prototypeRpcUrl = new URL('../supabase/migrations/20260921000800_prototype_workbench_rpc.sql', import.meta.url);
+const prototypeRpc = await readFile(prototypeRpcUrl, 'utf8');
 
 const privateTables = [
   'projects',
@@ -170,4 +172,17 @@ test('private workspace deletion is authenticated and scoped', () => {
   assert.match(workspaceDeleteRpc, /delete from public\.color_tray_items where user_id = v_user_id/i);
   assert.match(workspaceDeleteRpc, /revoke all on function public\.delete_my_private_workspace\(\) from public, anon/i);
   assert.match(workspaceDeleteRpc, /grant execute on function public\.delete_my_private_workspace\(\) to authenticated/i);
+});
+
+test('prototype saves preserve a locked baseline and parent alternative', () => {
+  assert.match(prototypeRpc, /create or replace function public\.save_project_prototype\(/i);
+  assert.match(prototypeRpc, /p_variant_key not in \('baseline', 'alternative'\)/i);
+  assert.match(prototypeRpc, /p_variant_key = 'alternative' and v_locked/i);
+  assert.match(prototypeRpc, /p_variant_key <> 'baseline'/i);
+  assert.match(prototypeRpc, /variant_key = 'baseline' and is_locked = true/i);
+  assert.match(prototypeRpc, /parent_version_id/i);
+  assert.match(prototypeRpc, /Prototype 1 baseline not found/i);
+  assert.match(prototypeRpc, /security definer\s+set search_path = ''/i);
+  assert.match(prototypeRpc, /revoke all on function public\.save_project_prototype[^;]+from public, anon/i);
+  assert.match(prototypeRpc, /grant execute on function public\.save_project_prototype[^;]+to authenticated/i);
 });
