@@ -116,7 +116,10 @@ On 2026-09-23, the owner chose one public working address:
 through the existing `main` Pages project. The accidental
 `dev.colorverse.byigit.dev` custom-domain attachment and its CNAME were removed
 after explicit confirmation. Cloudflare Access was not enabled; visitors may
-see the current working site. Do not restore that extra hostname.
+see the current working site. The now-redundant `colorverse-dev` Pages project
+was also deleted after separate approval; its deployments and Pages hostname
+are not recoverable, but the Git repository and Supabase data are untouched.
+Do not restore that extra hostname or project for the current workflow.
 
 On 2026-09-14, the public domain was briefly attached to ChatGPT Sites. That
 introduced a ChatGPT sign-in gate on the live product. The attachment was
