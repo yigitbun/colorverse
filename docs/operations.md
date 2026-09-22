@@ -22,8 +22,7 @@ attach `colorverse.byigit.dev` to a ChatGPT Site.
 ## Development
 
 - Local URL: `http://127.0.0.1:4174` via `npm run dev`
-- Shared URL: <https://dev.colorverse.byigit.dev> (custom-domain TLS may still
-  be provisioning immediately after setup)
+- Shared URL: <https://dev.colorverse.byigit.dev> (active HTTPS custom domain)
 - Development host: separate Cloudflare Pages project `colorverse-dev`
 - Pages origin: <https://colorverse-dev.pages.dev>
 - Source branch: `dev`, configured as the development project's production
@@ -48,8 +47,10 @@ that preview is not the canonical dev host and has no account database access.
 Account browser settings live in `dist/account-config.js`. Unknown preview
 hostnames fail closed rather than silently connecting to the shared backend.
 Development analytics are disabled. The new account page and migration are
-deployed on the `dev` branch and passed the anonymous live smoke test. A real
-inbox confirmation and password-recovery test remains to verify email delivery.
+deployed on the `dev` branch and passed the anonymous live smoke test. Cloudflare
+Pages reported successful builds for the dev deployment, and the custom-domain
+account route was verified over HTTPS. A real inbox confirmation and
+password-recovery test remains to verify email delivery.
 
 ## ChatGPT Sites preview
 
