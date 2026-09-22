@@ -40,6 +40,7 @@ release runbook is in [`docs/operations.md`](docs/operations.md).
 ## Backend infrastructure
 
 The workspace is linked through the Supabase CLI to **ColorVerse Studio** (Free
-plan, Frankfurt). Studio uses passwordless authentication and owner-only RLS for
-private, versioned projects. See [Supabase setup](docs/supabase-setup.md) for the
-schema, security model, credential rules, and remaining backend work.
+plan, Frankfurt). Accounts use email/password authentication; private Studio
+projects and saved palettes are protected by owner-only RLS. See
+[Supabase setup](docs/supabase-setup.md) for the schema, security model,
+credential rules, and remaining backend work.

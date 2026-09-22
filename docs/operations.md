@@ -111,6 +111,13 @@ Expected output: `200`.
 
 ## Decision record
 
+On 2026-09-23, the owner chose one public working address:
+`colorverse.byigit.dev`. The tested membership and site updates were published
+through the existing `main` Pages project. The accidental
+`dev.colorverse.byigit.dev` custom-domain attachment and its CNAME were removed
+after explicit confirmation. Cloudflare Access was not enabled; visitors may
+see the current working site. Do not restore that extra hostname.
+
 On 2026-09-14, the public domain was briefly attached to ChatGPT Sites. That
 introduced a ChatGPT sign-in gate on the live product. The attachment was
 removed and the Cloudflare Pages CNAME was restored. Keep production on
