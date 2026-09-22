@@ -91,6 +91,20 @@ consumption still require a real inbox test.
 
 ## Remaining implementation checks
 
+- 2026-09-22: a dedicated `ColorVerse Dev` project could not be created because
+  the free account has two active projects. The owner approved temporarily
+  sharing `ColorVerse Studio` for online development; leave the other projects
+  and all existing records untouched. `20260922000100_member_palettes.sql`
+  prepares private 2–24-color palette editing while retaining five-role Studio
+  projects. The migration is remotely applied and the live owner/cross-user/
+  anonymous boundary test passes with disposable users removed afterward.
+- `/account/` adds email/password signup, sign-in, recovery and a paginated
+  private palette library. Hosted Auth redirects include production, the
+  intended dev host, its branch preview, and local development. Custom SMTP is
+  enabled through the verified `byigit.dev` domain in Resend with a restricted
+  sending-only key. A real inbox confirmation/recovery test still remains
+  before declaring email delivery fully verified.
+
 - Exercise the real email/magic-link account flow end to end before opening
   broader account access; the rollback-only two-identity RLS boundary probe is
   already verified. This requires a real inbox and is not safely simulated by

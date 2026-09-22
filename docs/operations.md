@@ -19,6 +19,29 @@ The public DNS route is a proxied CNAME named `colorverse` pointing to
 `colorverse-85o.pages.dev`. Do not point it to `custom-domains.chatgpt.site` or
 attach `colorverse.byigit.dev` to a ChatGPT Site.
 
+## Development (planned)
+
+- Local URL: `http://127.0.0.1:4174` via `npm run dev`
+- Intended shared URL: `https://dev.colorverse.byigit.dev`
+- Intended branch: `dev`
+- Access: Cloudflare Access with a remembered email session, not a shared
+  password
+- Data: a separate Supabase project was attempted on 2026-09-22 but the account
+  already has two active free projects. The owner explicitly approved using
+  the existing ColorVerse Studio database for dev membership in this phase.
+  This is a temporary shared-data exception: preserve existing records and
+  never reset/seed/delete the shared database as if it were disposable.
+  Split the backend before broader testing or a production-domain launch.
+
+The shared development hostname and branch are not configured yet. Until the
+production domain is acquired and a deliberate cutover is completed,
+`colorverse.byigit.dev` remains production. Do not repoint it to development.
+
+Account browser settings live in `dist/account-config.js`. Unknown preview
+hostnames fail closed rather than silently connecting to the shared backend.
+Development analytics are disabled. The new account page and migration are
+being prepared locally; do not describe them as deployed until verified online.
+
 ## ChatGPT Sites preview
 
 `.openai/hosting.json` configures a separate, private Sites preview. Its project

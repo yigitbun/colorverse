@@ -2,9 +2,18 @@
 
 An interactive color atlas and palette studio, redesigned from [colorverse.byigit.dev](https://colorverse.byigit.dev/).
 
-## Preview
+## Development
 
-Serve the authored static output with `python3 -m http.server 4186 --directory dist`.
+Run `npm run dev` for a real local development server at
+`http://127.0.0.1:4174`. Vite serves `dist/` as the authored application root
+and refreshes the browser as HTML, CSS, and JavaScript files change. Use
+`npm run dev:network` only when the local preview needs to be opened from
+another device on the same network.
+
+The intended shared development host is `dev.colorverse.byigit.dev`. It is not
+configured yet: the current `colorverse.byigit.dev` route remains the live
+Cloudflare Pages production URL until `colorverse.com` is acquired and the
+production cutover is explicitly completed.
 
 ## Features
 

@@ -1,5 +1,4 @@
-const SUPABASE_URL = 'https://ayzymeogptrqtouwnahh.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_TY49mfQAzRXvIWjlXKi9Ow_gTCaGid_';
+import { getAccountClient } from './account-client.js';
 const ACTIVE_PROJECT_KEY = 'colorverse-active-project';
 
 const $ = selector => document.querySelector(selector);
@@ -23,16 +22,8 @@ export async function initProjectWorkspace(studio) {
   const dialog = $('#projectDialog');
   const saveTrigger = $('#saveProject');
   const projectsTrigger = $('#openProjects');
-  if (!dialog || !saveTrigger || !projectsTrigger || !window.supabase?.createClient || !studio) return;
-
-  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-    auth: {
-      flowType: 'pkce',
-      persistSession: true,
-      detectSessionInUrl: true,
-      storageKey: 'colorverse-auth',
-    },
-  });
+  if (!dialog || !saveTrigger || !projectsTrigger || !studio) return;
+  const client = await getAccountClient();
   const authView = $('#projectAuthView');
   const workspaceView = $('#projectWorkspaceView');
   const authForm = $('#projectAuthForm');
@@ -303,7 +294,7 @@ export async function initProjectWorkspace(studio) {
       const use = document.createElement('button');
       use.type = 'button';
       use.className = 'project-open';
-      use.textContent = 'Use';
+      use.textContent = item.colors.length === 5 ? 'Use' : 'Choose in My palettes';
       use.addEventListener('click', () => openTemplate(template));
       const actions = document.createElement('div');
       actions.className = 'template-actions';
@@ -369,9 +360,10 @@ export async function initProjectWorkspace(studio) {
   }
 
   function openSavedPalette(item) {
+    if (item.colors.length !== 5) { location.assign('/account/'); return; }
     studio.loadSnapshot({
       name: item.name || 'Saved palette',
-      sourcePaletteId: item.palette_id || null,
+      sourcePaletteId: item.source_metadata?.reference_key || item.palette_id || null,
       colors: item.colors,
       roles: {},
       context: 'landing',
@@ -594,7 +586,7 @@ export async function initProjectWorkspace(studio) {
     setMessage('Sending a secure sign-in link…');
     const { error } = await client.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: 'https://colorverse.byigit.dev/studio/' },
+      options: { emailRedirectTo: `${location.origin}/studio/` },
     });
     submit.disabled = false;
     if (!error) {
@@ -811,8 +803,10 @@ export async function initProjectWorkspace(studio) {
   client.auth.onAuthStateChange((_event, nextSession) => {
     session = nextSession;
     renderSession();
-    if (session) Promise.all([loadProjects(), loadArchivedProjects(), loadTemplates(), loadSavedPalettes(), loadColorTray()]);
+    if (session) setTimeout(() => Promise.all([loadProjects(), loadArchivedProjects(), loadTemplates(), loadSavedPalettes(), loadColorTray()]), 0);
   });
+
+  if (location.hash === '#projects') openDialog('projects');
 
   window.addEventListener('colorverse:traychange', event => {
     syncColorTray(event.detail?.colors).catch(() => {});

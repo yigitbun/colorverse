@@ -66,3 +66,36 @@
   .hero-palette-context figcaption{padding:10px 12px}
   .hero-palette-context figcaption strong{font-size:12px}
 }
+
+/* Local-only homepage scale study, enabled with ?globe-scale-test=1. */
+.globe-scale-lab{display:none;padding-top:54px;padding-bottom:80px}
+body.is-globe-scale-lab> .header,body.is-globe-scale-lab>main>.hero,body.is-globe-scale-lab>main>.home-explore{display:none}
+body.is-globe-scale-lab .globe-scale-lab{display:block}
+.globe-scale-lab-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,.55fr);align-items:end;gap:40px;margin-bottom:28px}
+.globe-scale-lab-head h2{margin-top:14px;font-size:clamp(2.7rem,5vw,5rem);line-height:.94;letter-spacing:-.06em}
+.globe-scale-lab-head p{max-width:430px;margin:0 0 5px;color:var(--muted);line-height:1.7}
+.globe-scale-lab-list{display:grid;gap:28px}
+.globe-scale-frame{overflow:hidden;border:1px solid var(--line);background:var(--bg)}
+.globe-scale-study-header{max-width:none;margin:0;padding-inline:clamp(22px,4vw,64px)}
+.globe-scale-study-hero{max-width:none}
+body.is-globe-scale-lab .globe-scale-frame .globe-scale-study-hero{display:block}
+.globe-scale-study-canvas{position:relative!important;display:block!important;width:100%!important;height:100%!important;margin:0!important;background:transparent}
+.globe-scale-study-hero .atlas-scene{width:min(64vw,880px)}
+@media(min-width:801px){
+  .globe-scale-study-hero .atlas-scene .globe-scale-study-canvas{width:calc(100% - 170px)!important;margin-left:20px!important;margin-right:150px!important}
+}
+@media(min-width:581px) and (max-width:800px){
+  .globe-scale-study-hero .atlas-scene .globe-scale-study-canvas{width:calc(100% - 156px)!important;margin-left:12px!important;margin-right:144px!important}
+}
+@media(max-width:580px){
+  .globe-scale-study-hero .atlas-scene .globe-scale-study-canvas{width:100%!important;margin-left:0!important;margin-right:0!important}
+}
+@media(max-width:620px){
+  .globe-scale-lab{padding-top:32px;padding-bottom:52px}
+  .globe-scale-lab-head{grid-template-columns:1fr;gap:16px;margin-bottom:20px}
+  .globe-scale-lab-head h2{font-size:clamp(2.6rem,12vw,4rem)}
+  .globe-scale-lab-head p{font-size:.9rem;line-height:1.6}
+  .globe-scale-lab-list{gap:20px}
+  .globe-scale-study-header{padding-inline:18px}
+  .globe-scale-study-hero{min-height:0}
+}

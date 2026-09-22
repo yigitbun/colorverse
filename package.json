@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "vite dist --host 127.0.0.1 --port 4174",
+    "dev:network": "vite dist --host 0.0.0.0 --port 4174",
     "build": "node scripts/validate-static-site.mjs",
     "cache:palette-images": "node scripts/cache-original-palette-images.mjs",
     "generate:palette-migration": "node scripts/generate-palette-migration.mjs",
@@ -14,10 +16,12 @@
     "test:privacy": "node --test scripts/test-privacy.mjs",
     "test:database": "node --test scripts/test-database-schema.mjs",
     "test:live": "node scripts/test-live-mvp.mjs",
-    "test:palettes": "node --test scripts/test-palettes.mjs"
+    "test:palettes": "node --test scripts/test-palettes.mjs",
+    "test:members": "node --test scripts/test-member-palettes.mjs"
   },
   "devDependencies": {
-    "supabase": "2.117.0"
+    "supabase": "2.117.0",
+    "vite": "^8.3.0"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.116.0"

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 const base = (process.env.COLORVERSE_LIVE_URL || 'https://colorverse.byigit.dev').replace(/\/$/, '');
 const supabaseUrl = 'https://ayzymeogptrqtouwnahh.supabase.co';
 const publishableKey = 'sb_publishable_TY49mfQAzRXvIWjlXKi9Ow_gTCaGid_';
-const publicRoutes = ['/', '/explore/', '/extract/', '/studio/', '/inspiration/', '/community/', '/lab/', '/about/', '/privacy/'];
+const publicRoutes = ['/', '/explore/', '/extract/', '/studio/', '/inspiration/', '/community/', '/lab/', '/about/', '/privacy/', '/account/'];
 
 async function get(path, options = {}) {
   return fetch(`${base}${path}`, options);
@@ -16,9 +16,9 @@ for (const header of ['content-security-policy', 'strict-transport-security', 'x
 }
 
 const homeHtml = await home.text();
-assert.match(homeHtml, /app\.js\?v=51/);
+assert.match(homeHtml, /app\.js\?v=61/);
 assert.match(homeHtml, /analytics\.js\?v=5/);
-assert.match(homeHtml, /home-explore\.css\?v=3/);
+assert.match(homeHtml, /home-explore\.css\?v=5/);
 assert.match(homeHtml, /class="small-button" href="\/studio\/">Studio<\/a>/);
 assert.match(homeHtml, /hero-palette-context/);
 assert.match(homeHtml, /heroPaletteImage/);
@@ -44,7 +44,7 @@ assert.match(inspirationHtml, /One runner\.<br>Three directions\./);
 const studio = await get('/studio/');
 assert.equal(studio.status, 200, 'studio page must be reachable');
 const studioHtml = await studio.text();
-assert.match(studioHtml, /app\.js\?v=60/);
+assert.match(studioHtml, /app\.js\?v=61/);
 assert.match(studioHtml, /studio-editor\.css\?v=7/);
 assert.match(studioHtml, /context-kits\.css\?v=5/);
 assert.match(studioHtml, /data-context="landing"[^>]*>Product/);
@@ -58,8 +58,16 @@ assert.match(studioHtml, /Palette collections/);
 assert.match(studioHtml, /Save palette/);
 assert.match(studioHtml, /Prototype bench/);
 assert.match(studioHtml, /project-store\.css\?v=7/);
+assert.match(studioHtml, /Save to My palettes/);
 
-const projectStore = await get('/project-store.js?v=16');
+const account = await get('/account/');
+const accountHtml = await account.text();
+assert.match(accountHtml, /<meta name="robots" content="noindex,nofollow">/);
+assert.match(accountHtml, /Create account/);
+assert.match(accountHtml, /My palettes/);
+assert.match(accountHtml, /Choose five colors/);
+
+const projectStore = await get('/project-store.js?v=17');
 assert.equal(projectStore.status, 200, 'private workspace script must be reachable');
 const projectStoreSource = await projectStore.text();
 assert.match(projectStoreSource, /authCooldownUntil = Date\.now\(\) \+ 20_000/);
@@ -129,6 +137,19 @@ const collectionDeleteRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/delete_saved
   body: JSON.stringify({ p_item_id: '00000000-0000-4000-8000-000000000000' }),
 });
 assert.equal(collectionDeleteRpc.status, 401, 'palette collection delete RPC must reject anonymous writes');
+
+const memberPaletteRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/save_member_palette`, {
+  method: 'POST',
+  headers: { apikey: publishableKey, 'content-type': 'application/json' },
+  body: JSON.stringify({
+    p_item_id: null,
+    p_name: 'Anonymous member palette probe',
+    p_collection_name: 'Anonymous probe',
+    p_colors: ['#000000', '#111111'],
+    p_reference_key: null,
+  }),
+});
+assert.equal(memberPaletteRpc.status, 401, 'member palette RPC must reject anonymous writes');
 
 const workspaceDeleteRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/delete_my_private_workspace`, {
   method: 'POST',

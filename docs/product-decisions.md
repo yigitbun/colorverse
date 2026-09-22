@@ -1,5 +1,31 @@
 # ColorVerse product decisions
 
+## Current priorities — 2026-09-22
+
+1. Membership first: visible Sign in / My palettes beside Studio; email/password
+   access, private collections, editable 2–24-color palettes, and Studio resume.
+   There is no product-level cap on the number of saved palettes; paginate them.
+   Keep Studio's five roles. A larger saved palette opens a five-color working
+   copy after explicit selection, without truncating the saved original.
+   Keep an allowlisted curated reference key, never arbitrary uploaded image URLs.
+2. Homepage after membership: use the third globe study size (.76), move desktop
+   actions onto the navigation line, keep “Studio” (not “My Studio”). Keep the
+   headline but remove its paragraph; lift Open Studio/Browse inspiration.
+   Enlarge the context image and put its matching swatches directly above it at
+   equal width. One thoughtful image/palette per All, Vintage, Botanical,
+   Climate, Digital and Cinema world. Remove intervening mini-links and excess
+   marketing blocks. The inspiration anchor should land on the feed filters.
+3. Inspiration: compact introduction and denser consistent cards, smaller
+   images, visible matching palette by the text/Open in Studio action. Category
+   filtering can follow. Library stays unchanged for now.
+4. Lab: compact its large introductory block; keep RoomKit. Discuss Gemini for
+   actual scene/material recoloring later. Do not simulate recoloring with a
+   flat wash over the whole image. The same rule applies to Studio products;
+   calm backgrounds should let the product colors lead.
+
+The Studio layout is approved; preserve it beyond these specific changes.
+Visual requests above are queued, not claims of completed implementation.
+
 Unapproved tool ideas and the Adobe Color / Coolors review live in
 [`color-tools-opportunities.md`](color-tools-opportunities.md); they are not implementation commitments.
 The project/template direction and proposed review-analysis method live in

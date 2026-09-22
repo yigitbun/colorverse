@@ -93,14 +93,15 @@ function colorSpace(hex) {
   return { l: Math.round(l * 100), c: c.toFixed(3), h: Math.round(h) };
 }
 
-export function isAtlasInteractionPoint(width, height, zoom, x, y) {
-  const radius = Math.min(width, height) * .425 * zoom * 1.075;
+export function isAtlasInteractionPoint(width, height, zoom, x, y, radiusScale = 1) {
+  const radius = Math.min(width, height) * .425 * zoom * radiusScale * 1.075;
   return Math.hypot(x - width / 2, y - height / 2) <= radius;
 }
 
-export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor, interactionTarget, initialWorld = 'spectrum', colorFor, trueColor = false, autoRotate = true, tiltLimit = .85 }) {
+export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor, interactionTarget, initialWorld = 'spectrum', colorFor, trueColor = false, autoRotate = true, tiltLimit = .85, radiusScale = 1 }) {
   const ctx = canvas.getContext('2d', { alpha: true });
   const cells = createHexSphere(3);
+  const globeScale = clamp(radiusScale, .45, 1.1);
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const events = new AbortController();
   const listen = (target, type, callback) => target.addEventListener(type, callback, { signal: events.signal });
@@ -124,7 +125,7 @@ export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor, inte
   function draw() {
     if (!width || !height) return;
     ctx.clearRect(0, 0, width, height);
-    const radius = Math.min(width, height) * .425 * zoom;
+    const radius = Math.min(width, height) * .425 * zoom * globeScale;
     const cr = Math.cos(rotation), sr = Math.sin(rotation), ct = Math.cos(tilt), st = Math.sin(tilt);
     const rotate = ([x, y, z]) => {
       const X = x * cr + z * sr, Z = z * cr - x * sr;
@@ -245,7 +246,7 @@ export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor, inte
   const pointerDown = event => {
     if (!event.isPrimary || event.button > 0) return;
     const box = canvas.getBoundingClientRect();
-    if (!isAtlasInteractionPoint(width, height, zoom, event.clientX - box.left, event.clientY - box.top)) return;
+    if (!isAtlasInteractionPoint(width, height, zoom, event.clientX - box.left, event.clientY - box.top, globeScale)) return;
     event.preventDefault();
     pointer = { x: event.clientX, y: event.clientY, startX: event.clientX, startY: event.clientY };
     dragging = true; moved = false; hover = -1;

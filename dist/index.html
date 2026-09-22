@@ -12,10 +12,10 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/styles.css?v=24">
   <link rel="stylesheet" href="/design-system.css?v=29">
-  <link rel="stylesheet" href="/home-explore.css?v=3">
-  <link rel="stylesheet" href="/mobile-atlas.css?v=1">
+  <link rel="stylesheet" href="/home-explore.css?v=5">
+  <link rel="stylesheet" href="/mobile-atlas.css?v=2">
   <link rel="stylesheet" href="/privacy.css?v=2">
-  <script type="module" src="/app.js?v=51"></script>
+  <script type="module" src="/app.js?v=61"></script>
   <script type="module" src="/analytics.js?v=5"></script>
 </head>
 <body>
@@ -55,6 +55,14 @@
         <div class="atlas-controls"><button class="icon-button" id="zoomOut" aria-label="Zoom out">−</button><button class="icon-button" id="pauseAtlas" aria-label="Pause globe rotation" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5v10M13 5v10"/></svg></button><button class="icon-button" id="zoomIn" aria-label="Zoom in">+</button></div>
       </div>
       <div class="hero-baseline"><span>Explore color. Make it usable.</span><a href="#discover">See selected work <span aria-hidden="true">↓</span></a></div>
+    </section>
+
+    <section class="globe-scale-lab section-wrap" id="globeScaleLab" hidden aria-labelledby="globeScaleLabTitle">
+      <div class="globe-scale-lab-head">
+        <div><div class="eyebrow">Local design study</div><h2 id="globeScaleLabTitle">Choose the globe’s weight.</h2></div>
+        <p>Same hero, five diameters. Scroll and compare the visual balance before we change the default.</p>
+      </div>
+      <div class="globe-scale-lab-list" id="globeScaleLabList"></div>
     </section>
 
     <section class="home-explore section-wrap" id="discover" aria-labelledby="homeExploreTitle">

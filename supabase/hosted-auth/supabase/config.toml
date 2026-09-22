@@ -1,0 +1,15 @@
+# Narrow remote configuration: only these declared properties are pushed.
+# Never push the generated local-development config.toml to the hosted project.
+project_id = "colorverse-hosted-auth"
+
+[auth]
+additional_redirect_urls = [
+  "https://colorverse.byigit.dev/studio/",
+  "https://colorverse.byigit.dev/account/",
+  "https://dev.colorverse.byigit.dev/account/",
+  "https://dev.colorverse.byigit.dev/studio/",
+  "https://dev.colorverse-85o.pages.dev/account/",
+  "https://dev.colorverse-85o.pages.dev/studio/",
+  "http://127.0.0.1:4174/account/",
+  "http://127.0.0.1:4174/studio/"
+]

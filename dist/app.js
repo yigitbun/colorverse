@@ -1,9 +1,11 @@
 import { palettes } from './palettes.js?v=27';
 import { roles, clamp, contrast, textOn, rgb, toHex, oklab, oklch, paletteFromColor, exportPalette, extractPaletteVariants, oklabDistance } from './color.js';
-import { createAtlas, atlasWorlds } from './globe.js?v=27';
+import { createAtlas, atlasWorlds } from './globe.js?v=29';
 import { buildShadeFamilies } from './shade-studio.js?v=1';
 import { createColorGlobe } from './color-globe.js?v=2';
 import { SUPPORTED_IMAGE_TYPES, validateImageFile } from './image-file.js?v=1';
+import { initAccountNavigation } from './account-client.js';
+import { DRAFT_KEY, STUDIO_HANDOFF_KEY, readDraft, sanitizeDraft } from './member-palette.js';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -52,6 +54,16 @@ const editionPalettes = [...palettes, ...specialEditions];
 const requestedPalette = editionPalettes.find(palette => palette.id === params.get('p'));
 const storedPalette = readStoredPalette();
 let current = requestedPalette || (storedPalette && (!params.get('p') || storedPalette.id === params.get('p')) ? storedPalette : palettes[0]);
+if (page === 'studio' && params.get('saved') === '1') {
+  const saved = readDraft(sessionStorage, STUDIO_HANDOFF_KEY);
+  if (saved?.colors.length === 5) {
+    const reference = editionPalettes.find(palette => palette.id === saved.referenceKey);
+    current = { ...(reference || palettes[0]), id: `saved-${Date.now()}`, name: saved.name,
+      description: 'A working copy of your private palette.', colors: saved.colors, sourcePaletteId: reference?.id || null };
+    try { sessionStorage.removeItem(STUDIO_HANDOFF_KEY); sessionStorage.setItem('colorverse-current-palette', JSON.stringify(current)); } catch {}
+    history.replaceState(null, '', '/studio/');
+  }
+}
 let context = 'landing';
 let productKind = current.id === 'skincare-system-01' ? 'skincare' : current.id === 'drift-field-01' ? 'footwear' : 'footwear';
 let format = 'css';
@@ -219,7 +231,7 @@ function studioSnapshot() {
 function loadStudioSnapshot(snapshot) {
   if (!snapshot || !Array.isArray(snapshot.colors) || snapshot.colors.length !== 5 || !snapshot.colors.every(color => /^#[0-9a-f]{6}$/i.test(color))) return;
   const colors = snapshot.colors.map(color => color.toUpperCase());
-  const source = signatureFor(colors[2]);
+  const source = editionPalettes.find(palette => palette.id === snapshot.sourcePaletteId) || signatureFor(colors[2]);
   current = {
     id: `project-${snapshot.id || Date.now()}`,
     name: snapshot.name || 'Saved project',
@@ -856,6 +868,8 @@ document.addEventListener('click', event => {
 });
 
 if (page === 'home') {
+  const globeScaleStudy = params.get('globe-scale-test') === '1';
+  document.body.classList.toggle('is-globe-scale-lab', globeScaleStudy);
   const homeExplorePresentation = {
     'skincare-system-01': { title: 'Soft Structure', image: '/assets/editions/skincare-system-01-v1.jpg', category: 'ColorVerse Edition · Series 01', context: 'care objects · packaging', href: '/editions/skincare-system-01/' },
     'warm-cafe': { title: 'Quiet House', image: '/assets/community/quiet-house-editorial.jpg', category: 'Brand system', context: 'hospitality · packaging' },
@@ -905,7 +919,61 @@ if (page === 'home') {
   let worldVariantIndex = 0;
   const atlasWorldSwitch = $('#atlasWorldSwitch');
   const atlasWorldSelect = $('#atlasWorldSelect');
-  if (atlasWorldSwitch) {
+  const setupGlobeScaleStudy = () => {
+    const section = $('#globeScaleLab');
+    const list = $('#globeScaleLabList');
+    const sourceHeader = document.querySelector('body > .header');
+    const sourceHero = document.querySelector('body > main > .hero');
+    if (!globeScaleStudy || !section || !list || !sourceHeader || !sourceHero) return;
+    section.hidden = false;
+    sourceHeader.style.display = 'none';
+    sourceHero.style.display = 'none';
+    const studies = [
+      { scale: 1, label: '100%', note: 'Current reference' },
+      { scale: .88, label: '88%', note: 'Slightly lighter' },
+      { scale: .76, label: '76%', note: 'Balanced' },
+      { scale: .64, label: '64%', note: 'Compact' },
+      { scale: .52, label: '52%', note: 'Quiet' },
+    ];
+    list.replaceChildren(...studies.map((study, index) => {
+      const frame = document.createElement('article');
+      frame.className = 'globe-scale-frame';
+      const header = sourceHeader.cloneNode(true);
+      header.classList.add('globe-scale-study-header');
+      header.style.display = '';
+      const hero = sourceHero.cloneNode(true);
+      hero.classList.add('globe-scale-study-hero');
+      hero.style.display = 'block';
+      [header, hero].forEach(root => root.querySelectorAll('[id]').forEach(element => element.removeAttribute('id')));
+      const canvas = hero.querySelector('canvas');
+      const worldRail = hero.querySelector('.atlas-world-rail');
+      const worldSelect = hero.querySelector('.atlas-world-mobile select');
+      const worldLabel = hero.querySelector('.atlas-world-rail');
+      if (worldRail) worldRail.innerHTML = `<span class="atlas-world-label">Worlds</span>${atlasWorlds.map((world, worldIndex) => `<button type="button" role="tab" aria-selected="${world.id === savedAtlasWorld.id}" title="${escape(world.name)}"><span class="atlas-world-index">${String(worldIndex + 1).padStart(2, '0')}</span><span class="atlas-world-copy"><strong>${escape(world.shortName)}</strong><small>${escape(world.name)}</small></span><i class="atlas-world-chip" style="--world-accent:${world.accent}"></i></button>`).join('')}`;
+      if (worldSelect) worldSelect.innerHTML = atlasWorlds.map(world => `<option value="${world.id}">${escape(world.name)}</option>`).join('');
+      if (worldLabel) worldLabel.setAttribute('aria-label', 'Choose a color world');
+      if (canvas) {
+        canvas.classList.add('globe-scale-study-canvas');
+        canvas.setAttribute('tabindex', '0');
+        canvas.setAttribute('role', 'application');
+        canvas.setAttribute('aria-label', `Homepage globe at ${study.label} scale`);
+      }
+      frame.append(header, hero);
+      return frame;
+    }));
+    list.querySelectorAll('.globe-scale-study-canvas').forEach((canvas, index) => {
+      const hero = canvas.closest('.globe-scale-study-hero');
+      createAtlas(canvas, {
+        initialWorld: savedAtlasWorld.id,
+        interactionTarget: hero?.querySelector('.atlas-touch-zone'),
+        radiusScale: studies[index].scale,
+        autoRotate: false,
+        trueColor: false,
+      });
+    });
+  };
+  setupGlobeScaleStudy();
+  if (!globeScaleStudy && atlasWorldSwitch) {
     atlasWorldSwitch.innerHTML = `<span class="atlas-world-label">Worlds</span>${atlasWorlds.map((world, index) => `<button type="button" role="tab" data-atlas-world="${world.id}" aria-selected="${world.id === activeAtlasWorld.id}" tabindex="${world.id === activeAtlasWorld.id ? '0' : '-1'}" title="${escape(world.name)}"><span class="atlas-world-index">${String(index + 1).padStart(2, '0')}</span><span class="atlas-world-copy"><strong>${escape(world.shortName)}</strong><small>${escape(world.name)}</small></span><i class="atlas-world-chip" style="--world-accent:${world.accent}"></i></button>`).join('')}`;
     if (atlasWorldSelect) atlasWorldSelect.innerHTML = atlasWorlds.map(world => `<option value="${world.id}">${escape(world.name)}</option>`).join('');
     const useWorldStarter = (index = 0, notify = false) => {
@@ -946,6 +1014,7 @@ if (page === 'home') {
     const globe = createAtlas($('#globe'), {
       interactionTarget: $('#atlasTouchZone'),
       initialWorld: activeAtlasWorld.id,
+      radiusScale: .76,
       imageFor(hex) { const source = signatureFor(hex); return { image: source.image, name: source.name, category: source.category, tags: source.tags }; },
       onSelect(payload) { addAtlasSelection(payload); globe.setSelection(atlasSelected.map(item => item.index)); },
       onHover(payload) { atlasHover = payload; if (payload && !atlasPinned) setAtlasReadout(payload); },
@@ -1272,8 +1341,15 @@ if (input && dropzone) {
 }
 
 renderSelection();
+initAccountNavigation();
 if (page === 'studio') {
-  import('./project-store.js?v=16')
+  $('#savePersonalPalette')?.addEventListener('click', () => {
+    const snapshot = studioSnapshot();
+    const draft = sanitizeDraft({ ...snapshot, referenceKey: snapshot.sourcePaletteId });
+    try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); location.assign('/account/'); }
+    catch { toast('Allow browser storage to keep this palette while signing in.'); }
+  });
+  import('./project-store.js?v=17')
     .then(({ initProjectWorkspace }) => initProjectWorkspace(window.colorverseStudio))
     .catch(() => { const label = $('#projectSyncLabel'); if (label) label.textContent = 'Local draft'; });
 }
