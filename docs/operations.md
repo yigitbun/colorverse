@@ -4,16 +4,17 @@ This document is the durable source of truth for hosting and deployment. Keep
 opaque IDs and credentials in their existing configuration or secret stores;
 do not copy them into this document.
 
-## Production
+## Live working site
 
-- Public URL: <https://colorverse.byigit.dev>
+- Sole public ColorVerse URL: <https://colorverse.byigit.dev>
 - Production host: Cloudflare Pages
 - Cloudflare Pages project: `colorverse`
 - Pages origin: <https://colorverse-85o.pages.dev>
 - Source repository: <https://github.com/yigitbun/colorverse>
 - Production branch: `main`
 - Published static directory: `dist/`
-- Release trigger: a push to `main` starts the Cloudflare Pages production deployment
+- Release trigger: a push to `main` starts the Cloudflare Pages deployment.
+  This is presently a public working environment; visitors can see each release.
 
 The public DNS route is a proxied CNAME named `colorverse` pointing to
 `colorverse-85o.pages.dev`. Do not point it to `custom-domains.chatgpt.site` or
@@ -22,35 +23,19 @@ attach `colorverse.byigit.dev` to a ChatGPT Site.
 ## Development
 
 - Local URL: `http://127.0.0.1:4174` via `npm run dev`
-- Shared URL: <https://dev.colorverse.byigit.dev> (active HTTPS custom domain)
-- Development host: separate Cloudflare Pages project `colorverse-dev`
-- Pages origin: <https://colorverse-dev.pages.dev>
-- Source branch: `dev`, configured as the development project's production
-  branch. Pushes to `dev` deploy to this project; pushes to `main` deploy to
-  the public production project.
-- Access: Cloudflare Access email allowlist with a remembered session is the
-  intended gate. It is not configured yet; treat the development site as
-  publicly viewable until its access policy is verified. The Pages origin also
-  needs a matching gate if private previews are required.
-- Data: a separate Supabase project was attempted on 2026-09-22 but the account
-  already has two active free projects. The owner explicitly approved using
-  the existing ColorVerse Studio database for dev membership in this phase.
-  This is a temporary shared-data exception: preserve existing records and
-  never reset/seed/delete the shared database as if it were disposable.
-  Split the backend before broader testing or a production-domain launch.
-
-The `dev.colorverse` CNAME points to `colorverse-dev.pages.dev`; the public
-`colorverse.byigit.dev` route stays on the original production project. The
-old `colorverse` project also creates an automatic `dev` branch preview, but
-that preview is not the canonical dev host and has no account database access.
+- Vite hot reload makes local HTML/CSS/JS edits visible without deploying.
+- There is no separate online development hostname. Publish approved work to
+  `main` and review it at the sole public URL above. Do not create or reattach
+  `dev.colorverse.byigit.dev` or start Cloudflare Access for this workflow.
+- Membership uses the existing ColorVerse Studio Supabase project. The owner
+  approved using it when the free-project cap prevented a second database;
+  preserve existing records. Do not treat it as disposable test data.
 
 Account browser settings live in `dist/account-config.js`. Unknown preview
 hostnames fail closed rather than silently connecting to the shared backend.
-Development analytics are disabled. The new account page and migration are
-deployed on the `dev` branch and passed the anonymous live smoke test. Cloudflare
-Pages reported successful builds for the dev deployment, and the custom-domain
-account route was verified over HTTPS. A real inbox confirmation and
-password-recovery test remains to verify email delivery.
+The account page and migration passed anonymous and owner-boundary tests. A
+real inbox confirmation and password-recovery test remains to verify email
+delivery.
 
 ## ChatGPT Sites preview
 

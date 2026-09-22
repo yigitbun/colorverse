@@ -4,12 +4,8 @@ export const productionAccount = {
   key: 'sb_publishable_TY49mfQAzRXvIWjlXKi9Ow_gTCaGid_',
 };
 
-// Temporary shared backend explicitly approved by the owner on 2026-09-22.
-// Authentication/storage are still isolated by origin. Data is shared, not cloned.
-export const developmentAccount = productionAccount;
-
 export function accountConfig(hostname) {
   if (['colorverse.byigit.dev', 'colorverse-85o.pages.dev'].includes(hostname)) return productionAccount;
-  if (['dev.colorverse.byigit.dev', '127.0.0.1', 'localhost'].includes(hostname)) return developmentAccount;
+  if (['127.0.0.1', 'localhost'].includes(hostname)) return productionAccount;
   return null;
 }

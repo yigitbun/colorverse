@@ -23,7 +23,8 @@ test('Studio uses exactly five explicit distinct positions without changing the 
   for (const indices of [[0,0,1,2,3],[0,1,2,3,10],[0,1,2,3,-1],[0,1,2,3],null]) assert.equal(studioColors(colors,indices),null);
 });
 test('only approved origins connect to the account database', () => {
-  assert.ok(accountConfig('colorverse.byigit.dev')); assert.ok(accountConfig('dev.colorverse.byigit.dev'));
+  assert.ok(accountConfig('colorverse.byigit.dev'));
+  assert.equal(accountConfig('dev.colorverse.byigit.dev'),null);
   assert.equal(accountConfig('dev.colorverse-85o.pages.dev'),null);
   assert.equal(accountConfig('colorverse-dev.pages.dev'),null);
   assert.equal(accountConfig('random.colorverse-85o.pages.dev'),null); assert.equal(accountConfig('evil.example'),null);
