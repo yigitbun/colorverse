@@ -10,10 +10,9 @@ and refreshes the browser as HTML, CSS, and JavaScript files change. Use
 `npm run dev:network` only when the local preview needs to be opened from
 another device on the same network.
 
-The intended shared development host is `dev.colorverse.byigit.dev`. It is not
-configured yet: the current `colorverse.byigit.dev` route remains the live
-Cloudflare Pages production URL until `colorverse.com` is acquired and the
-production cutover is explicitly completed.
+The shared development host is `dev.colorverse.byigit.dev`, deployed from the
+`dev` branch to a separate Cloudflare Pages project. The public
+`colorverse.byigit.dev` site continues to deploy from `main`.
 
 ## Features
 

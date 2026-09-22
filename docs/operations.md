@@ -19,13 +19,20 @@ The public DNS route is a proxied CNAME named `colorverse` pointing to
 `colorverse-85o.pages.dev`. Do not point it to `custom-domains.chatgpt.site` or
 attach `colorverse.byigit.dev` to a ChatGPT Site.
 
-## Development (planned)
+## Development
 
 - Local URL: `http://127.0.0.1:4174` via `npm run dev`
-- Intended shared URL: `https://dev.colorverse.byigit.dev`
-- Intended branch: `dev`
-- Access: Cloudflare Access with a remembered email session, not a shared
-  password
+- Shared URL: <https://dev.colorverse.byigit.dev> (custom-domain TLS may still
+  be provisioning immediately after setup)
+- Development host: separate Cloudflare Pages project `colorverse-dev`
+- Pages origin: <https://colorverse-dev.pages.dev>
+- Source branch: `dev`, configured as the development project's production
+  branch. Pushes to `dev` deploy to this project; pushes to `main` deploy to
+  the public production project.
+- Access: Cloudflare Access email allowlist with a remembered session is the
+  intended gate. It is not configured yet; treat the development site as
+  publicly viewable until its access policy is verified. The Pages origin also
+  needs a matching gate if private previews are required.
 - Data: a separate Supabase project was attempted on 2026-09-22 but the account
   already has two active free projects. The owner explicitly approved using
   the existing ColorVerse Studio database for dev membership in this phase.
@@ -33,14 +40,16 @@ attach `colorverse.byigit.dev` to a ChatGPT Site.
   never reset/seed/delete the shared database as if it were disposable.
   Split the backend before broader testing or a production-domain launch.
 
-The shared development hostname and branch are not configured yet. Until the
-production domain is acquired and a deliberate cutover is completed,
-`colorverse.byigit.dev` remains production. Do not repoint it to development.
+The `dev.colorverse` CNAME points to `colorverse-dev.pages.dev`; the public
+`colorverse.byigit.dev` route stays on the original production project. The
+old `colorverse` project also creates an automatic `dev` branch preview, but
+that preview is not the canonical dev host and has no account database access.
 
 Account browser settings live in `dist/account-config.js`. Unknown preview
 hostnames fail closed rather than silently connecting to the shared backend.
 Development analytics are disabled. The new account page and migration are
-being prepared locally; do not describe them as deployed until verified online.
+deployed on the `dev` branch and passed the anonymous live smoke test. A real
+inbox confirmation and password-recovery test remains to verify email delivery.
 
 ## ChatGPT Sites preview
 

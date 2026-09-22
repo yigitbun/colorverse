@@ -10,6 +10,6 @@ export const developmentAccount = productionAccount;
 
 export function accountConfig(hostname) {
   if (['colorverse.byigit.dev', 'colorverse-85o.pages.dev'].includes(hostname)) return productionAccount;
-  if (['dev.colorverse.byigit.dev', 'dev.colorverse-85o.pages.dev', '127.0.0.1', 'localhost'].includes(hostname)) return developmentAccount;
+  if (['dev.colorverse.byigit.dev', '127.0.0.1', 'localhost'].includes(hostname)) return developmentAccount;
   return null;
 }
