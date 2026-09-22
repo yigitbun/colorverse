@@ -257,9 +257,10 @@ try {
   });
   const { data, error } = await client.auth.getSession();
   if (error) throw error;
-  const newlyLoaded = session?.user.id !== data.session?.user.id;
   session = data.session; renderSession();
-  if (newlyLoaded && session) { await loadCollections(); await loadPalettes(); }
+  // INITIAL_SESSION can arrive before getSession resolves; load saved work in
+  // either ordering instead of leaving a returning member with an empty view.
+  if (session) { await loadCollections(); await loadPalettes(); }
   const errorParams = new URLSearchParams(location.hash.slice(1));
   if (errorParams.has('error') || new URLSearchParams(location.search).has('error')) status('This email link is invalid or expired. Request a fresh link or sign in with your password.', 'error');
   if (location.search || location.hash) history.replaceState(null, '', '/account/');
