@@ -4,6 +4,54 @@ Güncelleme: 2026-09-27. Kanonik backlog; yeni bir ajan önce
 [devir paketini](handoff.md) okumalı. Kaynaklar: sahibin kapanan sohbetteki
 istekleri, mevcut repo, ürün kararları ve MVP denetimi. Claude projesi okunmadı.
 
+## Aktif yayın hazırlığı — 27–28 Eylül 2026
+
+Ürün sahibi haftalara yayılan planı istemiyor. Hedef, en geç **28 Eylül 2026
+(Europe/Berlin)** kendi testini yapabileceği bir yayın adayı hazırlamak ve
+yayın koşulları tamamlanınca çıkmak. Kullanıcı araştırması ve büyük mimari
+refactor bu yayın hazırlığının ön koşulu değildir. Yeni belirtilen son işler
+Codex tarafından bu listeye alınır; henüz ayrıntıları verilmiş sayılmaz.
+
+Tek koordinasyon merkezi Codex'tir; çalışma yöntemi
+[agent coordination](agent-coordination.md) dosyasındadır. Aşağıdaki tablo
+aktif sahipliği gösterir; alttaki backlog iş tanımlarını ve kabul ölçütlerini
+korur. Tarih hedefi, geçilmemiş kontrolleri tamamlanmış saydırmaz.
+
+| İş | Sahip | Durum / sıradaki çıktı |
+| --- | --- | --- |
+| TEAM-01 — ortak kurallar ve Claude girişi | Codex | Hazır: AGENTS.md, CLAUDE.md ve koordinasyon protokolü. Claude oturumu başlatılmadı; teknik branch koruması kurulmadı |
+| AUTH-EMAIL-01 — markalı kod e-postası | Claude | Atandı; ayrı worktree başlatılıyor. [Görev ve dosya kapsamı](tasks/auth-email-01.md). HTML şablonu ve dar kapsamlı kontrol; hosted değişiklik Codex'te |
+| AUTH-UI-01 — ortak e-posta/kod ekranları | Codex | Aktif; main checkout. Account/Studio giriş HTML-CSS, ortak email-code-flow, ilgili regresyonlar ve son entegrasyon. Claude bu dosyalara yazmaz |
+| QA-01 — bağımsız yerel yolculuk denetimi | Claude | AUTH işleri entegre edilince sırada; aşağıdaki brief ile read-only inceleme |
+| Son kullanıcı istekleri ve çıkan yayın hataları | Codex | İlk istek hesap/kod/e-posta deneyiminin tamamlanması olarak alındı; ek istekler ve QA bulguları burada takip edilir |
+| AUTH-01/02/03 — gerçek inbox ve save/resume | Ürün sahibi; hazırlık Codex | En geç 28 Eylül kullanıcı testi hedefi. Gerçek giriş ve veri korunumu kanıtı açık |
+| CUR-01 / LEGAL-01 — içerik ve yayın metni kararları | Ürün sahibi; hazırlık Codex | Yayın öncesi açık. Onaylı ilk içerik veya açıkça boş Library kararı gerekli |
+| REL-01 / REL-02 — aday kontrolü ve yayın | Codex | Düzeltmeler ve kullanıcı testi sonrası; operations akışıyla deployment ve hosted doğrulama |
+
+### QA-01 — Claude'a hazır ilk görev
+
+- **Amaç:** mevcut adayın temel kullanıcı yolculuklarındaki tekrarlanabilir
+  yayın engellerini bul. Yeni ürün tasarlama veya kod düzeltmesi yapma.
+- **Çalışma alanı:** mevcut checkout yalnız okunur; yazılabilir repo dosyası
+  yok. Branch/worktree açma, branch değiştirme, stage/commit/push yapma.
+  Başta ve sonda HEAD ile dirty-file durumunu, uncommitted uygulama varsa
+  diff veya içerik hash'lerini kaydet; değişen yolu yeniden kontrol et.
+  Bu görev için henüz ayrı worktree yok.
+- **Oku:** AGENTS.md, coordination, handoff, MVP denetimi ve bu brief.
+- **Kontrol:** `npm run check:release`; yerel `http://127.0.0.1:4174/` üzerinde
+  Explore → Studio renk aktarımı, Extract → Studio beş renk/oran/manuel örnek,
+  Studio düzenleme → export, Account ve Studio signed-out form durumları.
+  Geniş ekran ve 390 px'de klavye, taşma ve console hatalarına bak.
+- **Sınır:** ayrı tarayıcı profili/izole oturumda browser-local taslaklarla çalış;
+  yalnız yeni sekme açmak localStorage'ı ayırmaz. Sahibin oturumunu kullanma.
+  Extract için yalnız repo içindeki örnek görselleri kullan; kişisel dosya
+  veya mevcut üye projesi açma. Gerçek mail/OTP gönderme, hesap yaratma/silme,
+  hosted ayar veya veri değiştirme. `test-member-live.mjs` çalıştırma.
+  Test edemediğin yolu NOT RUN olarak bırak; gerçek inbox testinin yerine geçme.
+- **Teslim:** Codex'e PASS / FAIL / NOT RUN tablosu; her hata için URL,
+  tekrarlama adımları, beklenen/gözlenen sonuç ve önem derecesi. Repo dosyası
+  düzenleyerek ikinci iş listesi oluşturma. Düzeltme görevini Codex dağıtır.
+
 ## Durum ve yetki sözlüğü
 
 - **Açık:** gerekli iş/kanıt yok; otomatik olarak uygulama yetkisi verilmiş sayılmaz.
@@ -16,9 +64,9 @@ istekleri, mevcut repo, ürün kararları ve MVP denetimi. Claude projesi okunma
 Aşağıdaki işlerin tamamında, ayrıca belirtilmedikçe, son tarih **tarih
 belirlenmeli**. Teknik işlerin sahibi uygulama ajanı; içerik/ürün seçimlerinin
 sahibi ürün sahibidir. Hukuki inceleme için sorumlu atanmalıdır. Sorumlu rolü
-yetkiyi genişletmez. Devir turunun odak kaydı: `HQ-01` kapandı; sonraki aktif
-odak `AUTH-01`, `CUR-01`, `LEGAL-01`, `REL-01` (en fazla beş iş). Diğerleri
-takip kuyruğudur; HQ-02 private backup kararı unutulmaz.
+yetkiyi genişletmez. `HQ-01` kapandı. Güncel odak ve süre yukarıdaki aktif yayın
+hazırlığı tablosundadır; diğer kayıtlar takip kuyruğudur. HQ-02 private backup
+kararı unutulmaz.
 
 ## HQ / rapordaki teknik riskler
 
@@ -164,7 +212,7 @@ tutar. Bunlar otomatik geliştirme listesi değildir; güncel durum:
 | ID | Öncelik / durum | İş, sorumlu ve tamamlanma ölçütü |
 | --- | --- | --- |
 | LEGAL-01 | P0 / Karar | Preview membership/privacy notice'ı final launch scope'a göre değerlendir. Owner, gerekirse uzman. Retail koşulları kopyalanmaz; şu an metin hukuki onaylı değildir. Stock/AI/member hakları ayrı record; timestamp izin kanıtı değildir |
-| REL-01 | P0 / Yeni talimat bekler | Onaylı local HEAD'i push et, Cloudflare deployment'ı doğrula, `npm run test:live:release` ve hosted browser journeys uygula. Ajan. Bu turun commit yetkisi push/deploy yetkisi değil |
+| REL-01 | P0 / Yayın hazırlığı | Kullanıcının hızlandırılmış yayın hedefi geçerli. Test edilmiş ve Codex tarafından incelenmiş adayın yayınını operations akışı ve sahibin yayın yönlendirmesiyle yap; Cloudflare deployment'ı, `npm run test:live:release` ve hosted browser journeys doğrula. Açık kullanıcı/içerik kapıları henüz geçilmiş değil |
 | REL-02 | P1 / Açık | Hosted dar-screen/keyboard/dark/reduced-motion/no-JS/CSP required-assets smoke tekrarını yap. Ajan. Historical 390px local pass, yeni release browser pass sayılmaz |
 | REL-03 | P1 / Doğrulama | Private-data policy boundary kanıtını değişiklik riskine göre yenile. Ajan. Read-only checks ile admin user-creating tests ayrı; `test-member-live.mjs` eski password probe'u OTP delivery testine alternatif değil |
 | REL-04 | P2 / Park | İlk gerçek kullanıcılardan sonra consented funnel review. Owner. Fixed event enums; email/code/palette/image/project name taşınmaz. Popularity/world starter kararına yeterli veri olmadan ranking iddiası yok |

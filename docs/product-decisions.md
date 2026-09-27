@@ -6,6 +6,10 @@ This block takes precedence over superseded decisions below. The dated entries
 are an audit trail, not instructions to reimplement every earlier experiment.
 Start a new session with [the handoff](handoff.md) and [open work](open-work.md).
 
+- Delivery direction: the owner wants an intensive release preparation with
+  personal testing by 2026-09-28 (Europe/Berlin), not a multi-week prerequisite.
+  Codex coordinates Claude and all integration; assignments live in open work.
+  Additional final product requests still need to be enumerated there.
 - Account and Studio use email + OK → **eight-digit code**, for new and returning
   members alike. No passwords, password reset, or requested sign-in links.
   Real inbox delivery/consumption and authenticated save/resume remain unverified.
@@ -36,7 +40,8 @@ Start a new session with [the handoff](handoff.md) and [open work](open-work.md)
   Community is a local prototype; no public posting/moderation backend exists.
 - The public working site is Cloudflare Pages; see [operations](operations.md).
   Passing local tests, recording commits, approving content and deploying are
-  separate actions. This handoff authorizes local commits, not push/deployment.
+  separate actions. Follow the current owner release direction and operations;
+  the earlier commit-only handoff is historical, not a new publishing decision.
 
 ## 2026-09-27 — Explore selection: one Katre, new Lorien care
 

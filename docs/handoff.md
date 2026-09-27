@@ -2,8 +2,23 @@
 
 Güncelleme: 2026-09-27. Bu dosya kapanan sohbetin yerine geçecek başlangıç
 kaydıdır. Ham sohbetin veya başka bir AI projesinin okunması gerekmemelidir.
-Kullanıcı bu turda dokümantasyonun tamamlanmasını ve bekleyen çalışmanın yerel
-commit edilmesini istedi; push, deployment, yeni hesap veya veri silme istemedi.
+Önceki devir oturumu dokümantasyon ve yerel commit ile sınırlıydı; aşağıdaki
+güncel yönlendirme sonraki görüşmeyi kaydeder.
+
+## Güncel yönlendirme — 2026-09-27
+
+- Kullanıcı yoğun çalışıp en geç **28 Eylül 2026 (Europe/Berlin)** kendi testini
+  yapmak ve yayın koşulları kapanınca çıkmak istiyor. Haftalara yayılan plan
+  yerine kısa yayın hazırlığı geçerli. Kalan birkaç ürün işi henüz sıralanmadı.
+- Codex **AI Product & Engineering Lead**, Claude **AI Product & Engineering
+  Partner**. Tek karar/entegrasyon merkezi Codex; ortak ilk giriş AGENTS.md,
+  Claude girişi CLAUDE.md. Ayrı backlog veya bağımsız yayın akışı yok.
+- [Koordinasyon protokolü](agent-coordination.md) ve [aktif görevler](open-work.md)
+  geçerli. Claude için QA-01 hazır; henüz çalıştırılmadı. Kod yazma görevinde
+  ayrı worktree ve dosya sahipliği önce tanımlanır.
+- Süre hedefi inbox/save-resume, içerik ve yayın metni kontrollerini kapatmaz.
+  Kullanıcı testi ve hosted doğrulama hâlâ kanıt gerektirir; canlı veri silme
+  veya başka AI projelerine erişim bu hazırlığın parçası değildir.
 
 ## İlk okunacaklar
 
@@ -17,19 +32,19 @@ commit edilmesini istedi; push, deployment, yeni hesap veya veri silme istemedi.
 tarihsel kayıtlar otomatik geliştirme talimatı değildir. Yeni uygulama isteği
 gelmeden terk edilmiş deneyleri tekrar yapma.
 
-## Tek odak ve sonraki beş öncelik
+## Yayın öncesi öncelikler
 
-Mevcut ürünün güvenilirliğini ve içeriğini doğrula; yeni yüzeyler açmak bir sonraki
-oturum için önerilen öncelik değildir. Bu bir çalışma önerisidir, yeni bir ürün
-freeze kararı veya harici işlem yetkisi değildir.
+Mevcut ürünün güvenilirliğini, içeriğini ve kullanıcının belirteceği son işleri
+yayına hazırla. Aktif görev sahipliği open-work başındadır; aşağıdaki tablo
+yayın için gereken temel kanıtları gösterir.
 
 | Sıra | İş | Tek sorumlu | Son tarih | Tamamlanma kanıtı |
 | --- | --- | --- | --- | --- |
-| 1 | Git kaydı ve özel materyal sınırı (`HQ-01`, kapandı) | Uygulama ajanı | 2026-09-27 | Aşağıdaki yerel checkpointler; özel yollar tracked değil; yalnız Git arşiviyle test geçti |
-| 2 | Gerçek inbox ve özel save/resume yolculuğunu tamamla (`AUTH-01`) | Ürün sahibi | Tarih belirlenmeli | Yeni/mevcut üye, sekiz haneli kod, kayıt, çıkış ve tekrar açma |
-| 3 | İlk Library içerik kararını ver (`CUR-01`) | Ürün sahibi | Tarih belirlenmeli | Tek tek onay veya açıkça boş Library ile sınırlı yayın kararı |
-| 4 | Yayın metinleri/haklar için inceleme yap (`LEGAL-01`) | Sorumlu atanmalı | Tarih belirlenmeli | Sahibin değerlendirdiği nihai metin; hukuki inceleme gerekirse uzman |
-| 5 | Onaydan sonra Cloudflare yayını ve hosted smoke test yap (`REL-01`) | Uygulama ajanı | Yayın talimatından sonra | Deployment kanıtı + release-candidate kontrolü + tarayıcı yolculuğu |
+| 1 | Yerel adayın bağımsız denetimi (`QA-01`) ve bulgu düzeltmeleri | Codex; denetim Claude | Kullanıcı testinden önce | Tekrarlanabilir rapor, incelenmiş düzeltmeler, yerel kontrol |
+| 2 | Gerçek inbox ve özel save/resume yolculuğunu tamamla (`AUTH-01/02/03`) | Ürün sahibi | En geç 2026-09-28 test hedefi | Yeni/mevcut üye, sekiz haneli kod, kayıt, çıkış ve tekrar açma |
+| 3 | İlk Library içerik kararını ver (`CUR-01`) | Ürün sahibi | Yayın öncesi | Tek tek onay veya açıkça boş Library ile sınırlı yayın kararı |
+| 4 | Yayın metinleri/haklar için inceleme yap (`LEGAL-01`) | Ürün sahibi | Yayın öncesi | Sahibin değerlendirdiği nihai metin; hukuki inceleme gerekirse uzman |
+| 5 | Cloudflare yayını ve hosted smoke test (`REL-01/02`) | Codex | Testler ve yayın yönlendirmesi sonrası | Deployment kanıtı + release-candidate kontrolü + tarayıcı yolculuğu |
 
 Ürün sahibi inbox erişimi ve içerik kararlarını verir. Ajan eksik onayı varmış
 gibi doldurmaz; canlı kullanıcı/veri silmek önceki bir onayın devamı değildir.
@@ -166,8 +181,9 @@ ve aşağıdaki çalışma kayıtlarından okunur; gerçek inbox gate açık kal
 
 Yeni sohbete yapıştırılabilir başlangıç:
 
-> ColorVerse projesinde devam ediyoruz. Önce AGENTS.md, docs/handoff.md,
-> docs/open-work.md ve docs/mvp-gap-audit.md dosyalarını oku. Bu dosyalar önceki
-> sohbetin devridir. Claude/ChatGPT projelerine kendiliğinden girme. İlk olarak
-> mevcut local Git kaydını ve yayın öncesi açık kapıları raporla; yeni özellik,
-> push/deploy, email gönderme veya veri silme için ayrıca talimat bekle.
+> ColorVerse projesinde devam ediyoruz. Önce AGENTS.md ve oradaki koordinasyon
+> kurallarını, ardından docs/handoff.md, docs/open-work.md ve docs/mvp-gap-audit.md
+> dosyalarını oku. Hedef en geç 28 Eylül 2026 kullanıcı testine hazır yayın adayı.
+> Codex tek koordinasyon/entegrasyon merkezidir. Atanmış kapsamda ilerle; başka
+> agent'ın dosyalarını düzenleme. Claude/ChatGPT projelerine kendiliğinden girme.
+> Gerçek inbox, içerik ve yayın kanıtını yerel testlerden ayrı tut.
