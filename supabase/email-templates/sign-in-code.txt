@@ -1,0 +1,11 @@
+ColorVerse
+
+Sign-in code: {{ .Token }}
+
+Enter this code on the ColorVerse sign-in page to continue. It's one-time
+use and expires in one hour. If you didn't request it, you can safely
+ignore this email.
+
+--
+ColorVerse · Color exploration, in context.
+Privacy: https://colorverse.byigit.dev/privacy/

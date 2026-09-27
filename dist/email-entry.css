@@ -1,0 +1,60 @@
+/* One email/code experience for Account and the in-Studio dialog. */
+.email-entry{width:100%;max-width:400px;margin-inline:auto}
+.email-entry .email-intro h1,.email-entry .email-intro h3,.email-entry .email-code-panel h2,.email-entry .email-code-panel h3{max-width:340px;margin:0 0 12px;font-size:28px;line-height:1.2;letter-spacing:-.75px;font-weight:750}
+.email-entry .email-intro p,.email-entry .email-code-panel>p:not(.email-note):not(.email-help){margin:0 0 24px;font-size:14px;line-height:1.65;color:var(--muted);overflow-wrap:anywhere}
+.email-code-panel strong{color:var(--ink);font-weight:600}
+#authForm.email-form,#projectAuthForm.email-form{display:block;margin:0}
+.email-field{display:flex;align-items:center;min-width:0;border:1px solid var(--line);border-radius:8px;background:var(--surface);transition:border-color .15s,box-shadow .15s}
+.email-field:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 14%,transparent)}
+#authForm .email-field input,#projectAuthForm .email-field input{flex:1;width:0;min-width:0;height:54px;box-sizing:border-box;padding:0 16px;border:0;border-radius:8px;background:transparent;box-shadow:none;outline:none;font:16px var(--font);color:var(--ink)}
+#authForm .email-send,#projectAuthForm .email-send{flex:0 0 54px;min-width:44px;height:46px;margin-right:4px;padding:0;border:0;border-radius:5px;background:transparent;color:var(--accent);font:700 14px var(--font);cursor:pointer;opacity:1}
+#authForm .email-send:hover:not(:disabled),#projectAuthForm .email-send:hover:not(:disabled){background:var(--surface-2)}
+#authForm .email-send:disabled,#projectAuthForm .email-send:disabled{color:var(--muted);opacity:.45;cursor:default}
+.email-entry .email-note{margin:14px 0 0;font-size:12px;line-height:1.6;color:var(--muted)}
+.email-entry .email-legal{margin:24px 0 0;font-size:12px;line-height:1.65;color:var(--muted)}
+.email-legal a{text-decoration:underline;text-underline-offset:3px}
+.email-entry.email-requested .email-intro,.email-entry.email-requested .email-entry-note{display:none}
+.email-code-panel{width:100%;margin:0}
+#codeForm.email-code-form,#projectCodeForm.email-code-form{display:grid;grid-template-columns:1fr;gap:14px;margin:24px 0 0}
+#codeForm.email-code-form input,#projectCodeForm.email-code-form input{width:100%;min-width:0;height:60px;box-sizing:border-box;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);text-align:center;font:500 26px var(--mono);letter-spacing:.28em}
+.email-code-form input::placeholder{color:var(--muted);opacity:.45}
+.email-code-form input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.email-code-form input[aria-invalid=true]{border-color:#b64337}
+#codeForm.email-code-form .button,#projectCodeForm.email-code-form .button{height:48px;min-height:48px;margin:0;font-size:14px}
+.email-code-form .button:disabled{opacity:.45;cursor:default}
+.email-entry .email-actions{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px 20px;margin:20px 0 0}
+.email-entry .email-actions button{min-height:44px;padding:6px 0;border:0;background:transparent;font:13px var(--font);color:var(--ink);text-decoration:underline;text-underline-offset:4px;cursor:pointer}
+.email-entry .email-actions button:disabled{color:var(--muted);text-decoration:none;cursor:default;opacity:.7}
+.email-entry .email-help{margin:10px 0 0;color:var(--muted);font-size:12px;line-height:1.6}
+.email-send:focus-visible,.email-actions button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.email-entry [hidden]{display:none!important}
+
+/* Signed-out Account is a focused entry page; member navigation returns on sign-in. */
+body[data-page=account][data-auth-state=signed-out]{background:var(--surface)}
+body[data-auth-state=signed-out]>.header{position:static;display:flex;justify-content:center;height:100px;padding:24px;border:0;background:transparent}
+body[data-auth-state=signed-out]>.header .desktop-nav,body[data-auth-state=signed-out]>.header .header-actions{display:none}
+body[data-auth-state=signed-out]>.header .wordmark{font-size:27px;line-height:1.2}
+body[data-auth-state=signed-out] .account-page{display:flex;flex-direction:column;justify-content:center;min-height:calc(100dvh - 220px);padding-block:48px;box-sizing:border-box}
+body[data-auth-state=signed-out] .account-page>.email-entry{max-width:400px;margin:0 auto}
+body[data-auth-state=signed-out] .account-page>.account-status{max-width:400px;margin:18px auto 0;font-size:13px}
+body[data-auth-state=signed-out]>.footer{margin-top:0;padding-block:20px;border:0}
+body[data-auth-state=signed-out]>.footer .footer-bottom{min-height:60px;justify-content:center;border:0;padding:0}
+body[data-auth-state=signed-out]>.footer .footer-bottom>span{display:none}
+body[data-auth-state=signed-out]>.footer nav{justify-content:center;flex-wrap:wrap;font-size:12px}
+
+/* Only the signed-out Studio dialog is compact. Saved-project layouts stay wide. */
+.project-dialog:has(#projectAuthView:not([hidden])){width:min(480px,calc(100vw - 32px))}
+.project-dialog:has(#projectAuthView:not([hidden])) .project-dialog-head{align-items:center;border-bottom:0;padding:24px 28px 0}
+.project-dialog:has(#projectAuthView:not([hidden])) .project-dialog-head .eyebrow{display:none}
+.project-dialog:has(#projectAuthView:not([hidden])) .project-dialog-head h2{font-size:24px;margin:0}
+.project-dialog:has(#projectAuthView:not([hidden])) .project-dialog-body{padding:36px 28px 28px}
+#projectAuthView.email-entry{display:block;max-width:400px}
+.project-dialog:has(#projectAuthView:not([hidden])) .project-dialog-foot{display:none}
+.project-dialog .project-message:empty{display:none}
+@media(max-width:580px){
+  body[data-auth-state=signed-out]>.header{height:86px}
+  body[data-auth-state=signed-out] .account-page{min-height:calc(100dvh - 206px);padding:36px 24px}
+  .email-entry .email-intro h1,.email-entry .email-intro h3,.email-entry .email-code-panel h2,.email-entry .email-code-panel h3{font-size:26px}
+  .project-dialog:has(#projectAuthView:not([hidden])) .project-dialog-head{padding:22px 22px 0}
+  .project-dialog:has(#projectAuthView:not([hidden])) .project-dialog-body{padding:30px 22px 22px}
+}

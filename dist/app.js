@@ -1546,7 +1546,7 @@ if (page === 'studio') {
     try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); location.assign('/account/'); }
     catch { toast('Allow browser storage to keep this palette while signing in.'); }
   });
-  import('./project-store.js?v=25')
+  import('./project-store.js?v=26')
     .then(({ initProjectWorkspace }) => initProjectWorkspace(window.colorverseStudio))
     .catch(() => { const label = $('#projectSyncLabel'); if (label) label.textContent = 'Local draft'; });
 }

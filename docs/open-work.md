@@ -19,9 +19,10 @@ korur. Tarih hedefi, geçilmemiş kontrolleri tamamlanmış saydırmaz.
 
 | İş | Sahip | Durum / sıradaki çıktı |
 | --- | --- | --- |
-| TEAM-01 — ortak kurallar ve Claude girişi | Codex | Hazır: AGENTS.md, CLAUDE.md ve koordinasyon protokolü. Claude oturumu başlatılmadı; teknik branch koruması kurulmadı |
-| AUTH-EMAIL-01 — markalı kod e-postası | Claude | Atandı; ayrı worktree başlatılıyor. [Görev ve dosya kapsamı](tasks/auth-email-01.md). HTML şablonu ve dar kapsamlı kontrol; hosted değişiklik Codex'te |
-| AUTH-UI-01 — ortak e-posta/kod ekranları | Codex | Aktif; main checkout. Account/Studio giriş HTML-CSS, ortak email-code-flow, ilgili regresyonlar ve son entegrasyon. Claude bu dosyalara yazmaz |
+| TEAM-01 — ortak kurallar ve Claude girişi | Codex | Hazır; Claude Code çalıştırıldı. Tek yazıcı, Codex'in başlattığı mevcut uygulama oturumu; diğer Claude görüşmeleri read-only inceleyici. Teknik branch koruması kurulmadı |
+| AUTH-EMAIL-01 — markalı kod e-postası | Claude; entegrasyon Codex | Yerel şablon, metin eşlikçisi ve testler tamamlandı. Hosted Confirm sign up ile Magic link or OTP şablonlarına aynı kod e-postası ve `Your ColorVerse sign-in code` konusu kaydedildi; Supabase başarı bildirimi ve yeniden açılan içerik kontrol edildi. Gerçek inbox henüz denenmedi |
+| AUTH-UI-01 — ortak e-posta/kod ekranları | Claude'a devredildi | Codex'in kısmi UI çalışması AUTH-ACCOUNT-01'e aktarıldı; paralel yazım yapılmadı |
+| AUTH-ACCOUNT-01 — hesap/giriş mühendisliğinin tamamı | Claude; inceleme/entegrasyon Codex | [Tam görev](tasks/auth-account-01.md) teslim edildi, main'e alındı. Yerel build ve 119/119 test geçti; Account/Studio signed-out ekranları masaüstü ve 320/390 px'de görsel incelendi. Gerçek inbox/session ve private save/resume kanıtı AUTH-01/02/03'te açık |
 | QA-01 — bağımsız yerel yolculuk denetimi | Claude | AUTH işleri entegre edilince sırada; aşağıdaki brief ile read-only inceleme |
 | Son kullanıcı istekleri ve çıkan yayın hataları | Codex | İlk istek hesap/kod/e-posta deneyiminin tamamlanması olarak alındı; ek istekler ve QA bulguları burada takip edilir |
 | AUTH-01/02/03 — gerçek inbox ve save/resume | Ürün sahibi; hazırlık Codex | En geç 28 Eylül kullanıcı testi hedefi. Gerçek giriş ve veri korunumu kanıtı açık |

@@ -1,5 +1,5 @@
 import { getAccountClient, initAccountNavigation, accountReturnURL } from './account-client.js?v=3';
-import { initEmailCodeFlow } from './email-code-flow.js?v=2';
+import { initEmailCodeFlow } from './email-code-flow.js?v=3';
 import { emailAccessMessage } from './email-access.js?v=3';
 import { MIN_COLORS, MAX_COLORS, DRAFT_KEY, STUDIO_HANDOFF_KEY, normalizeHex, readDraft, sanitizeDraft, studioColors } from './member-palette.js';
 import { palettes } from './palettes.js?v=28';
@@ -68,6 +68,8 @@ policyDialog.addEventListener('click', event => {
 });
 
 function renderSession() {
+  document.body.dataset.authState = session?.user ? 'signed-in' : 'signed-out';
+  document.title = session?.user ? 'My palettes — ColorVerse' : 'Your account — ColorVerse';
   $('#signInPanel').hidden = Boolean(session?.user);
   $('#libraryPanel').hidden = !session?.user;
   $('#accountIdentity').textContent = session?.user?.email || '';

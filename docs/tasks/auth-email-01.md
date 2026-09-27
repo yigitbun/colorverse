@@ -3,6 +3,12 @@
 Owner: Claude. Integration and hosted changes: Codex.
 Status: assigned; execution status is maintained in `docs/open-work.md`.
 
+**Superseded scope:** the initial three-file implementation was delivered and
+independently reviewed. The same implementation session now owns the full
+[AUTH-ACCOUNT-01](auth-account-01.md) task, including UI and review follow-ups.
+Its new boundaries override the historical restrictions below. Other Claude
+sessions remain read-only; do not restart this task or overwrite its output.
+
 ## Working boundary
 
 Work only in the isolated `codex/claude-auth-email` branch/worktree allocated

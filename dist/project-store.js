@@ -1,12 +1,13 @@
 import { getAccountClient } from './account-client.js?v=3';
-import { initEmailCodeFlow } from './email-code-flow.js?v=2';
+import { initEmailCodeFlow } from './email-code-flow.js?v=3';
 const ACTIVE_PROJECT_KEY = 'colorverse-active-project';
 
 const $ = selector => document.querySelector(selector);
-const validProjectId = value => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value || '');
+function validProjectId(value) { return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value || ''); }
 const contextToDatabase = value => ({ landing: 'brand', interface: 'website', social: 'custom', presentation: 'slides' })[value] || 'custom';
 const contextToStudio = value => ({ brand: 'landing', website: 'interface', slides: 'presentation' })[value] || 'landing';
 const contextLabel = value => ({ landing: 'Objects', interface: 'Screens', social: 'Campaigns', presentation: 'Report (legacy)' })[value] || 'Objects';
+function templateUseLabel(template) { return template.colors.length === 5 ? 'Use' : 'Choose in My palettes'; }
 
 function relativeTime(value) {
   const then = new Date(value).getTime();
@@ -116,6 +117,7 @@ export async function initProjectWorkspace(studio) {
 
   function renderSession() {
     const signedIn = Boolean(session?.user);
+    $('#projectDialogTitle').textContent = signedIn ? 'Projects' : 'ColorVerse';
     authView.hidden = signedIn;
     if (signedIn) access.stop();
     workspaceView.hidden = !signedIn;
@@ -322,7 +324,7 @@ export async function initProjectWorkspace(studio) {
       const use = document.createElement('button');
       use.type = 'button';
       use.className = 'project-open';
-      use.textContent = item.colors.length === 5 ? 'Use' : 'Choose in My palettes';
+      use.textContent = templateUseLabel(template);
       use.addEventListener('click', () => openTemplate(template));
       const actions = document.createElement('div');
       actions.className = 'template-actions';
@@ -796,10 +798,23 @@ export async function initProjectWorkspace(studio) {
     setSyncLabel('Unsaved changes');
   });
 
+  let previousUserId;
+  // Registered before getSession() resolves, and guarded by changedUser/SIGNED_IN,
+  // so the INITIAL_SESSION event Supabase always fires cannot trigger a duplicate load.
+  client.auth.onAuthStateChange((event, nextSession) => {
+    const changedUser = previousUserId !== nextSession?.user?.id;
+    previousUserId = nextSession?.user?.id;
+    session = nextSession;
+    if (session?.user || event === 'SIGNED_OUT') sessionRestoreError = '';
+    if (event === 'SIGNED_OUT') access.reset();
+    renderSession();
+    if (session && (changedUser || event === 'SIGNED_IN')) setTimeout(() => Promise.all([loadProjects(), loadArchivedProjects(), loadTemplates(), loadSavedPalettes(), loadColorTray()]), 0);
+  });
   try {
     const { data, error } = await client.auth.getSession();
     if (error) throw error;
     session = data?.session || null;
+    previousUserId = session?.user?.id;
   } catch {
     sessionRestoreError = 'Your account session could not be restored. Request a code to sign in again. Your local palette is intact.';
     setMessage(sessionRestoreError, 'error');
@@ -816,13 +831,6 @@ export async function initProjectWorkspace(studio) {
     const version = active && latestVersion(active);
     setSyncLabel(version ? `Saved · v${version.version_number}` : 'Cloud ready');
   }
-  client.auth.onAuthStateChange((event, nextSession) => {
-    session = nextSession;
-    if (session?.user || event === 'SIGNED_OUT') sessionRestoreError = '';
-    if (event === 'SIGNED_OUT') access.reset();
-    renderSession();
-    if (session) setTimeout(() => Promise.all([loadProjects(), loadArchivedProjects(), loadTemplates(), loadSavedPalettes(), loadColorTray()]), 0);
-  });
 
   if (location.hash === '#projects') openDialog('projects');
 

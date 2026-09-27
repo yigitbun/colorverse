@@ -14,8 +14,15 @@ güncel yönlendirme sonraki görüşmeyi kaydeder.
   Partner**. Tek karar/entegrasyon merkezi Codex; ortak ilk giriş AGENTS.md,
   Claude girişi CLAUDE.md. Ayrı backlog veya bağımsız yayın akışı yok.
 - [Koordinasyon protokolü](agent-coordination.md) ve [aktif görevler](open-work.md)
-  geçerli. Claude için QA-01 hazır; henüz çalıştırılmadı. Kod yazma görevinde
-  ayrı worktree ve dosya sahipliği önce tanımlanır.
+  geçerli. Claude'un ilk email teslimatı ve bağımsız incelemesi alındı.
+  Kullanıcı tüm hesap/giriş mühendisliğini Claude'a devretti: tek uygulama
+  oturumu aynı `codex/claude-auth-email` worktree'de AUTH-ACCOUNT-01'i yürütür.
+  Codex'in kısmi UI değişiklikleri ona aktarılır; Codex inceleme/entegrasyon ve
+  hosted ayarları yönetir. Claude teslimi tamamlandı ve Codex main'e entegre
+  etti. Confirm sign up ile Magic link or OTP için yeni markalı kod e-postası
+  Supabase'de kaydedildi. Yerel build ve 119 test geçti; Account/Studio giriş
+  görünümü dar/geniş ekranda kontrol edildi. QA-01 ile gerçek inbox ve
+  save/resume kanıtı hâlâ açıktır. Diğer Claude oturumları read-only kalır.
 - Süre hedefi inbox/save-resume, içerik ve yayın metni kontrollerini kapatmaz.
   Kullanıcı testi ve hosted doğrulama hâlâ kanıt gerektirir; canlı veri silme
   veya başka AI projelerine erişim bu hazırlığın parçası değildir.

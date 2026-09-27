@@ -3,16 +3,17 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#fafaf8"><meta name="robots" content="noindex,nofollow">
-  <title>My palettes — ColorVerse</title>
+  <title>Your account — ColorVerse</title>
   <meta name="description" content="Your private color collection. Save a direction, refine it, and return to it in Studio.">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/styles.css?v=25"><link rel="stylesheet" href="/design-system.css?v=29">
   <link rel="stylesheet" href="/account.css?v=5"><link rel="stylesheet" href="/privacy.css?v=2">
   <link rel="stylesheet" href="/header-controls.css?v=1" data-header-controls>
-  <script src="/theme-init.js"></script><script type="module" src="/account.js?v=7"></script>
+  <link rel="stylesheet" href="/email-entry.css?v=1">
+  <script src="/theme-init.js"></script><script type="module" src="/account.js?v=8"></script>
   <script type="module" src="/analytics.js?v=6"></script>
 </head>
-<body data-page="account">
+<body data-page="account" data-auth-state="signed-out">
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="header">
     <a class="wordmark" href="/">ColorVerse</a>
@@ -21,19 +22,19 @@
   </header>
   <main id="main" class="account-page section-wrap">
     <p id="accountStatus" class="account-status" role="status" aria-live="polite"></p>
-    <section id="signInPanel" class="account-entry" aria-labelledby="entryTitle">
-      <div class="account-intro"><h1 id="entryTitle">Sign in or create an account.</h1><p>Keep your palettes, save your Studio projects, and pick up where you left off. One email. A free ColorVerse account.</p></div>
-      <form id="authForm" data-mode="email" aria-labelledby="entryTitle">
-        <label class="account-email-label">Email<input id="accountEmail" type="email" autocomplete="email" inputmode="email" required maxlength="254" placeholder="you@example.com" aria-describedby="accountAccessNote"></label>
-        <button class="button primary" id="authSubmit" type="submit" disabled aria-label="Send sign-in code">OK</button>
+    <section id="signInPanel" class="account-entry email-entry" aria-labelledby="entryTitle">
+      <div class="account-intro email-intro"><h1 id="entryTitle">Sign in or create an account.</h1><p>Keep your palettes and Studio projects in one place. Enter your email to get started.</p></div>
+      <form id="authForm" data-mode="email" class="email-form" aria-labelledby="entryTitle">
+        <div class="email-field"><label class="sr-only" for="accountEmail">Email address</label><input id="accountEmail" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" required maxlength="254" placeholder="Email address" aria-describedby="accountAccessNote accountStatus"><button id="authSubmit" class="email-send" type="submit" disabled aria-label="Send sign-in code">OK</button></div>
       </form>
-      <p id="accountAccessNote" class="account-note">We’ll email you a one-time code. No password needed.</p>
-      <p class="account-note account-notice">By continuing, you acknowledge our <button class="account-policy-link" data-account-policy="information" type="button">account information</button> and <a href="/privacy/" class="account-policy-link" data-account-policy="privacy">privacy notice</a>.</p>
-      <section id="emailSentPanel" class="account-email-sent" hidden aria-labelledby="emailSentTitle">
-        <h2 id="emailSentTitle">Enter your code.</h2><p>Enter the 8-digit code sent to <strong id="sentEmail"></strong>.</p>
-        <form id="codeForm"><label>Sign-in code<input id="accountCode" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{8}" minlength="8" maxlength="8" required placeholder="00000000" aria-describedby="codeNote"></label><button id="verifyCode" class="button primary" type="submit" disabled>Continue</button></form>
-        <p id="codeNote" class="account-note">Check your spam folder too. Use the code from the latest email.</p>
-        <div class="account-email-actions"><button class="account-text-button" id="changeEmail" type="button">Change email</button><button class="account-text-button" id="resendEmail" type="button" disabled>Resend code</button></div>
+      <p id="accountAccessNote" class="account-note email-note">One email code. No password. Your account is free.</p>
+      <p class="account-note account-notice email-legal">Read our <button class="account-policy-link" data-account-policy="information" type="button">account information</button> and <a href="/privacy/" class="account-policy-link" data-account-policy="privacy">privacy notice</a>.</p>
+      <section id="emailSentPanel" class="account-email-sent email-code-panel" hidden aria-labelledby="emailSentTitle">
+        <h2 id="emailSentTitle">Check your email.</h2><p>Enter the 8-digit code sent to<br><strong id="sentEmail"></strong></p>
+        <form id="codeForm" class="email-code-form"><label class="sr-only" for="accountCode">Sign-in code</label><input id="accountCode" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" spellcheck="false" pattern="[0-9]{8}" minlength="8" maxlength="8" required placeholder="00000000" aria-describedby="codeNote accountStatus"><button id="verifyCode" class="button primary" type="submit" disabled>Continue</button></form>
+        <p id="codeNote" class="account-note email-note">Use the latest code. It expires in one hour.</p>
+        <div class="account-email-actions email-actions"><button class="account-text-button" id="changeEmail" type="button">Change email</button><button class="account-text-button" id="resendEmail" type="button" disabled>Resend code</button></div>
+        <p class="email-help">Can’t find it? Check your spam folder.</p>
       </section>
     </section>
     <section id="libraryPanel" hidden aria-labelledby="libraryTitle">
