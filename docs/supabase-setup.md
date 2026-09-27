@@ -84,12 +84,38 @@ the owner could read its project and baseline version, the second identity saw
 neither row, and a cross-user snapshot update returned `Project not found`. The
 temporary auth users and project were created inside one transaction and rolled
 back. This proves the database policy boundary without leaving test data behind;
-an actual email/magic-link end-to-end test remains a separate account-flow check.
+an actual email-code end-to-end test remains a separate account-flow check.
 The production Auth settings endpoint has also been checked read-only: email
-sign-up is enabled and sign-up is not globally disabled. Delivery and link
-consumption still require a real inbox test.
+sign-up is enabled and sign-up is not globally disabled. Delivery and
+code consumption still require a real inbox test.
 
 ## Remaining implementation checks
+
+- Current, 2026-09-27: Account and Studio use a shared email-code controller,
+  `signInWithOtp` with `shouldCreateUser: true`, then `verifyOtp` with type `email`.
+  No password UI or separate signup/recovery branch. Hosted Confirm sign up and
+  Magic link or OTP templates were saved with `{{ .Token }}` and the subject
+  Your ColorVerse sign-in code. Template source and previous bodies are in
+  `supabase/email-templates/`. Existing eight-digit codes, one-hour expiry,
+  email confirmation, PKCE, RLS and SMTP were preserved. No real test email
+  was sent or account created. New/returning-member delivery and consumption
+  require the owner's inbox before declaring the flow verified for release.
+
+- Superseded, 2026-09-27: Account advanced from email to explicit password
+  sign-in/signup; Studio also uses password sign-in. Signup uses `signUp`;
+  recovery uses `resetPasswordForEmail`; confirmation resend uses `resend` with
+  type `signup`. No new normal sign-in links are requested. Existing sessions,
+  PKCE, RLS and users remain unchanged. Link-only members can set a password
+  through recovery or their signed-in account. No hosted settings were changed.
+  Confirm actual verification/recovery consumption with a real inbox before
+  release; automated tests do not establish email delivery.
+
+- Superseded, 2026-09-27: the local account UI used unified email-link sign-in/signup
+  (`signInWithOtp`, `shouldCreateUser: true`) with an existing-password fallback.
+  No hosted provider, SMTP, email-template or redirect configuration was changed.
+  Provider-mocked unit tests do not verify delivery: exercise new-member and
+  returning-member links with a real inbox in the requesting browser before
+  declaring the account flow verified for public release.
 
 - 2026-09-22: a dedicated `ColorVerse Dev` project could not be created because
   the free account has two active projects. The owner approved using the
@@ -99,14 +125,14 @@ consumption still require a real inbox test.
   prepares private 2–24-color palette editing while retaining five-role Studio
   projects. The migration is remotely applied and the live owner/cross-user/
   anonymous boundary test passes with disposable users removed afterward.
-- `/account/` adds email/password signup, sign-in, recovery and a paginated
+- `/account/` adds unified email-code account access and a paginated
   private palette library. Hosted Auth redirects include the public site and
   local development. Custom SMTP is
   enabled through the verified `byigit.dev` domain in Resend with a restricted
-  sending-only key. A real inbox confirmation/recovery test still remains
+  sending-only key. A real inbox code-delivery/verification test still remains
   before declaring email delivery fully verified.
 
-- Exercise the real email/magic-link account flow end to end before opening
+- Exercise the real email-code account flow end to end before opening
   broader account access; the rollback-only two-identity RLS boundary probe is
   already verified. This requires a real inbox and is not safely simulated by
   an anonymous smoke test.

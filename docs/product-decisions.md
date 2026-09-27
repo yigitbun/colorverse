@@ -1,6 +1,295 @@
 # ColorVerse product decisions
 
-## Current priorities — 2026-09-22
+## Current state — 2026-09-27
+
+This block takes precedence over superseded decisions below. The dated entries
+are an audit trail, not instructions to reimplement every earlier experiment.
+Start a new session with [the handoff](handoff.md) and [open work](open-work.md).
+
+- Account and Studio use email + OK → **eight-digit code**, for new and returning
+  members alike. No passwords, password reset, or requested sign-in links.
+  Real inbox delivery/consumption and authenticated save/resume remain unverified.
+- Header: Studio label with workspace icon; accessible person icon for Account.
+  Browser/password-manager autofill UI is not a ColorVerse component.
+- Homepage: preserve the compact six-world text menu, two rows of three, and the
+  existing Mini Studio. The latest full instrument trial was **reverted**; seeded
+  startup, transactional Apply/auto-advance and reverse globe coupling are not
+  current homepage behavior. Revisit only with a new owner decision.
+- Palette-first cards have a compact color row, supporting image, short name and
+  small Studio action. No hero photo or oversized description/curated-by blocks.
+- Explore displays **four** owner-supplied AI concepts; the experiment registry
+  retains eight. Only Katre Room represents the stone family on Explore. Lorien
+  pens and Lorien care remain distinct. AI disclosure is required; displaying a
+  concept does not approve its proposed palette/name for Library or the hero.
+- `approvedPaletteIds` is empty. Keep the 100 legacy palettes and seven retired
+  review records for compatibility, not as approved curated content. External
+  photos are outside `dist/` in local backups; do not restore them automatically.
+- Never generate new images without a new explicit request. Owner-supplied AI
+  images are allowed; source photos are not recolored by palette-role changes.
+- New unnamed drafts get editable short ASCII suggestions. Stable database IDs
+  and existing member names, including non-ASCII names, stay untouched.
+- Studio keeps five preview roles and Objects/Screens/Campaigns trials; member
+  palettes support 2–24 colors. ColorwayKit is code-native surface mapping, not
+  AI photo recoloring or a physical manufacturing-color guarantee.
+- Sandbox is open/unpassworded and browser-local. Keep RoomKit unchanged.
+  Home-test was restored during rollback and is a separate, noncanonical trial.
+  Community is a local prototype; no public posting/moderation backend exists.
+- The public working site is Cloudflare Pages; see [operations](operations.md).
+  Passing local tests, recording commits, approving content and deploying are
+  separate actions. This handoff authorizes local commits, not push/deployment.
+
+## 2026-09-27 — Explore selection: one Katre, new Lorien care
+
+- The owner requested only one representative of the five stone-colored Katre
+  studies. Keep Room / Stone Haven on Explore; retain the other four records and
+  images for Sandbox and existing Studio links. No source asset is deleted.
+- Add the newly supplied Lorien cosmetics image as `concept-lorien-care`, with
+  the provisional name Clay Veil and product-led cream, sand, caramel,
+  terracotta and chocolate colors. Keep the visible AI concept indicator.
+- Explore now has four selected cards; the experiment registry has eight.
+  `homeStudyIds` explicitly controls display separately from `reviewCandidates`.
+  Do not deduplicate by family: Lorien pens and care have distinct color systems.
+  This display decision does not approve Library entries or change the hero.
+
+## 2026-09-27 — Open experiments and owner-supplied AI concepts
+
+- The owner requested a separate, unpassworded Sandbox for accumulating trials.
+  `/sandbox/` is browser-local; `/sandbox/one-shape/` preserves the supplied HTML
+  motion study with an explicit player. Do not change RoomKit or the approved
+  world-menu design while experimenting here. See [Sandbox](sandbox.md).
+- Explore's seven third-party photographs are retired from `dist/` and backed
+  up with original provenance in `backups/curation/external-2026-09-27/`.
+  Existing Studio URLs retain their original palette colors and names.
+- Seven supplied AI product images (Piera, Lorien, five related Katre studies)
+  replace the photos on Explore. They carry a visible "AI concept" indicator
+  and accurate alternative text. This authorizes displaying these concepts in
+  the public working environment; it does not approve their proposed palette
+  interpretations for the Library or hero. Do not imply real products or clients.
+- Newly unnamed palettes get short, editable, color-derived ASCII suggestions.
+  No mandatory username/email prefix. Existing names and stable database IDs
+  remain untouched. User-entered names are not restricted to ASCII.
+
+
+## Release hardening — 2026-09-27
+
+- Owner considered six-digit email codes, then explicitly chose to keep eight.
+  Hosted Auth settings were inspected and left unchanged: eight digits and a
+  one-hour expiry. No new test user or email was created during this pass.
+- Retired third-party review cards were loopback-only. Public/Pages preview
+  hostnames use the approved manifest; do not auto-approve candidates to fill
+  the feed. The later owner-supplied AI display decision above permits four
+  disclosed AI concept cards on the public working site, but does not grant
+  Library approval. The owner's one-by-one palette review remains a release
+  decision.
+- Failed browser storage prevents custom-palette handoff rather than navigating
+  to Studio with missing colors. Failed account SDK/session restoration reports
+  a visible local-draft error; failed sign-out does not claim success.
+- Public tool pages include useful no-JavaScript notices. Consent-gated funnel
+  events use only fixed step/source enums, never emails, codes or palette values.
+- `check:release` combines static/import validation and regression tests. The
+  live infrastructure check and post-deploy release-candidate check are distinct.
+  Real inbox consumption and authenticated workspace journeys remain manual
+  release gates. No publication, editorial schema cutover or public Community
+  opening is authorized by merely passing tests.
+
+## Passwordless email-code account entry — 2026-09-27 (current)
+
+- Owner clarified that the current Jack Wolfskin reference does not use passwords.
+  Supersedes both password and email-link UI choices below. Email + OK requests
+  a code; entering that code signs in or verifies a new free account. No password
+  fields, password reset, separate signup branch, or email-account lookup.
+- Account and Studio use the same `email-code-flow.js` controller and Supabase
+  `signInWithOtp` / `verifyOtp` (`type: email`). Inbox instructions appear only
+  after request acceptance; sign-in success requires an authenticated session.
+- Preserve the hosted eight-digit OTP length and one-hour expiry, PKCE sessions,
+  private work and RLS. Resend has a 60-second UI cooldown. Codes stay in the
+  input, not URLs, app storage, analytics or logs.
+- Hosted Confirm sign up and Magic link or OTP templates were both saved with
+  `{{ .Token }}` instead of links. Source and prior template bodies are in
+  `supabase/email-templates/`. SMTP and provider settings were not changed.
+- Automated tests cover request/verification errors, session checking, grouped
+  code paste and resend guards. Actual delivery and code consumption still need
+  the owner's inbox; no test email or new test account was created in this fix.
+
+## Password-based account correction — 2026-09-27 (superseded above)
+
+- Header account icon uses a soft-joined hexagonal outline around a simple
+  person, reflecting ColorVerse instead of reproducing the retail reference.
+  Keep its full accessible account label, but use a short Your account tooltip.
+  Browser/password-manager autofill controls inside email fields are not site UI.
+
+- Supersedes the email-link choice below: the owner expects passwords. Keep the
+  quiet email + OK entry; OK advances locally to password sign-in and sends no
+  email. A visible Create account action opens password/confirmation fields.
+- Do not look up whether arbitrary emails have accounts, or turn a failed
+  password attempt into registration. Sign-in and signup are explicit choices.
+- New accounts use Supabase email/password signup and address verification.
+  Recovery links are reserved for Forgot password. Existing link-only accounts
+  can set a password through recovery or the signed-in Set / change password
+  action without creating another identity or losing private work.
+- Studio sign-in also uses passwords. Registration/recovery opens Account in
+  a separate tab to preserve its unsaved Studio state. No hosted Auth, SMTP,
+  email-template, or database changes. Real recovery/verification with the
+  owner's inbox and password entry still need user verification.
+
+## Email-first account entry — 2026-09-27 (superseded above)
+
+- Replace the header Account text with an accessible person icon; Studio keeps
+  its name and adds a small workspace icon. No search/cart controls are added.
+- Replace the separate signup/sign-in panels with one quiet email field and
+  an inline OK button, enabled after a valid address is entered. The same
+  Supabase email-link request signs in existing members or starts a new account.
+  Preserve existing password sign-in, recovery, PKCE sessions and private work.
+- Show inbox instructions only after the provider accepts the request, with
+  change-email and a 60-second resend cooldown. Do not claim an OTP was sent:
+  this revision uses the existing hosted email-link templates without changing
+  Auth settings. Real inbox/link consumption remains unverified.
+- Reference: Jack Wolfskin's current person icon and compact scrollable policy
+  dialog were inspected. Its browser session was already authenticated, so
+  the signed-out entry layout also follows the owner's description. Do not log
+  the owner out or submit membership forms to inspect the reference.
+- Account information and the actual local privacy notice open in a small
+  dialog from inline/footer links. The information is a factual preview notice,
+  not copied retail conditions or final legally reviewed membership terms.
+  Final membership terms need owner/legal review before public launch.
+- Keep the approved compact homepage world menu and all globe behavior intact.
+
+## Compact world menu — 2026-09-26
+
+- Keep six visible starting worlds in a small three-by-two text menu above
+  the homepage globe. The owner rejected both pentagonal and circular color
+  badges: no decorative swatches or symbols, just short names and a subtle
+  selected underline.
+  The invitation is optional, not a requirement to use a preset world.
+- Replace the visible dropdown and redundant field telemetry; reduce the
+  desktop hero height slightly. Existing globe, Mini Studio selection,
+  sliders, supporting suggestions and Studio handoff remain unchanged.
+- No new palette approval or color changes. Home-test stays separate.
+
+## Homepage instrument trial reverted — 2026-09-26
+
+- The owner rejected the latest homepage instrument trial. Restore the prior
+  Mini Studio behavior, controls and globe; do not keep the seeded selection,
+  Original/Preview form, transactional Apply flow or reverse globe coupling.
+- The separate home-test experiment was restored from its backup as part of
+  undoing that turn. Other previous product/account work remains unchanged.
+
+## Account entry clarity — 2026-09-26
+
+- The earlier email/password membership implementation did not complete the
+  requested Jack Wolfskin-style account entry. Registration existed but was
+  hidden behind a header labeled only Sign in.
+- Immediate local correction: signed-out navigation says Account with an
+  accessible sign-in/create-account label; the two existing paths explicitly
+  say Already a member? and New to ColorVerse? Signed-in members keep My palettes.
+- Proposed next revision, awaiting owner choice: unified email-first access
+  and a one-time email code for both new and returning users. Do not pretend a
+  code is sent while the hosted email template still sends only a link. Review
+  signup and magic-link templates, preserve existing users/password access,
+  and verify actual delivery before claiming this flow is complete. No hosted
+  auth setting or template was changed in this clarity correction.
+
+
+## Approved interface refresh — 2026-09-26
+
+- Homepage Mini Studio adds exact HEX and compact Hue/Intensity/Lightness
+  controls beside the globe (below it on narrow screens). Supporting colors
+  remain suggestions until explicitly accepted; Studio handoff preserves the
+  working colors. The world selector is a compact dropdown.
+- Image to Palette is an image/points + five-color workspace, with reading,
+  undo/reset, manual color editing, name, and Studio handoff. Display preserves
+  aspect ratio and original local resolution; automatic analysis is downsampled
+  independently, while manual points sample the original pixel canvas. The image
+  is not saved in the palette snapshot or uploaded.
+- Inspiration is a compact palette-first study shelf. No images were generated
+  or newly approved; visual placeholders stay until individually handpicked.
+- Community now prototypes palette/work/question discussions with comments
+  visible under posts. Drafts and their comments are device-local, not shared
+  publicly or synced to accounts. The example question is explicitly labeled;
+  its test comments clear on reload. Public publishing remains closed pending
+  moderation, reporting, permissions and durable backend writes.
+- ColorwayKit is the first additional usable Lab tool: a code-native skincare
+  bottle, cap, label, carton and backdrop; independent role mappings; a copied,
+  frozen comparison baseline; restore and 1600×1100 PNG export. Private project
+  and template snapshots retain mappings/baseline. It is a concept, not a
+  physical color proof or photo recoloring. RoomKit remains unchanged.
+- Library uses an approval-gated local text/alias/filter and Oklab similarity
+  engine. Its approved collection is still empty. The additive database design
+  is a review draft only, not applied remotely; see [library-engine.md](library-engine.md).
+- The supplied `one-shape.html` is a fixed-size, timed motion study, not a
+  functioning editor. Keep its restrained motion principle rather than copying
+  canned cursors or treating the animation as a product.
+
+This refresh is local implementation, not a production release. Public Community
+and the database-backed editorial publishing pipeline are not completed features.
+
+## Palette-first cards and Studio application trial — 2026-09-25
+
+- On the local homepage review cards, lead with the five-color palette. The
+  source photo follows as context, then the short name, Studio link, and credit.
+  This changes presentation order only; it does not approve any candidate.
+- Trial Studio application grouping: Objects, Screens, Campaigns. Objects opens
+  on Skincare, whose CSS-only concept bottle maps separate palette colors to
+  backdrop, body, cap, and label. These mappings can be changed without
+  editing the palette itself; editing a palette color updates the preview.
+  Private project and template snapshots keep these surface mappings. Screens
+  keeps the interface preview; Campaigns uses the campaign system. Previously
+  saved Report projects retain their original preview as a legacy tab when opened.
+- This grouping and concept product are a testable direction, not a final
+  taxonomy or a photorealistic recoloring feature. Do not tint photographs or
+  imply the material appearance is production-accurate.
+
+## Homepage Mini Studio — 2026-09-25
+
+- The hero globe is a small creation workspace, not only navigation: each globe
+  click adds one explicit color to a five-slot palette. The unfilled slots show
+  generated supporting colors as visually distinct suggestions, never as
+  selected colors. The user can target an existing selected slot, replace it
+  from any world, remove it, or clear the selection.
+- Both hero Studio entries hand off the same five-color working draft (explicit
+  choices followed by suggestions). Studio retains precise Color Globe controls,
+  role/shade editing, context previews, saving, and export. The homepage should
+  stay noticeably simpler than Studio.
+- This interaction does not promote a palette to the curated library or use an
+  image. The curation approval process below remains unchanged.
+
+## Curation reset — 2026-09-24
+
+- Provisional review cards use short, ASCII-only editorial name proposals from
+  `dist/palette-name-library.js`. Palette IDs, names, aliases, categories,
+  credits and member-authored names are separate concepts; see
+  [`palette-naming.md`](palette-naming.md). No proposed name is final approval.
+
+- The homepage palette returns to the left side of the hero. Desktop world
+  controls are compact, single-line entries; their full names remain accessible.
+- Retire all previously generated or sourced visual assets from the deployable
+  site. Keep palette color data temporarily, but treat the homepage selection,
+  every world starter, and the larger library as candidates—not approved picks.
+- The owner supplies replacement imagery. Do not generate new images. Review
+  each proposed homepage/world palette and each new image individually with the
+  owner before publishing it. Do not label palettes “popular” without evidence.
+- The local homepage and Library now display only IDs in `dist/curation.js`;
+  the approved list starts empty. The 100 older palette records remain as an
+  archive for direct Studio links and existing project references. A world
+  changes the color field but no longer silently loads an old starter palette.
+  Studio opens a clearly labeled neutral working draft when no palette was
+  requested or resumed.
+- Approval sequence for each new entry: owner supplies or explicitly selects
+  the image; verify source and usage rights; extract candidate colors without
+  recoloring the source image; review visual coherence, usable contrast, and
+  distinctness from existing entries in context; show the image and exact HEX
+  values to the owner; add the ID to the public manifest only after approval.
+- Owner-requested review phase: place provisional image/palette cards below the
+  local homepage hero and accumulate roughly 10–15 before choosing final
+  features. Keep this review collection separate from the approved Library and
+  world starters. The first provisional card is the Pexels meeting room;
+  six owner-prioritized sources from a 15-image shortlist are also on the local
+  review table. Do not promote any of them to the hero yet.
+
+## Historical priorities — 2026-09-24 (superseded by Current state)
+
+Preserved for context. In particular, the email/password and older card layout
+directions in this list are no longer the current implementation target.
 
 1. Membership first: visible Sign in / My palettes beside Studio; email/password
    access, private collections, editable 2–24-color palettes, and Studio resume.
@@ -11,20 +300,22 @@
 2. Homepage after membership: use the third globe study size (.76), move desktop
    actions onto the navigation line, keep “Studio” (not “My Studio”). Keep the
    headline but remove its paragraph; lift Open Studio/Browse inspiration.
-   Enlarge the context image and put its matching swatches directly above it at
-   equal width. One thoughtful image/palette per All, Vintage, Botanical,
-   Climate, Digital and Cinema world. Remove intervening mini-links and excess
-   marketing blocks. The inspiration anchor should land on the feed filters.
+   Keep the hero to typography, actions, a slim five-color palette, and the
+   globe; reference images belong in the visual feed below, not in the hero.
+   Collapse the world rail to a dropdown at the globe's upper right on narrower
+   screens. Remove intervening marketing blocks so feed filters directly follow
+   the hero; the inspiration anchor lands on those filters.
 3. Inspiration: compact introduction and denser consistent cards, smaller
    images, visible matching palette by the text/Open in Studio action. Category
-   filtering can follow. Library stays unchanged for now.
+   filtering can follow. The Library is temporarily held empty for curation;
+   its earlier 100 entries remain in the archive, not the public selection.
 4. Lab: compact its large introductory block; keep RoomKit. Discuss Gemini for
    actual scene/material recoloring later. Do not simulate recoloring with a
    flat wash over the whole image. The same rule applies to Studio products;
    calm backgrounds should let the product colors lead.
 
 The Studio layout is approved; preserve it beyond these specific changes.
-Visual requests above are queued, not claims of completed implementation.
+These priorities are product direction, not a claim that every item is complete.
 
 Unapproved tool ideas and the Adobe Color / Coolors review live in
 [`color-tools-opportunities.md`](color-tools-opportunities.md); they are not implementation commitments.

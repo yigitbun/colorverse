@@ -8,6 +8,7 @@ private preview and must not claim the public domain.
 
 Use this documentation map instead of expanding this file:
 
+- Session handoff and unfinished work: [`docs/handoff.md`](docs/handoff.md), then [`docs/open-work.md`](docs/open-work.md)
 - Product behavior and design direction: [`docs/product-decisions.md`](docs/product-decisions.md)
 - Hosting, domains, and releases: [`docs/operations.md`](docs/operations.md)
 - Supabase project state: [`docs/supabase-setup.md`](docs/supabase-setup.md)

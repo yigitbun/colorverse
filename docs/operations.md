@@ -34,8 +34,39 @@ attach `colorverse.byigit.dev` to a ChatGPT Site.
 Account browser settings live in `dist/account-config.js`. Unknown preview
 hostnames fail closed rather than silently connecting to the shared backend.
 The account page and migration passed anonymous and owner-boundary tests. A
-real inbox confirmation and password-recovery test remains to verify email
-delivery.
+real inbox eight-digit code-delivery/verification and private save/resume test
+remain required. Password recovery is not part of the current account flow.
+
+## Local checkpoint and public-repository safety
+
+The repository was verified **PUBLIC** on 2026-09-27. Local commit permission
+does not authorize a push: a push to `main` publishes the site automatically.
+Do not use a blanket `git add -A` for this workspace. Inspect the diff and stage
+only the intended app, tests, schema/template sources and documentation.
+
+Root ignore rules exclude `colorverse-chat-transcript.md`, `backups/`, `.local/`
+and `founder-playbook/`, in addition to existing credential/runtime exclusions.
+They remain local, not deleted. Check that none are already tracked before
+committing; `.gitignore` does not untrack an existing file. A local commit is
+neither an off-machine backup nor a release. The private originals and retired
+source-photo backup need a separately selected private backup destination.
+
+[Handoff](handoff.md) and [open work](open-work.md) replace the closing chat.
+Preserve the rejected/rolled-back decisions as history, not active instructions.
+Do not enter Claude/ChatGPT projects to reconstruct history without a new scoped
+owner request.
+
+Fresh checkouts should run `npm ci` and `npm run check:release` without private
+artifacts. The retired-photo backup integrity test skips when its ignored local
+backup is absent; retired-photo exclusion and app checks still run. Sandbox and
+home-test live inside `dist/` and are therefore public after a normal release;
+`noindex` is not an authentication boundary.
+
+`scripts/test-member-live.mjs` is an administrative test that creates/deletes
+temporary users and uses a legacy password probe. Do not run it as an automatic
+handoff check or pretend it verifies email-code delivery. Obtain fresh explicit
+authority for user-creating/destructive tests, and use the owner's real inbox
+for the current OTP journey.
 
 ## ChatGPT Sites preview
 
@@ -69,10 +100,14 @@ traffic and are not evidence that the domain should be attached to Sites.
   `npm run build` rejects either pattern in HTML.
 - The public privacy notice lives at `/privacy/`. Keep it synchronized whenever
   storage, analytics, hosting, image delivery, or account behavior changes.
-- Nunito Sans is self-hosted under `dist/assets/fonts/` with its OFL license;
-  external palette references are cached under `dist/assets/palette-library/`,
-  while original disclosed design studies live under `dist/assets/editions/`.
-  Production pages must not request Google Fonts or third-party image CDNs.
+- Nunito Sans is self-hosted under `dist/assets/fonts/` with its OFL license.
+  The previous palette, editorial, and edition images have been removed from the
+  deployable site. Eight optimized owner-supplied AI study JPEGs now live under
+  `dist/assets/studies/`; Explore selects four with visible AI disclosure.
+  Display permission is not Library/palette approval. Retired external photos
+  remain in ignored local backups, not deployment artifacts. No new image is
+  generated or added without owner direction. Production pages must not request
+  Google Fonts or third-party image CDNs.
 - Supabase powers opt-in private Studio projects. The browser uses only the
   publishable key; never place a secret or service-role key in `dist/`. Project
   tables use explicit grants plus owner-only RLS, and uploaded images remain local.
@@ -84,19 +119,26 @@ traffic and are not evidence that the domain should be attached to Sites.
   or 12,000 pixels on either edge are rejected before browser decoding to limit
   malformed-file and decompression-bomb risk. Keep `scripts/test-image-file.mjs`
   in the release checks whenever upload handling changes.
-- Supabase Auth Site URL is `https://colorverse.byigit.dev`; the allowed magic-link
-  return URL is `https://colorverse.byigit.dev/studio/`.
+- Supabase Auth Site URL is `https://colorverse.byigit.dev`; the legacy allowed
+  link return URL is `https://colorverse.byigit.dev/studio/`. It is retained
+  configuration, not the current entry UX: both new and returning accounts now
+  verify an emailed eight-digit token, without requesting a sign-in link.
 
 ## Release checklist
 
-1. Run `npm run build`.
-2. Run `npm run test:live` to verify production headers, consent-gated GA,
+1. Run `npm run check:release` (static build plus local regression tests), and
+   review the open gates in `docs/mvp-gap-audit.md`. Run `npm audit --audit-level=high`.
+2. Run `npm run test:live` to verify the existing production headers, consent-gated GA,
    Supabase catalog counts, and anonymous private-write rejection.
 3. Review `git status` and `git diff`; preserve unrelated changes.
-4. Commit only the intended files and push `main` to `origin`.
+4. Commit only the intended files. Push `main` to `origin` only with publishing
+   direction; commit-only requests stop before this external action.
 5. Confirm the Cloudflare Pages production deployment completed.
-6. Verify the affected public routes on `https://colorverse.byigit.dev` return
-   HTTP 200 and do not show a ChatGPT sign-in screen.
+6. Run `npm run test:live:release` against `https://colorverse.byigit.dev` to
+   verify affected routes, new code-entry assets, current product contracts and
+   anonymous boundaries. Verify real email-code consumption, private save/resume
+   and narrow-screen navigation separately; an infrastructure pass is not a
+   product release or proof of email delivery.
 7. For releases touching `_headers`, verify the public response includes CSP,
    `X-Content-Type-Options`, `Referrer-Policy`, and `Permissions-Policy`, then
    check the browser console for blocked required assets.

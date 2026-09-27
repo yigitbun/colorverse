@@ -1,0 +1,182 @@
+# ColorVerse — açık işler ve karar kuyruğu
+
+Güncelleme: 2026-09-27. Kanonik backlog; yeni bir ajan önce
+[devir paketini](handoff.md) okumalı. Kaynaklar: sahibin kapanan sohbetteki
+istekleri, mevcut repo, ürün kararları ve MVP denetimi. Claude projesi okunmadı.
+
+## Durum ve yetki sözlüğü
+
+- **Açık:** gerekli iş/kanıt yok; otomatik olarak uygulama yetkisi verilmiş sayılmaz.
+- **Kısmi:** somut uygulama var ama kapsam/ürün onayı/yolculuk eksik.
+- **Doğrulama:** local kod/test var; gerçek kullanıcı/hosted kanıtı gerekli.
+- **Karar:** sahibin seçimi gerekir. **Park:** gelecek fikir, mevcut MVP işi değil.
+- **Kapandı:** belirtilen dar kapsamın kanıtı var. **Geri alındı:** tekrar yapılmaz.
+- P0: yayın engeli; P1: güvenilirlik/kalite; P2: sonraki ürün turu.
+
+Aşağıdaki işlerin tamamında, ayrıca belirtilmedikçe, son tarih **tarih
+belirlenmeli**. Teknik işlerin sahibi uygulama ajanı; içerik/ürün seçimlerinin
+sahibi ürün sahibidir. Hukuki inceleme için sorumlu atanmalıdır. Sorumlu rolü
+yetkiyi genişletmez. Devir turunun odak kaydı: `HQ-01` kapandı; sonraki aktif
+odak `AUTH-01`, `CUR-01`, `LEGAL-01`, `REL-01` (en fazla beş iş). Diğerleri
+takip kuyruğudur; HQ-02 private backup kararı unutulmaz.
+
+## HQ / rapordaki teknik riskler
+
+| ID | Öncelik / durum | İş, sorumlu ve tamamlanma ölçütü |
+| --- | --- | --- |
+| HQ-01 | P0 / Kapandı, local | Private ignore sınırı + bekleyen app/test/doc checkpointleri kaydedildi. Ajan. Kanıt: handoff'taki commitler ve git log; private yollar tracked değil. Push dahil değil; local commit makine dışı backup değil |
+| HQ-02 | P1 / Açık | Makine dışı private backup yöntemini seç. Ürün sahibi. Git local commit ile raw transcript, Downloads orijinalleri, rights backup ve founder materyali güvenceye alınmış sayılmaz; hedef/kapsam/recovery denemesi belirlenmeli |
+| HQ-03 | P1 / Karar | `home-test/` kopyalarını kaldırmak, repo-dışı arşive taşımak veya ortak modüllere geçirmek arasında karar ver. Önce owner, sonra ajan. Mevcut restore/undo kaydı korunacak; route/tests/assets cleanup birlikte doğrulanacak |
+| HQ-04 | P2 / Açık | Yaklaşık 98 KB `app.js` dosyasını route/controller modüllerine böl. Ajan. İlk adım bağımlılık haritası; renk/rol/persistence/handoff davranışı aynı kalır. Refactor yeni ürün redesign'i değildir |
+| HQ-05 | P1 / Kısmi | Gerçek browser smoke testini tek komuta dönüştür. Ajan. Şu an otomatik testler Node unit/static contract; 390px geçmiş manuel kontroller CI değildir. Explore→Studio, Extract→Studio, account form states, keyboard ve overflow kapsansın; mail gönderme yok |
+| HQ-06 | P2 / Karar | `components/ui/*.tsx` ve `docs/prototype-v10.html` legacy yerleşimini netleştir. Ürün sahibi. React komponentleri static runtime'a dahil değil; kullanılmayan kodu silmek veya taşımak bu turun işi değil |
+| HQ-07 | P1 / Kapandı, doküman | Güncel durum, backlog, module map, kanıt sınırı ve yeni sohbet başlangıcı yazıldı. Ajan. Handoff/open-work, product-decisions current state, README/AGENTS/runbook birbirine bağlı; ham özel transcript yayınlanmadı |
+| HQ-08 | P1 / Kapandı, dar kapsam | Fresh checkout testi için private backup bağımlılığını ayır. Ajan. Local backup varsa recoverability testi koşar; yoksa yalnız o test skip olur, deployed-image yokluğu testi her zaman koşar |
+
+## Auth / üyelik ve özel çalışma
+
+| ID | Öncelik / durum | İş, sorumlu ve tamamlanma ölçütü |
+| --- | --- | --- |
+| AUTH-01 | P0 / Doğrulama | Ürün sahibi gerçek inbox ile yeni ve mevcut hesapta email→OK→8-digit OTP yolunu tamamlasın. Kodun alınması/session oluşması ayrı kanıt; Account ve Studio içi giriş ikisi de denenmeli. OTP/log/kişisel email public kayda yazılmasın |
+| AUTH-02 | P0 / Doğrulama | AUTH-01 sonrasında 2–24 renkli palet ve 5-role project kaydet, çık, tekrar giriş yap, resume et. Ürün sahibi. İsim, tüm orijinal renkler, beş rol, preview direction, mapping ve sürüm korunmalı; >5 renk orijinalden kırpılmamalı |
+| AUTH-03 | P0 / Doğrulama | Yanlış/expired kod, resend cooldown, change email, refresh ve session failure durumlarını gerçek yolculukta kontrol et. Ürün sahibi. Aynı request/session bağlamı, leading zeroes, disabled/busy state ve honest error; üretici rate-limit ayarlarını izinsiz değiştirme |
+| AUTH-04 | P1 / Doğrulama | Template rename/delete, collections, tray merge/sync failure ve Prototype 1/2 yollarını authenticated browser'da dene. Ajan, owner session onayıyla. RPC/static policy kanıtı gerçek UI davranışı yerine geçmez |
+| AUTH-05 | P1 / Açık | Archive→restore yüzeyinin ve private-workspace silme kapsamının yeterliliğini kontrol et. Ajan. Archive history korunur; silme adımsal ve açık kapsamlıdır. Önceki “hepsini sil” isteği yeni kullanıcıları silmeye sürekli izin değildir |
+| AUTH-06 | P2 / Kapandı, görünüm | Header kişi iconu + Studio icon/name ve email-first form var. Browser/password-manager içindeki Find your login öğesini site kontrolü gibi yeniden üretme. Responsive iki kolon/tek kolon farkı ayrı auth sürümleri değildir |
+
+**Geçerli auth kararı:** passwordless code; sekiz hane; hosted bir saat expiry ve
+60 saniye UI resend. Eski link/password/signup branches tarihsel. Jack Wolfskin
+referansı sade ortak giriş akışıdır; onların üyelik koşullarını kopyalama.
+
+## Hero / Mini Studio / dünya seçimi
+
+| ID | Öncelik / durum | İş, sorumlu ve tamamlanma ölçütü |
+| --- | --- | --- |
+| HOME-01 | P1 / Kısmi | Hero yüksekliğini, sol/sağ hizasını ve küre alanını geniş/orta/mobilde tekrar değerlendir. Ajan. Yeni world menu son onaylı; gereksiz üst/alt çerçeve ve pazarlama blokları geri gelmez, globe/control overlap yok |
+| HOME-02 | P1 / Doğrulama | Hue/Intensity/Lightness track'larının IAB ve normal browser'da aynı görünmesini kontrol et. Ajan. Kod gradientlerini tanımlar; önceki “yavan / tek renk slider” screenshot'u güncel bug olarak yeniden üretilmiş değil. Viewport, cache, selected color ve browser-local state farklarını kaydet |
+| HOME-03 | P2 / Karar | Slider→globe marker/rotation çift yönlü ilişkiyi yeniden ele alıp almamayı sor. Owner. Önceki full instrument denemesi geri alındı; şu an küre seçimi Mini Studio'ya gider ama reverse coupling garanti değil. Otomatik fix/refactor içine saklama |
+| HOME-04 | P2 / Karar | Homepage Apply Color + otomatik sonraki slot akışını yeniden onaylat. Owner. Deney sayfasında uygulandı, main'deki instrument trial geri alındı; mevcut ana sayfada Apply yok. Hiç değişmeden öneriyi kabul etmek ve hedef slotu belirtmek gerekiyorsa yeni sınırlandırılmış deney tanımlanmalı |
+| HOME-05 | P2 / Karar | Boş başlangıç yerine seeded renk kullanma isteğini yeniden teyit et. Owner. Son rollback boş başlangıcı geri getirdi. “En popüler dünya” kanıtı yok; starter'ı popüler diye etiketleme |
+| HOME-06 | P1 / Kısmi | Öneri kalitesini source palette + seçilen tüm renkler üzerinden incele. Ajan. Main `miniStudioColors()` ilk explicit renkten `paletteFromColor()` üretir; her çoklu seçim için handpicked matching değildir. Test sayfasındaki one-to-one matcher ayrı. Kaliteyi 8 approved olmayan AI study ile gizlice güvenilir model gibi sunma |
+| HOME-07 | P1 / Doğrulama | Soldaki ghost suggestions ile sağdaki Complete your palette tekrarını ve + onayını gözlemle. Owner/ajan. Sahibin beğendiği öneri davranışı korunmalı; her değişimde chosen vs suggested ayrımı ve tam five-color Studio handoff belli olmalı |
+| HOME-08 | P2 / Geri alındı | Büyük Color Block paneli, Original/Preview, sıkıştırılmış modalı hero'ya birebir taşıma ve density artırma deneyi current main değil. “99.9% hex” isteği distorted hücreler üretme izni değildir; main geodesic'i koru |
+| HOME-09 | P2 / Kapandı, görünüm | Gereksiz Current direction / Prism Light ve hero source görseli kaldırıldı; feed'den önceki Find a direction worth keeping pazarlama boşluğu yok. Next variation eski world starter carousel kontrolüydü; handpicked içerik hazır olmadan geri ekleme |
+
+## Curation / palette-first kartlar / isim / provenance
+
+| ID | Öncelik / durum | İş, sorumlu ve tamamlanma ölçütü |
+| --- | --- | --- |
+| CUR-01 | P0 / Karar | İlk 3–5 Library paletini tek tek onayla veya açıkça empty Library launch seç. Owner. Görsel seçimi, beş HEX, kısa isim ve hak/provenance kaydı ayrı; onaydan önce manifest boş kalır |
+| CUR-02 | P1 / Kısmi | 10–15 gerçekten farklı palette system biriktir; sonra hero/featured seç. Owner görsel verir, ajan candidate çıkarır. Dört Explore kartı var, sekiz deney kaydı var. Katre aynı aile; onu beş farklı palet gibi sayma |
+| CUR-03 | P1 / Açık | Her candidate için editoryal süzgeci kayda geçir. Ajan. Sorusu: “Bu renkler benzer bir tasarım üretmeye gerçekten yardımcı olur mu?” Traceable product-led renkler, rol/kontrast, istenen kullanım, accent, aydınlatma biası, tekrar ve bütünlük; scalar bilimsel puan uydurma |
+| CUR-04 | P1 / Kısmi | AI/owner-supplied/external/member provenance ve attribution sistemini ortaklaştır. Ajan. Tags/content dimensions ortak; kaynak/creator/AI disclosure ayrı alanlar. Fotoğrafçı palette author sayılmaz; dış link indicator ve member sade identity ileride tasarlanmalı |
+| CUR-05 | P1 / Doğrulama | Palette-first cards density / name weight / media crop / küçük Studio linkini kontrol et. Ajan. 64px renk strip'i, image ardından kısa meta; long description ve curated-by copy yok. Görsel paleti gölgelememeli; rastgele büyütme/küçültme yok |
+| CUR-06 | P2 / Kısmi | Editorial short-name registry ile db reservation/alias/history bağını tamamla. Ajan. Local library var, SQL draft var, database editorial cutover yok. IDs immutable; old names lookup, case-fold uniqueness, retired-name reservation; member adı bağımsız |
+| CUR-07 | P2 / Kapandı, local | Yeni unnamed draft'lar `Untitled` yerine kısa editable öneri alır. Username/email prefix zorunlu değil. Mevcut kullanıcı isimlerini değiştirme; suggested isim collision-free/trademark-cleared iddiası yok |
+| CUR-08 | P2 / Park | Önceki 15 stock link, 80 arama havuzu ve 13 tekil aday final onaylı collection değildir. Owner bu yönü beğenmedi; external yedi card retired. Yeni stock search veya imagegen'i kendiliğinden başlatma |
+| CUR-09 | P1 / Doğrulama | Supplied AI asset'lerin yazı/brand glyph, gölge, crop ve tekrar hatalarını candidate review'da kontrol et. Ajan + owner. Daha temiz Lorien tek-kompozisyon referansı final kalite onayı sayılmaz; AI disclosure görsel kalite incelemesinin yerine geçmez. Yeni varyasyon üretmek veya asset'i otomatik değiştirmek bu işin yetkisi değil |
+
+**Son görsel kararı:** Katre'den yalnız Room / Stone Haven Explore'da kaldı;
+Lorien cosmetics / Clay Veil eklendi. Tam HEX/envanter [handoff](handoff.md)
+içinde. AI indicator kalıcı. Final palette interpretation onayı hâlâ ayrı.
+
+## Library engine / data engineering
+
+| ID | Öncelik / durum | İş, sorumlu ve tamamlanma ölçütü |
+| --- | --- | --- |
+| LIB-01 | P1 / Kısmi | Local engine için approved içerik ve anlamlı search örnekleri üret. Ajan, CUR-01 sonrası. Exact name/aliases/AND words/category/use case/HEX ve Match current palette beklenen sonuçları verir; boş sonuç truthful |
+| LIB-02 | P2 / Açık | `supabase/drafts/editorial_library.sql` dosyasını clean local Postgres'te migration/constraints/RLS/rollback ile test et. Ajan. Draft henüz execute edilmedi; static regex test SQL çalıştırmak değildir |
+| LIB-03 | P2 / Karar | DB editorial publication → versioned static manifest cutover planını onaylat. Owner. Tek approval authority; historical `palettes.is_published` ve RPC reference compatibility bozulmaz. Draftı hosted projeye kendiliğinden uygulama |
+| LIB-04 | P2 / Park | Bounded candidate retrieval/vector versioning ve öğrenilmiş ranking ancak curated data + consented feedback varsa. Ajan. Oklab proximity zevk/popularity/accessibility skoru değildir; tüm renkler distinct one-to-one eşleşir |
+
+## Studio / uygulanabilir hayali ürünler / projeler
+
+| ID | Öncelik / durum | İş, sorumlu ve tamamlanma ölçütü |
+| --- | --- | --- |
+| STU-01 | P1 / Kısmi | Objects / Screens / Campaigns taxonomy'yi owner ile finalize et. Owner. Product/Interface/Report eski isimler; saved Report project legacy preview korunur. Yeni kategori açmak kullanıcı göreviyle gerekçelendirilmeli |
+| STU-02 | P1 / Doğrulama | ColorwayKit ürün mapping'inin color/role reorder/save/resume/export akışını kontrol et. Ajan. Bottle/cap/label/carton/backdrop bağımsız; eski baseline değişmez, export exact snapshot'tır. Source AI photo'yu recolor etmiyor |
+| STU-03 | P1 / Açık | Sol selected-row shade overlay'de bütün yüksekliği kullanma isteğini görsel olarak tekrar kontrol et. Ajan. Inline curtain uygulaması var; bu spesifik full-height görünüm owner tarafından yeniden doğrulanmış sayılmaz. Role row layout/focus ve dokunma hedefleri korunmalı |
+| STU-04 | P1 / Doğrulama | Surface rolünün source image görünümünü istenmeden değiştirip değiştirmediğini denetle. Ajan. Önceki şikâyet current state'te yeniden üretilmedi; gerçek photo'yu CSS wash ile palette proof gibi gösterme |
+| STU-05 | P2 / Kısmi | A/B baseline clone, tek değişkeni default test etme, independent undo, isimler ve make-active yolunu refine et. Ajan. Baseline/alternative owner-RPC var; önerilen bütün UX tamamlandı varsayılmasın |
+| STU-06 | P2 / Kısmi | Project/template memory'yi brand defaults ile genişletme brief'i çıkar. Owner. Palette/role/template var; font/icon/background asset defaults ve chart series mappings tam brand-kit ürünü değil |
+| STU-07 | P2 / Açık | Çalışmayı kesmeden collection oluştur/kaydet/geri dön akışını tüm entrypoint'lerde denetle. Ajan. Studio koleksiyon var; Community saves ve her card'da evrensel sepet yok |
+| STU-08 | P2 / Park | Material Study ve pair contrast guidance gelişmiş araçlar olarak değerlendirilsin. Ajan. Screen material simulation physical proof değil, bir pair'in AA/AAA değeri bütün ürünün accessibility garantisi değil |
+
+## Extract / Inspiration
+
+| ID | Öncelik / durum | İş, sorumlu ve tamamlanma ölçütü |
+| --- | --- | --- |
+| EXT-01 | P1 / Doğrulama | “Upload dikine / düşük resolution” şikâyeti için portrait, landscape, EXIF-rotated ve transparent örneklerle browser test yap. Ajan. Display contain + true image bounds; manual sampling orijinal canvas. Downsampled automatic analysis'in preview ile karışmadığı gösterilsin |
+| EXT-02 | P1 / Kısmi | Adobe-benzeri düşük-text çalışma alanını owner ile refine et. Owner. Image + five colors, draggable points, reading mode, undo/reset, name/Studio var. Referansın birebir kopyası veya font/photo rights kopyalama yok |
+| EXT-03 | P1 / Doğrulama | Signature/MIME/20MB/25MP/12000px sınırları, clipboard/dragdrop ve denied decode/handoff yollarını doğrula. Ajan. Görsel browser-local kalır; invalid file preview olmamalı. Orijinal resim private project'e upload edilmiş sayılmaz |
+| INS-01 | P1 / Kısmi | Nokta atışı Inspiration seçkisini owner-supplied görsellerle kur. Owner. Küçük consistent cards + palette ve Studio path; legacy placeholders final içerik değildir. Tekrarlanan packaging/Space örnekleriyle kategori doldurma |
+| INS-02 | P2 / Karar | Editions, Explore ve Inspiration'ın rolünü açıklığa kavuştur. Owner. Applied study brief/CMF/detail route yararlıysa kalsın; hayali product/client gerçek veya satın alınabilir gösterilmesin |
+
+## Community / paylaşım ve kullanıcı katkısı
+
+| ID | Öncelik / durum | İş, sorumlu ve tamamlanma ölçütü |
+| --- | --- | --- |
+| COM-01 | P2 / Kısmi | Palette/work/question feed ve direkt görünen yorum prototipini owner ile değerlendir. Owner. Şu an device-local; gerçek kullanıcı kimlikleri, popularity/vote sayaçları uydurulmaz. “İnsanlar vakit geçirsin” retention hipotezidir |
+| COM-02 | P2 / Açık | Public post/comment storage + permissions + moderation + report/takedown + admin workflow brief'i hazırla. Owner ürün kararı, ajan uygulama. MVP'ye public write açmak mevcut görev değil |
+| COM-03 | P2 / Açık | Palette-only ve optional image paylaşımını ayrık tasarla. Owner. Extract upload hiçbir zaman publish değildir; image rights consent, creator credit, remix lineage ve default all-rights-reserved görünür. Persistent upload için validation + safety/relevance review |
+| COM-04 | P2 / Park | Saves/remixes/creator discovery ve Community→private-project reuse'u geliştir. Ajan. Kaynak attribution korunur; private-workspace verisi kendiliğinden public olmaz |
+
+## Lab / Sandbox / referans HTML
+
+| ID | Öncelik / durum | İş, sorumlu ve tamamlanma ölçütü |
+| --- | --- | --- |
+| LAB-01 | P2 / Korunacak | RoomKit mevcut yerde kalır; bu dokümantasyon/commit turunda davranışı değiştirilmedi. Uploaded-room preview broad-surface approximation, semantic segmentation değil |
+| LAB-02 | P2 / Park | Gerçek room/material recolor için uygun provider/segmentation yöntemini araştır. Ajan, yeniden talimatla. Texture/light koruma, editable semantic surfaces, original/after, privacy/rights/safety/cost doğrulanmadan AI ürün iddiası yok |
+| LAB-03 | P1 / Kapandı, local | Şifresiz Sandbox açıldı; kendi draft key'i, surface mapping, HSL, frozen compare, isim+undo, simulated feedback ve commands. Şifre koyma veya bunu private staging diye anlatma |
+| LAB-04 | P1 / Kapandı, local | Owner-supplied One Shape HTML uyarlanmış 14s motion player'da; gerçek play/pause/scrub, CSP external files, no autoplay. İçindeki sahneler çalışan ürün editorleri değildir |
+| LAB-05 | P2 / Açık | HTML'deki motion/state-transition mentalitesinden bir işlevsel ürün deneyi seç. Owner. Merkez shape/cursor animasyonunu başlı başına ürün sayma; aynı sakin motion ilkesi bağımsız test edilebilir özelliğe bağlansın |
+| LAB-06 | P2 / Kısmi | Her gerçek Lab deneyine açık feedback/try/save ölçümü tasarla. Ajan. Current local feedback community traction sayılmaz; qualitative notlar/user text analytics'e gönderilmez |
+
+## Park edilmiş ürün fikirleri — on farklı yön kaybolmasın
+
+[Renk araçları fırsatları](color-tools-opportunities.md) detay ve tarihsel kaynakları
+tutar. Bunlar otomatik geliştirme listesi değildir; güncel durum:
+
+| Fikir | Durum / sonraki soru |
+| --- | --- |
+| Mini Harmony Wheel | Denendi, reddedildi, kaldırıldı; yeni owner isteği olmadan geri yok |
+| Keep & Explore / locked-color suggestions | Park; chosen vs suggested ve handpicked kaliteyle beraber scope tanımla |
+| A/B deneme masası | Private baseline/alternative var; daha kapsamlı karşılaştırma UX'i STU-05 |
+| Readability Lens / safer alternatives / color-vision simulation | Pair contrast var; tam in-context lens ve color-vision suite yok |
+| Proje sepetleri | Private collections var; her entrypoint, contextual note/image scope STU-07 |
+| Color Bridge / gradients | Park; role application ve CSS gradient export ayrı yollar olmalı |
+| Renk kullanım oranları | Park; 60/30/10 evrensel kural değil, gerçek template surface alanları gerek |
+| Kendi SVG tasarımında dene | Park; sanitization, external references, source/variant preservation tasarımı gerek |
+| Light/Dark + component states | Global theme ve Sandbox surface demo var; generated accessible token/state set ürünü yok |
+| Palette Story Card | Park; source rights, palette-first kompozisyon ve downloadable output brief'i gerek |
+
+## Diğer unutulmaması gerekenler
+
+| ID | Öncelik / durum | İş, sorumlu ve tamamlanma ölçütü |
+| --- | --- | --- |
+| INT-01 | P2 / Park | 21st.dev theme-toggle/component kaynağı ve MCP entegrasyonu ilgili konu tekrar gelince gündeme getir. Ajan. MCP kurulmadı, mevcut paket/API erişimi varsayılmaz; güncel resmi kaynak ve bağımlılık/lisans incelemesi sonrasında karar. Şu an reminder automation yok |
+| INT-02 | P2 / Karar | ChatGPT'deki ayrı ColorVerse içerik/corpus çalışma çıktısını sonradan devral. Owner. Kullanıcı quota transferi istemiyor; seçili output/asset/schema/approval alınacak. Proje özetine erişildi, gerçek chat mesajları henüz okunmadı; hiçbir başka AI projesini kendiliğinden tarama |
+| RES-01 | P2 / Park | Rakip review research pilotu. Owner. Yöntem mevcut; 300–500 unique reviews, human coding, bias/duplicates/dated evidence ve provenance henüz toplanmış dataset değil. Çalışır sürekli veri hattı veya satın alınmış hizmet yok |
+| RES-02 | P2 / Park | Project/template retention hipotezini gerçek kullanıcı görevleriyle sınamak. Owner. 7/28-day meaningful resume/edit/export ölçümü ancak consented veriyle; daha aktif kullanıcı seçimi nedensellik kanıtı değil |
+
+## Yayın kapıları ve kanıt şablonu
+
+| ID | Öncelik / durum | İş, sorumlu ve tamamlanma ölçütü |
+| --- | --- | --- |
+| LEGAL-01 | P0 / Karar | Preview membership/privacy notice'ı final launch scope'a göre değerlendir. Owner, gerekirse uzman. Retail koşulları kopyalanmaz; şu an metin hukuki onaylı değildir. Stock/AI/member hakları ayrı record; timestamp izin kanıtı değildir |
+| REL-01 | P0 / Yeni talimat bekler | Onaylı local HEAD'i push et, Cloudflare deployment'ı doğrula, `npm run test:live:release` ve hosted browser journeys uygula. Ajan. Bu turun commit yetkisi push/deploy yetkisi değil |
+| REL-02 | P1 / Açık | Hosted dar-screen/keyboard/dark/reduced-motion/no-JS/CSP required-assets smoke tekrarını yap. Ajan. Historical 390px local pass, yeni release browser pass sayılmaz |
+| REL-03 | P1 / Doğrulama | Private-data policy boundary kanıtını değişiklik riskine göre yenile. Ajan. Read-only checks ile admin user-creating tests ayrı; `test-member-live.mjs` eski password probe'u OTP delivery testine alternatif değil |
+| REL-04 | P2 / Park | İlk gerçek kullanıcılardan sonra consented funnel review. Owner. Fixed event enums; email/code/palette/image/project name taşınmaz. Popularity/world starter kararına yeterli veri olmadan ranking iddiası yok |
+
+Her gerçek kapıda şu kayıt doldurulur:
+
+- Tarih, local commit ve test edilen URL/environment.
+- İş ID'si ve scope: örneğin Account → OTP → member palette → Studio → project.
+- Beklenen sonuç / gözlenen sonuç / PASS–FAIL–NOT RUN.
+- Kanıt türü: static, unit/mocked, local browser, hosted browser, real inbox,
+  anonymous policy check veya authorized owner-boundary probe.
+- Kalan açık nokta ve sonraki tek adım; email/kod/token/password kayda girmez.
+
+Yeni sohbet “bütün TODO'lar bitti” diyemez. Somut local implementasyon, owner
+ürün onayı, test kanıtı, hosted release ve gelecekteki fikirler ayrı tutulur.

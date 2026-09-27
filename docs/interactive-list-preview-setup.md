@@ -1,11 +1,16 @@
 # InteractiveListPreview setup
 
-The current ColorVerse workspace is a static site (`dist/index.html`); it does not contain React, TypeScript, Tailwind, shadcn, or a package manifest. The requested component has therefore been added non-destructively at:
+Historical integration note; this React demo is not loaded by the current
+ColorVerse application. The repository now has a package manifest and Vite
+development server, but its deployable runtime remains plain static HTML/CSS/JS
+under `dist/`, without a React/Tailwind/shadcn build. The retained demo files are:
 
 - `components/ui/interactive-list-preview.tsx`
 - `components/ui/interactive-list-preview-demo.tsx`
 
-To run it in a React/shadcn app, create or migrate the app with the shadcn CLI, then install the required runtime:
+Only if a separate React/shadcn integration is explicitly requested, create or
+migrate that app and install its runtime. These commands are not current
+ColorVerse setup instructions:
 
 ```bash
 npx shadcn@latest init
