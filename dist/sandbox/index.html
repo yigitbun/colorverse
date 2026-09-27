@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#f6f5ef">
+  <title>Sandbox — ColorVerse</title>
+  <meta name="description" content="An open workbench for experimental ColorVerse products, controls and motion studies.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <script src="/theme-init.js"></script>
+  <link rel="stylesheet" href="/styles.css?v=25"><link rel="stylesheet" href="/design-system.css?v=29">
+  <link rel="stylesheet" href="/sandbox/sandbox.css?v=1"><script type="module" src="/sandbox/sandbox.js?v=2"></script>
+</head>
+<body class="sandbox-page">
+  <a class="skip-link" href="#main">Skip to experiments</a>
+  <header class="sandbox-header section-wrap"><a class="wordmark" href="/">ColorVerse <span class="sandbox-tag">Sandbox</span></a><nav aria-label="Sandbox navigation"><a href="/">Explore ↗</a><a href="/lab/">Lab ↗</a><button id="openCommands" class="small-button" type="button">Commands <kbd>⌘ K</kbd></button></nav></header>
+  <main id="main" class="section-wrap">
+    <section class="sandbox-intro"><div><span class="eyebrow">Open workbench / 01</span><h1>A little room<br>for <em>what if.</em></h1></div><div><p>Products, tiny interactions, unfinished ideas. Try them here before they earn a place in ColorVerse.</p><span class="sandbox-local">No sign-in · experiments stay in this browser</span></div></section>
+    <section class="sandbox-dock" aria-label="Shared experiment palette">
+      <div class="sandbox-name"><label for="sandboxName">Your working palette</label><input id="sandboxName" maxlength="120" spellcheck="false"><button type="button" id="suggestName" aria-label="Suggest another palette name" title="Suggest another name">↻</button></div>
+      <div id="sandboxSwatches" class="sandbox-swatches" role="group" aria-label="Select a palette color"></div>
+      <div class="sandbox-dock-actions"><button type="button" id="undoChange" class="small-button" disabled>Undo</button><button type="button" id="sandboxToStudio" class="small-button">Open in Studio ↗</button></div>
+      <span id="sandboxStorageStatus" class="sandbox-storage" role="status"></span>
+    </section>
+    <nav class="sandbox-jumps" aria-label="Experiment sections"><a href="#product">01 Product</a><a href="#controls">02 Controls</a><a href="#compare">03 Compare</a><a href="#interactions">04 Interactions</a><a href="/sandbox/one-shape/">05 Motion study ↗</a></nav>
+    <section id="product" class="sandbox-product sandbox-card" aria-labelledby="productTitle">
+      <header><div><span class="eyebrow">01 / ColorwayKit</span><h2 id="productTitle">One product. Your colors.</h2></div><span class="sandbox-state">Interactive</span></header>
+      <div class="sandbox-product-grid"><div class="sandbox-product-stage" id="productPreview" role="img" aria-label="Live skincare bottle and carton colorway"></div><aside class="sandbox-product-controls"><label for="conceptPreset">Start from a supplied concept</label><select id="conceptPreset"></select><div id="productAssignments" class="sandbox-assignments"></div><button class="button primary" type="button" id="exportProduct">Export PNG ↓</button><p>Code-native product preview. The AI source image is not recolored.</p><a id="sourceLink" class="sandbox-source" href="/" aria-label="View the source concept on Explore"><img id="sourceImage" alt=""><span id="sourceName"></span><span>✦ AI concept ↗</span></a></aside></div>
+    </section>
+    <div class="sandbox-grid" id="controls">
+      <section class="sandbox-card" aria-labelledby="tunerTitle"><header><div><span class="eyebrow">02 / Tone controls</span><h2 id="tunerTitle">Follow the color.</h2></div><code id="tunerHex"></code></header><div id="tunerPreview" class="sandbox-tuner-preview"><span id="tunerLabel"></span></div><div class="sandbox-sliders"><label>Hue <output id="tunerHueValue"></output><input type="range" id="tunerHue" aria-label="Hue" min="0" max="359" step="1"></label><label>Intensity <output id="tunerIntensityValue"></output><input type="range" id="tunerIntensity" aria-label="Intensity" min="0" max="100" step="1"></label><label>Lightness <output id="tunerLightnessValue"></output><input type="range" id="tunerLightness" aria-label="Lightness" min="0" max="100" step="1"></label><label class="sandbox-hex-label" for="tunerInput">HEX <input id="tunerInput" maxlength="7" pattern="#[A-Fa-f0-9]{6}" spellcheck="false"></label><span id="tunerError" role="status"></span></div></section>
+      <section class="sandbox-card" id="compare" aria-labelledby="compareTitle"><header><div><span class="eyebrow">03 / A second look</span><h2 id="compareTitle">Keep a baseline.</h2></div><button class="small-button" type="button" id="lockBaseline">Capture baseline</button></header><p class="sandbox-hint" id="baselineHint">Capture the current colorway, then make a change.</p><div class="sandbox-comparison"><figure><div id="baselinePreview"></div><figcaption>Baseline</figcaption></figure><figure><div id="comparisonPreview"></div><figcaption>Working version</figcaption></figure></div><button type="button" id="restoreBaseline" class="text-link" disabled>Restore baseline ↶</button></section>
+      <section class="sandbox-card" id="interactions" aria-labelledby="surfaceTitle"><header><div><span class="eyebrow">04 / Surface switch</span><h2 id="surfaceTitle">Light or dark?</h2></div><button type="button" class="sandbox-toggle" id="previewTheme" role="switch" aria-checked="false" aria-label="Dark preview"><span></span></button></header><div id="surfacePreview" class="sandbox-surface"><span class="eyebrow">Made of little decisions</span><h3>Make it yours.</h3><p>A surface, an accent, a line of text.</p><button type="button" id="surfaceAction">Try this direction ↗</button></div><span class="sandbox-hint" id="contrastHint"></span></section>
+      <section class="sandbox-card" aria-labelledby="roleTitle"><header><div><span class="eyebrow">05 / Segmented control</span><h2 id="roleTitle">Small, clear choices.</h2></div><span class="sandbox-state">Interactive</span></header><div id="roleSegments" class="sandbox-segments" role="group" aria-label="Select product surface"></div><div class="sandbox-role-sample" id="roleSample"><span id="roleSampleName"></span><code id="roleSampleHex"></code></div><p class="sandbox-hint">Select a surface, then a palette color above to remap it.</p></section>
+      <section class="sandbox-card" aria-labelledby="actionTitle"><header><div><span class="eyebrow">06 / Button → feedback</span><h2 id="actionTitle">A satisfying little yes.</h2></div></header><div class="sandbox-action-stage"><button id="motionButton" type="button" class="sandbox-motion-button">Try the motion <span>↗</span></button></div><p class="sandbox-hint" id="motionStatus" role="status">A simulated action. Nothing is sent or saved to an account.</p></section>
+      <section class="sandbox-card sandbox-reference" aria-labelledby="referenceTitle"><header><div><span class="eyebrow">07 / Your HTML reference</span><h2 id="referenceTitle">One Shape.</h2></div><span class="sandbox-state">Motion study</span></header><div class="sandbox-shape-mark" aria-hidden="true"><span></span><i></i><b></b></div><p>A button becomes a slider, a switch, tabs, a chart and a command menu. Your original timeline, with play/pause and scrubbing.</p><a class="small-button" href="/sandbox/one-shape/">Open the motion study ↗</a></section>
+    </div>
+    <footer class="sandbox-foot"><span>08 / Command menu · press ⌘ K or Ctrl K</span><span>Open experiments, not finished products. RoomKit stays in Lab.</span><button class="text-link" type="button" id="resetSandbox">Reset Sandbox</button></footer>
+  </main>
+  <dialog id="commandDialog" class="sandbox-command" aria-labelledby="commandTitle"><header><h2 id="commandTitle">Where shall we go?</h2><button type="button" id="closeCommands" aria-label="Close commands">×</button></header><input id="commandSearch" type="search" placeholder="Find an experiment or action" aria-label="Search sandbox commands"><div id="commandResults"></div></dialog>
+  <div class="sandbox-toast" id="sandboxToast" role="status" hidden><span id="sandboxToastMessage"></span><button id="toastUndo" type="button" hidden>Undo ↶</button></div>
+  <noscript><p class="noscript">Enable JavaScript to try these browser-local experiments. No account is needed.</p></noscript>
+</body>
+</html>

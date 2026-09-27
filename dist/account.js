@@ -1,12 +1,15 @@
-import { getAccountClient, initAccountNavigation, accountReturnURL } from './account-client.js';
+import { getAccountClient, initAccountNavigation, accountReturnURL } from './account-client.js?v=3';
+import { initEmailCodeFlow } from './email-code-flow.js?v=2';
+import { emailAccessMessage } from './email-access.js?v=3';
 import { MIN_COLORS, MAX_COLORS, DRAFT_KEY, STUDIO_HANDOFF_KEY, normalizeHex, readDraft, sanitizeDraft, studioColors } from './member-palette.js';
-import { palettes } from './palettes.js?v=27';
+import { palettes } from './palettes.js?v=28';
 import { textOn } from './color.js';
+import { suggestPaletteName } from './palette-names.js?v=1';
 
 const $ = selector => document.querySelector(selector);
 const make = (tag, text, className) => { const el = document.createElement(tag); if (text) el.textContent = text; if (className) el.className = className; return el; };
 const referenceFor = id => palettes.find(p => p.id === id) || (id === 'drift-field-01' ? { id, name: 'Field 01' } : null);
-let client, session, mode = 'signin', recovery = false, busy = false, generation = 0;
+let client, session, generation = 0;
 let items = [], collections = [], offset = 0, editing = null, editorColors = [], referenceKey = null, choice = null, chosen = [], deleting = null;
 const PAGE_SIZE = 24;
 const editor = $('#paletteEditor');
@@ -15,81 +18,61 @@ function status(text, kind = '') { $('#accountStatus').textContent = text; $('#a
 function editorStatus(text) { $('#memberEditorStatus').textContent = text; }
 function writeDraft(value) { try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(sanitizeDraft(value))); } catch {} }
 function clearDraft() { try { sessionStorage.removeItem(DRAFT_KEY); } catch {} }
-function authMessage(error) {
-  if (error?.code === 'invalid_credentials') return 'Email or password is incorrect. Try again or reset your password.';
-  if (error?.code === 'email_not_confirmed') return 'Please confirm your email before signing in. Check your inbox and spam folder.';
-  if (/rate_limit/.test(error?.code || '') || error?.status === 429) return 'Too many attempts. Please wait a little before trying again.';
-  if (error?.code === 'email_address_not_authorized') return 'Email delivery is not enabled for this address yet. Please contact the site owner.';
-  if (error?.code === 'weak_password') return 'Choose a stronger password of at least 12 characters.';
-  return 'We could not complete that request. Please try again. Your palette is still here.';
-}
-
-function setMode(next) {
-  mode = next;
-  $('#passwordLabel').hidden = next === 'reset';
-  $('#accountPassword').required = next !== 'reset';
-  $('#accountPassword').minLength = next === 'signup' ? 12 : 1;
-  $('#accountPassword').autocomplete = next === 'signup' ? 'new-password' : 'current-password';
-  $('#passwordGuide').hidden = next !== 'signup';
-  $('#authSubmit').textContent = ({ signin: 'Sign in', signup: 'Create account', reset: 'Send reset link' })[next];
-  $('#forgotPassword').hidden = next !== 'signin';
-  $('#backToSignIn').hidden = next !== 'reset';
-  document.querySelectorAll('[data-auth-mode]').forEach(button => {
-    const selected = button.dataset.authMode === (next === 'reset' ? 'signin' : next);
-    button.setAttribute('aria-selected', String(selected)); button.tabIndex = selected ? 0 : -1;
-    if (selected) $('#authForm').setAttribute('aria-labelledby', button.id);
-  });
-  status('');
-}
-document.querySelectorAll('[data-auth-mode]').forEach(button => {
-  button.addEventListener('click', () => { if (!busy) setMode(button.dataset.authMode); });
-  button.addEventListener('keydown', event => {
-    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key) || busy) return;
-    event.preventDefault(); setMode(button.dataset.authMode === 'signin' ? 'signup' : 'signin');
-    document.querySelector('[data-auth-mode][aria-selected=true]').focus();
-  });
+function authMessage(error) { return emailAccessMessage(error); }
+const access = initEmailCodeFlow({
+  root: $('#signInPanel'), emailForm: $('#authForm'), email: $('#accountEmail'), send: $('#authSubmit'),
+  codePanel: $('#emailSentPanel'), codeForm: $('#codeForm'), code: $('#accountCode'), verify: $('#verifyCode'),
+  sentEmail: $('#sentEmail'), resend: $('#resendEmail'), changeEmail: $('#changeEmail'),
+  getClient: async () => client ||= await getAccountClient(), status,
 });
-$('#forgotPassword').addEventListener('click', () => setMode('reset'));
-$('#backToSignIn').addEventListener('click', () => setMode('signin'));
 
-$('#authForm').addEventListener('submit', async event => {
-  event.preventDefault(); if (busy) return;
-  busy = true; $('#authSubmit').disabled = true; status('Connecting securely…');
-  const submittedMode = mode;
+const policyDialog = $('#accountPolicyDialog');
+let privacyContent, policyGeneration = 0;
+document.querySelectorAll('[data-account-policy]').forEach(button => button.addEventListener('click', async event => {
+  event.preventDefault();
+  const generation = ++policyGeneration;
+  const privacy = button.dataset.accountPolicy === 'privacy';
+  $('#accountPolicyTitle').textContent = privacy ? 'Privacy notice' : 'Account information';
+  const content = $('#accountPolicyContent'); content.replaceChildren(make('p', 'Loading…'));
+  policyDialog.showModal();
+  if (!privacy) {
+    content.replaceChildren();
+    for (const [heading, text] of [
+      ['One email, one account', 'Enter your email and verify the one-time code sent to your inbox. The same flow signs in existing members or verifies a free account for a new member. No password is needed.'],
+      ['Your private workspace', 'Save palettes, collections, Studio projects and templates to your account. Saved work is private to you. Public Community publishing is not available in this preview.'],
+      ['Your images', 'Image extraction and RoomKit process images in your browser. Saving a palette or Studio project does not upload the source image.'],
+      ['Account and email', 'Supabase handles sign-in and account storage. Sign-in code emails are for access to your account; this form does not subscribe you to a newsletter. Keep sign-in codes private.'],
+      ['Current preview', 'This is a developing product, not a retail membership or rewards program. These notes explain the current account behavior; they are not final membership terms.'],
+    ]) content.append(make('h3', heading), make('p', text));
+    return;
+  }
   try {
-    client ||= await getAccountClient();
-    const email = $('#accountEmail').value.trim(), password = $('#accountPassword').value;
-    let result;
-    if (submittedMode === 'signup') result = await client.auth.signUp({ email, password, options: { emailRedirectTo: accountReturnURL() } });
-    else if (submittedMode === 'reset') result = await client.auth.resetPasswordForEmail(email, { redirectTo: accountReturnURL() });
-    else result = await client.auth.signInWithPassword({ email, password });
-    if (result.error) status(authMessage(result.error), 'error');
-    else {
-      $('#accountPassword').value = '';
-      status(submittedMode === 'signup' && !result.data.session
-        ? 'Check your inbox to confirm your account. If you already have an account, use Sign in instead.'
-        : submittedMode === 'reset' ? 'If an account exists for this email, a password reset link is on its way. Check your spam folder too.' : 'You’re signed in.');
+    if (!privacyContent) {
+      const response = await fetch('/privacy/');
+      if (!response.ok) throw new Error('privacy_unavailable');
+      const main = new DOMParser().parseFromString(await response.text(), 'text/html').querySelector('main');
+      if (!main) throw new Error('privacy_unavailable');
+      privacyContent = main;
     }
-  } catch (error) { status(client ? authMessage(error) : error.message, 'error'); }
-  finally { busy = false; $('#authSubmit').disabled = false; }
-});
-
-$('#recoveryForm').addEventListener('submit', async event => {
-  event.preventDefault(); const button = event.currentTarget.querySelector('button'); button.disabled = true;
-  try {
-    const { error } = await client.auth.updateUser({ password: $('#newPassword').value });
-    if (error) throw error;
-    $('#newPassword').value = ''; recovery = false; renderSession(); status('Password updated.');
-  } catch (error) { status(authMessage(error), 'error'); }
-  finally { button.disabled = false; }
+    if (generation === policyGeneration && policyDialog.open) content.replaceChildren(...[...privacyContent.children].map(child => child.cloneNode(true)));
+  } catch {
+    if (generation !== policyGeneration || !policyDialog.open) return;
+    const link = make('a', 'Open the privacy notice'); link.href = '/privacy/';
+    content.replaceChildren(make('p', 'The notice could not be loaded here. You can read it on its own page.'), link);
+  }
+}));
+$('#closeAccountPolicy').addEventListener('click', () => policyDialog.close());
+policyDialog.addEventListener('click', event => {
+  const rect = policyDialog.getBoundingClientRect();
+  if (event.target === policyDialog && (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom)) policyDialog.close();
 });
 
 function renderSession() {
-  $('#signInPanel').hidden = Boolean(session?.user) || recovery;
-  $('#libraryPanel').hidden = !session?.user || recovery;
-  $('#recoveryPanel').hidden = !recovery;
+  $('#signInPanel').hidden = Boolean(session?.user);
+  $('#libraryPanel').hidden = !session?.user;
   $('#accountIdentity').textContent = session?.user?.email || '';
   $('#pendingDraft').hidden = !readDraft(sessionStorage);
+  if (session?.user) access.stop();
   if (!session?.user) {
     generation++; items = []; collections = []; $('#memberPaletteGrid').replaceChildren();
     $('#collectionFilter').replaceChildren(new Option('All collections', ''));
@@ -159,7 +142,7 @@ function openEditor(item = null, draft = null) {
   editing = item?.id || null;
   editorColors = [...(item?.colors || draft?.colors || ['#F1ECE4', '#C9C5B6', '#75826F', '#AC7760', '#303936'])];
   referenceKey = item?.source_metadata?.reference_key || item?.palette_id || draft?.referenceKey || null;
-  $('#memberPaletteName').value = item?.name || draft?.name || 'Untitled palette';
+  $('#memberPaletteName').value = item?.name || draft?.name || suggestPaletteName(editorColors);
   $('#memberCollection').value = item?.collections?.name || draft?.collection || collections.find(c => c.id === $('#collectionFilter').value)?.name || 'My palettes';
   $('#editorTitle').textContent = item ? 'Edit palette' : 'New palette';
   editorStatus(''); renderEditorColors(); editor.showModal(); $('#memberPaletteName').focus();
@@ -237,20 +220,21 @@ $('#signOut').addEventListener('click', async () => {
   $('#signOut').disabled = true;
   try {
     const { error } = await client.auth.signOut(); if (error) throw error;
-    session = null; recovery = false; clearDraft(); renderSession(); status('Signed out. Your saved palettes are safe in your account.');
+    session = null; clearDraft(); access.reset();
+    renderSession(); status('Signed out. Your saved palettes are safe in your account.');
   } catch { status('Sign-out could not be completed. Please retry.', 'error'); }
   finally { $('#signOut').disabled = false; }
 });
 
-setMode('signin');
 initAccountNavigation();
 try {
   client = await getAccountClient();
   client.auth.onAuthStateChange((event, nextSession) => {
     const changedUser = session?.user.id !== nextSession?.user.id;
     session = nextSession;
-    if (event === 'PASSWORD_RECOVERY') recovery = true;
-    if (!session) recovery = false;
+    if (event === 'SIGNED_OUT') {
+      access.reset();
+    }
     renderSession();
     // Never make another Supabase request inside its auth lock/callback.
     if (session && (changedUser || event === 'SIGNED_IN')) setTimeout(async () => { await loadCollections(); await loadPalettes(); }, 0);
@@ -262,6 +246,6 @@ try {
   // either ordering instead of leaving a returning member with an empty view.
   if (session) { await loadCollections(); await loadPalettes(); }
   const errorParams = new URLSearchParams(location.hash.slice(1));
-  if (errorParams.has('error') || new URLSearchParams(location.search).has('error')) status('This email link is invalid or expired. Request a fresh link or sign in with your password.', 'error');
+  if (errorParams.has('error') || new URLSearchParams(location.search).has('error')) status('This previous email link is invalid or expired. Request a new sign-in code.', 'error');
   if (location.search || location.hash) history.replaceState(null, '', '/account/');
 } catch (error) { renderSession(); status(client ? authMessage(error) : error.message, 'error'); }

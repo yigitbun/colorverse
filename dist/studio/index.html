@@ -6,19 +6,20 @@
   <meta name="theme-color" content="#fafaf8">
   <script src="/theme-init.js"></script>
   <title>Studio — ColorVerse</title>
-  <meta name="description" content="Preview a ColorVerse palette across product, interface, and report directions, then export it.">
+  <meta name="description" content="Preview a ColorVerse palette across objects, screens, and campaigns, then export it.">
   <meta property="og:title" content="Studio — ColorVerse">
   <meta property="og:description" content="Preview a palette in context and export it for your project.">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/styles.css?v=24">
+  <link rel="stylesheet" href="/styles.css?v=25">
   <link rel="stylesheet" href="/design-system.css?v=29">
   <link rel="stylesheet" href="/studio-editor.css?v=7">
-  <link rel="stylesheet" href="/project-store.css?v=7">
+  <link rel="stylesheet" href="/project-store.css?v=8">
   <link rel="stylesheet" href="/color-globe.css?v=1">
-  <link rel="stylesheet" href="/context-kits.css?v=5">
+<link rel="stylesheet" href="/context-kits.css?v=11">
   <link rel="stylesheet" href="/privacy.css?v=2">
-  <script type="module" src="/app.js?v=61"></script>
-  <script type="module" src="/analytics.js?v=5"></script>
+  <link rel="stylesheet" href="/header-controls.css?v=1" data-header-controls>
+  <script type="module" src="/app.js?v=92"></script>
+  <script type="module" src="/analytics.js?v=6"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -41,10 +42,10 @@
           <button class="button full-button" id="savePersonalPalette" type="button">Save to My palettes</button>
         </aside>
         <div class="context-area">
-          <div class="context-tabs" role="tablist" aria-label="Preview context"><button role="tab" id="tab-landing" aria-selected="true" aria-controls="mockup" data-context="landing">Product</button><button role="tab" id="tab-interface" aria-selected="false" aria-controls="mockup" tabindex="-1" data-context="interface">Interface</button><button role="tab" id="tab-presentation" aria-selected="false" aria-controls="mockup" tabindex="-1" data-context="presentation">Report</button><span class="context-live">Live preview</span></div>
-          <div class="product-context-picker" id="productContextPicker" role="tablist" aria-label="Product direction"><button type="button" role="tab" data-product-kind="footwear" aria-selected="true">Footwear</button><button type="button" role="tab" data-product-kind="skincare" aria-selected="false" tabindex="-1">Skincare</button><button type="button" role="tab" data-product-kind="object" aria-selected="false" tabindex="-1">Object</button></div>
+          <div class="context-tabs" role="tablist" aria-label="Apply palette to"><button role="tab" id="tab-landing" aria-selected="true" aria-controls="mockup" data-context="landing">Objects</button><button role="tab" id="tab-interface" aria-selected="false" aria-controls="mockup" tabindex="-1" data-context="interface">Screens</button><button role="tab" id="tab-social" aria-selected="false" aria-controls="mockup" tabindex="-1" data-context="social">Campaigns</button><button role="tab" id="tab-presentation" aria-selected="false" aria-controls="mockup" tabindex="-1" data-context="presentation" hidden>Report (legacy)</button><span class="context-live">Live preview</span></div>
+          <div class="product-context-picker" id="productContextPicker" role="tablist" aria-label="Product direction"><button type="button" role="tab" data-product-kind="skincare" aria-selected="true">Skincare</button><button type="button" role="tab" data-product-kind="footwear" aria-selected="false" tabindex="-1">Footwear</button><button type="button" role="tab" data-product-kind="object" aria-selected="false" tabindex="-1">Object</button></div>
           <div class="mockup-stage"><div id="mockup" role="tabpanel" aria-labelledby="tab-landing" tabindex="0"></div></div>
-          <div class="context-caption"><span id="contextCaptionLabel">Product preview</span><span>Every role updates live · drag colors to swap.</span></div>
+          <div class="context-caption"><span id="contextCaptionLabel">Skincare product preview</span><span>Every role updates live · drag colors to swap.</span></div>
         </div>
         <aside class="color-lab" id="colorLab" aria-labelledby="colorLabTitle">
           <header class="shade-panel-head"><h3 id="colorLabTitle">Shades</h3><span id="shadeRoleNameInline">Background</span></header>
@@ -105,10 +106,11 @@
     <div class="project-dialog-body">
       <section class="project-auth-view" id="projectAuthView">
         <div class="project-auth-copy"><h3>Keep the work, not just the HEX codes.</h3><p>Save a private project, return to its latest version, and build named templates next.</p><ul><li>Private by default</li><li>Five roles saved together</li><li>Every save creates a new version</li></ul></div>
-        <form class="project-auth-form" id="projectAuthForm"><label for="projectEmail">Email<input id="projectEmail" name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label><button class="button primary" type="submit">Email me a sign-in link</button><p class="project-private-note">No password. The secure link returns to ColorVerse Studio.</p></form>
+        <form class="project-auth-form" id="projectAuthForm"><label for="projectEmail">Email<input id="projectEmail" name="email" type="email" autocomplete="email" required maxlength="254" placeholder="you@example.com"></label><button class="button primary" id="projectSendCode" type="submit" disabled>Continue</button><p class="project-private-note">Sign in or create an account with a one-time email code. No password needed.</p></form>
+        <section class="project-code-panel" id="projectCodePanel" hidden aria-labelledby="projectCodeTitle"><h3 id="projectCodeTitle">Enter your code.</h3><p class="project-private-note">Enter the 8-digit code sent to <strong id="projectSentEmail"></strong>.</p><form class="project-auth-form" id="projectCodeForm"><label for="projectCode">Sign-in code<input id="projectCode" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{8}" minlength="8" maxlength="8" required placeholder="00000000"></label><button class="button primary" id="projectVerifyCode" type="submit" disabled>Continue</button></form><div class="project-code-actions"><button id="projectChangeEmail" type="button">Change email</button><button id="projectResendCode" type="button" disabled>Resend code</button></div></section>
       </section>
       <section class="project-workspace-view" id="projectWorkspaceView" hidden>
-        <div class="project-save-panel"><h3>Save this version</h3><form class="project-save-form" id="projectSaveForm"><label for="projectName">Project name<input id="projectName" name="name" maxlength="120" required></label><label for="projectContext">Working context<select id="projectContext" name="context"><option value="brand">Product</option><option value="website">Interface</option><option value="slides">Report</option><option value="roomkit">Living space</option><option value="custom">Custom</option></select></label><button class="button primary" type="submit">Save private version</button><p class="project-private-note">Saving never publishes the project or its source image.</p></form><section class="prototype-panel" aria-labelledby="prototypeTitle"><div class="template-heading"><h3 id="prototypeTitle">Prototype bench</h3><span>Compare safely</span></div><p class="project-private-note">Lock Prototype 1 as your baseline, then test a separate Prototype 2 without overwriting it.</p><div class="prototype-list" id="prototypeList" aria-live="polite"></div><div class="prototype-actions"><button class="button" type="button" id="savePrototype1">Save &amp; lock Prototype 1</button><button class="button" type="button" id="savePrototype2">Save Prototype 2</button></div></section></div>
+        <div class="project-save-panel"><h3>Save this version</h3><form class="project-save-form" id="projectSaveForm"><label for="projectName">Project name<input id="projectName" name="name" maxlength="120" required></label><label for="projectContext">Working context<select id="projectContext" name="context"><option value="brand">Objects</option><option value="website">Screens</option><option value="custom">Campaigns</option><option value="roomkit">Living space</option></select></label><button class="button primary" type="submit">Save private version</button><p class="project-private-note">Saving never publishes the project or its source image.</p></form><section class="prototype-panel" aria-labelledby="prototypeTitle"><div class="template-heading"><h3 id="prototypeTitle">Prototype bench</h3><span>Compare safely</span></div><p class="project-private-note">Lock Prototype 1 as your baseline, then test a separate Prototype 2 without overwriting it.</p><div class="prototype-list" id="prototypeList" aria-live="polite"></div><div class="prototype-actions"><button class="button" type="button" id="savePrototype1">Save &amp; lock Prototype 1</button><button class="button" type="button" id="savePrototype2">Save Prototype 2</button></div></section></div>
         <div class="project-list-panel"><h3>Continue a project</h3><div class="project-list" id="projectList" aria-live="polite"></div><section class="archived-project-panel" aria-labelledby="archivedProjectTitle"><div class="template-heading"><h3 id="archivedProjectTitle">Archived projects</h3><span>Private history</span></div><div class="project-list archived-project-list" id="archivedProjectList" aria-live="polite"></div></section><div class="template-panel"><div class="template-heading"><h3>Reusable templates</h3><span>Private starts</span></div><form class="template-save-form" id="projectTemplateForm"><label for="templateName">Template name<input id="templateName" name="name" maxlength="120" required></label><button class="button" type="submit">Save as template</button></form><div class="template-list" id="templateList" aria-live="polite"></div></div><div class="template-panel collection-panel"><div class="template-heading"><h3>Palette collections</h3><span>Private shelf</span></div><form class="template-save-form" id="savePaletteForm"><label for="collectionName">Collection name<input id="collectionName" name="collection" maxlength="100" placeholder="My saved palettes" required></label><button class="button" type="submit">Save palette</button></form><div class="template-list" id="savedPaletteList" aria-live="polite"></div></div></div>
       </section>
       <p class="project-message" id="projectMessage" role="status" aria-live="polite"></p>

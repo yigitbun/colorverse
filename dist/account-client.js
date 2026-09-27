@@ -1,4 +1,5 @@
 import { accountConfig } from './account-config.js';
+import { decorateAccountNavigation, updateAccountNavigation } from './account-navigation.js?v=2';
 
 let pendingClient;
 export function getAccountClient() {
@@ -29,18 +30,12 @@ export const accountReturnURL = () => `${location.origin}/account/`;
 export async function initAccountNavigation() {
   const actions = document.querySelector('.header-actions');
   if (!actions) return;
-  let link = actions.querySelector('[data-account-link]');
-  if (!link) {
-    link = document.createElement('a');
-    link.href = '/account/';
-    link.className = 'small-button account-link';
-    link.dataset.accountLink = '';
-    link.textContent = 'Sign in';
-    actions.append(link);
-  }
+  const link = decorateAccountNavigation(actions);
   try {
     const client = await getAccountClient();
-    const update = session => { link.textContent = session?.user ? 'My palettes' : 'Sign in'; };
+    const update = session => {
+      updateAccountNavigation(link, session);
+    };
     const { data } = await client.auth.getSession();
     update(data.session);
     client.auth.onAuthStateChange((_event, session) => update(session));

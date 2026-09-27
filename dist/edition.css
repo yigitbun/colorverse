@@ -59,3 +59,5 @@
   .edition-cta{margin-top:58px;padding-top:38px;padding-bottom:38px}
   .edition-disclosure{grid-template-columns:1fr;gap:10px}
 }
+.edition-hero .visual-pending-stage{display:grid;aspect-ratio:3/2;place-items:center;border:1px dashed var(--line);border-radius:12px;background:var(--surface-2);color:var(--muted);font:.75rem var(--mono)}
+@media(max-width:580px){.edition-hero .visual-pending-stage{aspect-ratio:1/1;border-radius:0}}

@@ -18,6 +18,8 @@ export function safePageLocation(value) {
 export function analyticsEvent(name, detail = {}) {
   const choices = {
     palette_open: { source: ['library', 'globe', 'image', 'community', 'project'] },
+    account_access: { step: ['requested', 'verified'] },
+    palette_started: { source: ['globe'] },
     palette_export: { format: ['css', 'scss', 'tailwind', 'json', 'hex'] },
     color_edit: { method: ['globe', 'shade', 'inline-shade', 'alternative', 'swap'] },
     context_preview: { context: ['landing', 'interface', 'presentation', 'social', 'shop', 'material', 'packaging', 'dashboard', 'menu'] },

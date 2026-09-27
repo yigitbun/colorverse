@@ -11,9 +11,9 @@ const originalPalettes = [
       "#F59E0B",
       "#3A1B2C"
     ],
-    "image": "/assets/palette-library/original/sunset-pop.jpg",
-    "source": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4",
-    "credit": "Unsplash",
+    "image": null,
+    "source": null,
+    "credit": null,
     "category": "Landscape",
     "tags": ["warm", "energetic", "sunset"],
     "useCases": ["campaigns", "events", "editorial"]
@@ -29,9 +29,9 @@ const originalPalettes = [
       "#D17F3F",
       "#3E2A1F"
     ],
-    "image": "/assets/palette-library/original/warm-cafe.jpg",
-    "source": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085",
-    "credit": "Unsplash",
+    "image": null,
+    "source": null,
+    "credit": null,
     "category": "Coffee & food",
     "tags": ["warm", "earthy", "comforting"],
     "useCases": ["hospitality", "packaging", "retail"]
@@ -47,9 +47,9 @@ const originalPalettes = [
       "#7FA8FF",
       "#1A2330"
     ],
-    "image": "/assets/palette-library/original/nordic-calm.jpg",
-    "source": "https://images.unsplash.com/photo-1505691938895-1758d7feb511",
-    "credit": "Unsplash",
+    "image": null,
+    "source": null,
+    "credit": null,
     "category": "Interiors",
     "tags": ["cool", "minimal", "quiet"],
     "useCases": ["software", "architecture", "wellness"]
@@ -65,9 +65,9 @@ const originalPalettes = [
       "#A38450",
       "#1F2C1D"
     ],
-    "image": "/assets/palette-library/original/forest-floor.jpg",
-    "source": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e",
-    "credit": "Unsplash",
+    "image": null,
+    "source": null,
+    "credit": null,
     "category": "Nature",
     "tags": ["organic", "earthy", "grounded"],
     "useCases": ["outdoors", "food", "sustainability"]
@@ -83,9 +83,9 @@ const originalPalettes = [
       "#A78BFA",
       "#E2E8F0"
     ],
-    "image": "/assets/palette-library/original/midnight-tech.jpg",
-    "source": "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a",
-    "credit": "Unsplash",
+    "image": null,
+    "source": null,
+    "credit": null,
     "category": "Nightscape",
     "tags": ["dark", "precise", "electric"],
     "useCases": ["software", "data", "technology"]
@@ -101,9 +101,9 @@ const originalPalettes = [
       "#F472B6",
       "#3F2A4B"
     ],
-    "image": "/assets/palette-library/original/pastel-daydream.jpg",
-    "source": "https://images.unsplash.com/photo-1500964757637-c85e8a162699",
-    "credit": "Unsplash",
+    "image": null,
+    "source": null,
+    "credit": null,
     "category": "Atmosphere",
     "tags": ["pastel", "soft", "dreamlike"],
     "useCases": ["beauty", "lifestyle", "editorial"]
@@ -119,9 +119,9 @@ const originalPalettes = [
       "#171717",
       "#0A0A0A"
     ],
-    "image": "/assets/palette-library/original/bold-minimal.jpg",
-    "source": "https://images.unsplash.com/photo-1493238792000-8113da705763",
-    "credit": "Unsplash",
+    "image": null,
+    "source": null,
+    "credit": null,
     "category": "Automotive",
     "tags": ["graphic", "high-contrast", "editorial"],
     "useCases": ["campaigns", "fashion", "publishing"]
@@ -137,9 +137,9 @@ const originalPalettes = [
       "#8A8F4D",
       "#3D2A1A"
     ],
-    "image": "/assets/palette-library/original/tuscan-earth.jpg",
-    "source": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
-    "credit": "Unsplash",
+    "image": null,
+    "source": null,
+    "credit": null,
     "category": "Travel",
     "tags": ["vintage", "sun-baked", "artisanal"],
     "useCases": ["hospitality", "packaging", "craft"]
@@ -155,9 +155,9 @@ const originalPalettes = [
       "#FF2E97",
       "#F5F5F7"
     ],
-    "image": "/assets/palette-library/original/cyber-neon.jpg",
-    "source": "https://images.unsplash.com/photo-1557682250-33bd709cbe85",
-    "credit": "Unsplash",
+    "image": null,
+    "source": null,
+    "credit": null,
     "category": "Abstract",
     "tags": ["neon", "dark", "futuristic"],
     "useCases": ["technology", "music", "gaming"]
@@ -173,9 +173,9 @@ const originalPalettes = [
       "#F4C977",
       "#1B3B3A"
     ],
-    "image": "/assets/palette-library/original/ocean-breeze.jpg",
-    "source": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
-    "credit": "Unsplash",
+    "image": null,
+    "source": null,
+    "credit": null,
     "category": "Coastal",
     "tags": ["fresh", "calm", "sunlit"],
     "useCases": ["travel", "wellness", "hospitality"]
@@ -191,9 +191,9 @@ const originalPalettes = [
       "#FF6B5E",
       "#24213D"
     ],
-    "image": "/assets/palette-library/original/neon-tide.jpg",
-    "source": "https://images.unsplash.com/photo-1557682250-33bd709cbe85",
-    "credit": "Unsplash",
+    "image": null,
+    "source": null,
+    "credit": null,
     "category": "Abstract",
     "tags": ["electric", "playful", "high-contrast"],
     "useCases": ["music", "campaigns", "digital products"]
@@ -209,9 +209,9 @@ const originalPalettes = [
       "#8FD3FF",
       "#273C4D"
     ],
-    "image": "/assets/palette-library/original/after-rain.jpg",
-    "source": "https://images.unsplash.com/photo-1500534623283-312aade485b7",
-    "credit": "Unsplash",
+    "image": null,
+    "source": null,
+    "credit": null,
     "category": "Nature",
     "tags": ["fresh", "soft", "rain-washed"],
     "useCases": ["wellness", "beauty", "lifestyle"]
@@ -227,9 +227,9 @@ const originalPalettes = [
       "#69E895",
       "#30233B"
     ],
-    "image": "/assets/palette-library/original/citrus-static.jpg",
-    "source": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
-    "credit": "Unsplash",
+    "image": null,
+    "source": null,
+    "credit": null,
     "category": "Landscape",
     "tags": ["citrus", "bright", "energetic"],
     "useCases": ["food", "events", "campaigns"]
@@ -245,9 +245,9 @@ const originalPalettes = [
       "#EF6C9B",
       "#132F39"
     ],
-    "image": "/assets/palette-library/original/night-garden.jpg",
-    "source": "https://images.unsplash.com/photo-1519608487953-e999c86e7455",
-    "credit": "Unsplash",
+    "image": null,
+    "source": null,
+    "credit": null,
     "category": "Botanical",
     "tags": ["nocturnal", "lush", "mysterious"],
     "useCases": ["beauty", "hospitality", "editorial"]
@@ -263,9 +263,9 @@ const originalPalettes = [
       "#E8FF5F",
       "#322447"
     ],
-    "image": "/assets/palette-library/original/soft-voltage.jpg",
-    "source": "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8",
-    "credit": "Unsplash",
+    "image": null,
+    "source": null,
+    "credit": null,
     "category": "Atmosphere",
     "tags": ["soft", "electric", "contemporary"],
     "useCases": ["fashion", "technology", "editorial"]
@@ -275,9 +275,9 @@ const originalPalettes = [
     "name": "Patina Cycle",
     "description": "Rust, faded blue, and warm stone — a lived-in direction for heritage goods and editorial travel work.",
     "colors": ["#F1E4D4", "#B7C0BC", "#8E5B3F", "#41606A", "#202D33"],
-    "image": "/assets/palette-library/vintage-bicycle.jpg",
-    "credit": "Unsplash · Annie Spratt",
-    "source": "https://unsplash.com/photos/vintage-brown-bicycle-o6HKk0uhU6o",
+    "image": null,
+    "credit": null,
+    "source": null,
     "category": "Vintage object",
     "tags": ["patina", "vintage", "crafted"],
     "useCases": ["heritage", "travel", "editorial"]
@@ -287,9 +287,9 @@ const originalPalettes = [
     "name": "Civic Shadow",
     "description": "Concrete neutrals cut with aubergine and rust — structured, confident, and made for strong visual systems.",
     "colors": ["#E8E1D8", "#B7B0A8", "#A87558", "#5A5165", "#1C2026"],
-    "image": "/assets/palette-library/brutalist-shadows.jpg",
-    "credit": "Unsplash · Alex Lvrs",
-    "source": "https://unsplash.com/photos/industrial-building-facade-with-strong-geometric-shadows-Jye5NmDCwGU",
+    "image": null,
+    "credit": null,
+    "source": null,
     "category": "Architecture",
     "tags": ["structural", "graphic", "editorial"],
     "useCases": ["architecture", "fashion", "portfolio"]
@@ -299,9 +299,9 @@ const originalPalettes = [
     "name": "Quiet Workshop",
     "description": "Soft ceramic, eucalyptus, and wood — a calm material study for interiors, packaging, and slow brands.",
     "colors": ["#F4EFE7", "#D9CBB8", "#B0A096", "#72836F", "#2B2A27"],
-    "image": "/assets/palette-library/ceramic-still-life.jpg",
-    "credit": "Unsplash · Magdalena Raczka",
-    "source": "https://unsplash.com/photos/various-ceramic-bowls-and-kitchen-utensils-arranged-decoratively-BU25z-gf4N4",
+    "image": null,
+    "credit": null,
+    "source": null,
     "category": "Material & craft",
     "tags": ["tactile", "quiet", "natural"],
     "useCases": ["interiors", "packaging", "wellness"]
@@ -311,9 +311,9 @@ const originalPalettes = [
     "name": "Market Signal",
     "description": "Citrus orange, leaf green, and deep ink — a bright, immediate direction for food and retail brands.",
     "colors": ["#FFF2D6", "#F5C247", "#F28B2B", "#6E9A62", "#273D3C"],
-    "image": "/assets/palette-library/citrus-market.jpg",
-    "credit": "Unsplash · Engin Akyurt",
-    "source": "https://unsplash.com/photos/close-up-view-of-many-ripe-oranges-in-rows-3S5mx08Fy4w",
+    "image": null,
+    "credit": null,
+    "source": null,
     "category": "Food & retail",
     "tags": ["citrus", "fresh", "immediate"],
     "useCases": ["food", "retail", "campaigns"]
@@ -323,9 +323,9 @@ const originalPalettes = [
     "name": "Reef Current",
     "description": "Clear aqua, coral heat, and deep marine blue — made for coastal hospitality, wellness, and science-led stories.",
     "colors": ["#E7F7F3", "#9CDDD2", "#2E9AAB", "#E86E5B", "#12394A"],
-    "image": "/assets/palette-library/blue-coral.jpg",
-    "credit": "Unsplash · Francisco Jesús Navarro Hernández",
-    "source": "https://unsplash.com/photos/underwater-photography-of-blue-corals-49TMUrNQDQ0",
+    "image": null,
+    "credit": null,
+    "source": null,
     "category": "Marine",
     "tags": ["aquatic", "fresh", "vivid"],
     "useCases": ["travel", "wellness", "science"]
@@ -335,9 +335,9 @@ const originalPalettes = [
     "name": "Low Cloud",
     "description": "Fog-softened greens and blue-grays — restrained, atmospheric, and quietly cinematic.",
     "colors": ["#E9E8E2", "#AEB9B8", "#6D888B", "#3E5054", "#1A2629"],
-    "image": "/assets/palette-library/fog-mountains.jpg",
-    "credit": "Unsplash · Diego Romeo",
-    "source": "https://unsplash.com/photos/foggy-mountains-in-a-moody-cloudy-landscape-mE6Wzzcvd18",
+    "image": null,
+    "credit": null,
+    "source": null,
     "category": "Landscape",
     "tags": ["quiet", "atmospheric", "cool"],
     "useCases": ["architecture", "travel", "editorial"]
@@ -347,9 +347,9 @@ const originalPalettes = [
     "name": "After Hours",
     "description": "Ink, neon pink, violet, and a warm signal — a nocturnal system for music, nightlife, and digital culture.",
     "colors": ["#121A22", "#253B43", "#E84E82", "#7B5CFF", "#F5D36A"],
-    "image": "/assets/palette-library/neon-street.jpg",
-    "credit": "Unsplash · Adhitya Sibikumar",
-    "source": "https://unsplash.com/photos/night-view-of-a-street-with-glowing-neon-signs-uVG0LFG52VU",
+    "image": null,
+    "credit": null,
+    "source": null,
     "category": "Nightlife",
     "tags": ["nocturnal", "electric", "social"],
     "useCases": ["music", "hospitality", "digital products"]
@@ -359,9 +359,9 @@ const originalPalettes = [
     "name": "Prism Light",
     "description": "Colored glass turns daylight into a confident spectrum — for culture, events, and expressive editorial work.",
     "colors": ["#F6F1E5", "#F2C05E", "#DA5B7A", "#4C7CC8", "#292A4A"],
-    "image": "/assets/palette-library/stained-glass.jpg",
-    "credit": "Unsplash · Bobby",
-    "source": "https://unsplash.com/photos/light-streams-through-colorful-stained-glass-windows-Nep25K5qa5g",
+    "image": null,
+    "credit": null,
+    "source": null,
     "category": "Light & glass",
     "tags": ["luminous", "expressive", "cultural"],
     "useCases": ["arts", "events", "editorial"]
@@ -371,9 +371,9 @@ const originalPalettes = [
     "name": "Dune Signal",
     "description": "Sand, clay, dry green, and a dark horizon — a sun-baked palette for hospitality and considered packaging.",
     "colors": ["#F5E6C8", "#D8A474", "#B86D43", "#718A74", "#30383A"],
-    "image": "/assets/palette-library/desert-dunes.jpg",
-    "credit": "Unsplash · Alexander Psiuk",
-    "source": "https://unsplash.com/photos/desert-dunes-stretch-toward-a-serene-clear-sky-cczug9CpFpU",
+    "image": null,
+    "credit": null,
+    "source": null,
     "category": "Desert landscape",
     "tags": ["sun-baked", "minimal", "grounded"],
     "useCases": ["hospitality", "outdoors", "packaging"]
@@ -383,9 +383,9 @@ const originalPalettes = [
     "name": "Archive Green",
     "description": "Old paper, bookcloth green, and a precise red mark — a literary palette for publishing, education, and retail.",
     "colors": ["#F5EBDD", "#D7C4A8", "#5D765F", "#A4483F", "#2B2928"],
-    "image": "/assets/palette-library/old-bookstore.jpg",
-    "credit": "Unsplash · tommao wang",
-    "source": "https://unsplash.com/photos/old-bookstore-with-shelves-full-of-books-9t89HV3_3Sw",
+    "image": null,
+    "credit": null,
+    "source": null,
     "category": "Culture & reading",
     "tags": ["literary", "heritage", "considered"],
     "useCases": ["publishing", "education", "retail"]
@@ -394,54 +394,54 @@ const originalPalettes = [
 
 const visualSources = {
   heritage: {
-    image: "/assets/palette-library/vintage-bicycle.jpg",
-    credit: "Unsplash · Annie Spratt",
-    source: "https://unsplash.com/photos/vintage-brown-bicycle-o6HKk0uhU6o"
+    image: null,
+    credit: null,
+    source: null
   },
   architecture: {
-    image: "/assets/palette-library/brutalist-shadows.jpg",
-    credit: "Unsplash · Alex Lvrs",
-    source: "https://unsplash.com/photos/industrial-building-facade-with-strong-geometric-shadows-Jye5NmDCwGU"
+    image: null,
+    credit: null,
+    source: null
   },
   craft: {
-    image: "/assets/palette-library/ceramic-still-life.jpg",
-    credit: "Unsplash · Magdalena Raczka",
-    source: "https://unsplash.com/photos/various-ceramic-bowls-and-kitchen-utensils-arranged-decoratively-BU25z-gf4N4"
+    image: null,
+    credit: null,
+    source: null
   },
   market: {
-    image: "/assets/palette-library/citrus-market.jpg",
-    credit: "Unsplash · Engin Akyurt",
-    source: "https://unsplash.com/photos/close-up-view-of-many-ripe-oranges-in-rows-3S5mx08Fy4w"
+    image: null,
+    credit: null,
+    source: null
   },
   marine: {
-    image: "/assets/palette-library/blue-coral.jpg",
-    credit: "Unsplash · Francisco Jesús Navarro Hernández",
-    source: "https://unsplash.com/photos/underwater-photography-of-blue-corals-49TMUrNQDQ0"
+    image: null,
+    credit: null,
+    source: null
   },
   landscape: {
-    image: "/assets/palette-library/fog-mountains.jpg",
-    credit: "Unsplash · Diego Romeo",
-    source: "https://unsplash.com/photos/foggy-mountains-in-a-moody-cloudy-landscape-mE6Wzzcvd18"
+    image: null,
+    credit: null,
+    source: null
   },
   nightlife: {
-    image: "/assets/palette-library/neon-street.jpg",
-    credit: "Unsplash · Adhitya Sibikumar",
-    source: "https://unsplash.com/photos/night-view-of-a-street-with-glowing-neon-signs-uVG0LFG52VU"
+    image: null,
+    credit: null,
+    source: null
   },
   arts: {
-    image: "/assets/palette-library/stained-glass.jpg",
-    credit: "Unsplash · Bobby",
-    source: "https://unsplash.com/photos/light-streams-through-colorful-stained-glass-windows-Nep25K5qa5g"
+    image: null,
+    credit: null,
+    source: null
   },
   desert: {
-    image: "/assets/palette-library/desert-dunes.jpg",
-    credit: "Unsplash · Alexander Psiuk",
-    source: "https://unsplash.com/photos/desert-dunes-stretch-toward-a-serene-clear-sky-cczug9CpFpU"
+    image: null,
+    credit: null,
+    source: null
   },
   editorial: {
-    image: "/assets/palette-library/old-bookstore.jpg",
-    credit: "Unsplash · tommao wang",
-    source: "https://unsplash.com/photos/old-bookstore-with-shelves-full-of-books-9t89HV3_3Sw"
+    image: null,
+    credit: null,
+    source: null
   }
 };
 
@@ -549,9 +549,9 @@ const editionOverrides = {
     seriesCode: "CV / SS",
     description: "A five-product care-object series where color identifies each formula while one structure keeps the range coherent.",
     colors: ["#E9E3D8", "#9B9F83", "#B66F56", "#AAA2AC", "#252B2F"],
-    image: "/assets/editions/skincare-system-01-v1.jpg",
-    source: "https://colorverse.byigit.dev/editions/skincare-system-01/",
-    credit: "ColorVerse Editions · original concept",
+    image: null,
+    source: null,
+    credit: null,
     category: "Care objects",
     tags: ["soft", "material", "considered"],
     useCases: ["care", "packaging", "retail"]

@@ -9,7 +9,7 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./worlds.css?v=3">
   <link rel="stylesheet" href="/privacy.css?v=2">
-  <script type="module" src="./worlds.js?v=4"></script>
+  <script type="module" src="./worlds.js?v=5"></script>
   <script type="module" src="/analytics.js?v=5"></script>
 </head>
 <body>
@@ -41,7 +41,7 @@
       </article>
 
       <figure class="world-reference">
-        <div class="reference-image"><img id="worldImage" alt="" width="900" height="600"></div>
+        <div class="reference-image" aria-label="Reference image awaiting curation"></div>
         <figcaption><span>Reference signal</span><strong id="worldReference">Chromatic field study</strong></figcaption>
       </figure>
     </section>
@@ -53,7 +53,7 @@
       <div class="scan-plane" aria-hidden="true"></div>
 
       <aside class="color-probe" id="colorProbe" hidden aria-live="polite">
-        <div class="probe-image"><img id="probeImage" alt=""><span id="probeMode">Hover</span></div>
+        <div class="probe-image"><span id="probeMode">Hover</span></div>
         <div class="probe-content">
           <span id="probeWorld">Spectrum signal</span>
           <strong id="probeHex">#FF7658</strong>

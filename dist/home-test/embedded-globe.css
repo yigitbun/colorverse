@@ -1,0 +1,41 @@
+/* Only the test homepage: the unchanged Studio instrument, inline at right. */
+/* Compact sequential palette study; no modal header/footer bands. */
+body[data-page=home] .hero{grid-template-columns:minmax(0,.65fr) minmax(0,1.35fr);align-items:center;gap:28px;padding-top:24px;padding-bottom:24px}
+.embedded-color-globe{display:flex;flex-direction:column;position:relative;width:100%;max-height:none;margin:0;box-shadow:none;min-width:0}
+.embedded-color-globe .globe-picker-body{grid-template-columns:minmax(0,1fr) 230px;overflow:visible}
+.embedded-color-globe .globe-picker-controls{padding:20px 16px}
+.embedded-color-globe .globe-picker-world{padding:12px}
+.embedded-color-globe #colorGlobeCanvas{width:100%;height:auto;aspect-ratio:1}
+.embedded-color-globe .globe-picker-foot{padding:14px 16px;flex-wrap:wrap}
+.embedded-color-globe #globeStatus{overflow-wrap:anywhere}
+.embedded-color-globe{background:transparent;border:0;border-radius:0;overflow:visible}
+.embedded-color-globe .globe-picker-world{position:relative;background:transparent;padding-top:56px}
+.embedded-color-globe .globe-picker-head{position:absolute;top:8px;left:12px;padding:0;border:0;z-index:1}
+.embedded-color-globe .globe-picker-head h2{font-size:20px}
+.embedded-color-globe .globe-picker-controls{background:transparent;border:0;align-self:center}
+.embedded-color-globe .globe-picker-foot{display:flex;flex-direction:column;align-items:stretch;padding:16px 0 0;margin-top:12px;border:0;background:transparent;gap:10px}
+.embedded-color-globe .globe-picker-foot>div{display:flex;justify-content:space-between;gap:6px}
+.embedded-color-globe .globe-picker-foot .button{padding:8px 10px}
+.hero-swatches .is-suggested{opacity:.55;border-style:dashed}
+.hero-swatches .is-confirmed{opacity:1}
+@media(max-width:1100px){body[data-page=home] .hero{grid-template-columns:minmax(0,.6fr) minmax(0,1.4fr);gap:20px}.embedded-color-globe .globe-picker-body{grid-template-columns:minmax(0,1fr) 210px}.embedded-color-globe .globe-picker-controls{padding:18px 12px}.embedded-color-globe .globe-picker-guide{flex-wrap:wrap}}
+@media(max-width:850px){body[data-page=home] .hero{grid-template-columns:1fr}.embedded-color-globe .globe-picker-body{grid-template-columns:minmax(0,1fr) 264px}body[data-page=home] .hero-copy{padding:18px 0}}
+@media(max-width:700px){body[data-page=home] .hero{padding:0 22px 24px;display:grid;gap:16px}body[data-page=home] .hero-copy{padding:24px 0 0}.embedded-color-globe{border-radius:18px;border-bottom:1px solid var(--line)}.embedded-color-globe .globe-picker-body{grid-template-columns:1fr}.embedded-color-globe .globe-picker-controls{padding:14px 20px 18px;border-left:0;border-top:1px solid var(--line)}.embedded-color-globe #colorGlobeCanvas{width:min(100%,340px)}.embedded-color-globe .globe-picker-world{align-items:center}.embedded-color-globe .globe-picker-foot{padding:12px 16px}}
+@media(max-width:700px){.embedded-color-globe{border:0;border-radius:0}.embedded-color-globe .globe-picker-world{padding-top:56px}.embedded-color-globe .globe-picker-controls{border:0;padding-inline:0}.embedded-color-globe .globe-picker-foot{padding:12px 0 0}}
+/* Flatten the remaining instrument chrome and shorten its canvas footprint. */
+.embedded-color-globe .globe-picker-world{padding:0 12px;min-height:0;justify-content:center}
+.embedded-color-globe .globe-picker-head{top:12px;left:24px;border:0}
+.embedded-color-globe .globe-picker-head h2{font-size:17px;margin:0}
+.embedded-color-globe #colorGlobeCanvas{width:90%;margin:0 auto}
+.embedded-color-globe .globe-picker-controls{padding-block:8px}
+.embedded-color-globe .globe-picker-guide{margin-top:-12px}
+body[data-page=home] .hero{min-height:0;padding-top:16px;padding-bottom:16px}
+.hero-palette{display:flex;flex-direction:column}
+.mini-palette-references{order:5;display:grid;gap:5px;margin-top:12px}
+.mini-palette-references[hidden]{display:none}
+.mini-reference-label{font-size:10px;color:var(--muted)}
+.mini-palette-references>button{display:flex;align-items:center;justify-content:space-between;gap:10px;background:transparent;padding:3px 0;color:var(--muted);font-size:11px;text-align:left}
+.mini-palette-references>button:hover{color:var(--ink)}
+.mini-reference-swatches{display:flex;width:120px;gap:3px;flex-shrink:0}
+.mini-reference-swatches i{flex:1;height:17px;border-radius:3px}
+@media(max-width:700px){.embedded-color-globe .globe-picker-world{padding:0;justify-content:center}.embedded-color-globe .globe-picker-head{top:0;left:0}.embedded-color-globe #colorGlobeCanvas{width:min(90%,306px)}.embedded-color-globe .globe-picker-guide{margin-top:-6px}.embedded-color-globe .globe-picker-controls{padding-block:10px}}

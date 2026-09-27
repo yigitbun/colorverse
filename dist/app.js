@@ -1,10 +1,19 @@
-import { palettes } from './palettes.js?v=27';
+import { palettes } from './palettes.js?v=28';
+import { approvedPaletteIds, isApprovedPalette, reviewCandidates, homeStudies, homeCandidateFor } from './curation.js?v=8';
+import { retiredReviewPalettes } from './retired-review-palettes.js?v=1';
+import { suggestPaletteName } from './palette-names.js?v=1';
+import { savePaletteHandoff } from './palette-handoff.js?v=1';
+import { createLibraryEngine } from './library-engine.js?v=1';
+import { paletteNameLibrary } from './palette-name-library.js?v=3';
 import { roles, clamp, contrast, textOn, rgb, toHex, oklab, oklch, paletteFromColor, exportPalette, extractPaletteVariants, oklabDistance } from './color.js';
 import { createAtlas, atlasWorlds } from './globe.js?v=29';
 import { buildShadeFamilies } from './shade-studio.js?v=1';
-import { createColorGlobe } from './color-globe.js?v=2';
+import { createColorGlobe, toHsl, fromHsl } from './color-globe.js?v=2';
 import { SUPPORTED_IMAGE_TYPES, validateImageFile } from './image-file.js?v=1';
-import { initAccountNavigation } from './account-client.js';
+import { imagePoint, sampleImageColor } from './image-sampling.js?v=1';
+import { initCommunity } from './community-feed.js?v=1';
+import { freezeColorway, downloadColorway } from './colorway-kit.js?v=1';
+import { initAccountNavigation } from './account-client.js?v=3';
 import { DRAFT_KEY, STUDIO_HANDOFF_KEY, readDraft, sanitizeDraft } from './member-palette.js';
 
 const $ = selector => document.querySelector(selector);
@@ -45,27 +54,40 @@ const specialEditions = [{
   series: 'DRIFT / Field 01',
   description: 'A quiet footwear system built from mineral tones, tactile materials, and one precise silhouette.',
   colors: ['#E8E1D5', '#8A927C', '#B68B70', '#A8A0AD', '#34383A'],
-  image: '/assets/editions/drift-field-01-colorways-v1.png',
+  image: null,
   category: 'ColorVerse Edition · Footwear study',
   tags: ['footwear', 'cmf', 'product'],
   useCases: ['footwear · product', 'retail · campaign'],
 }];
-const editionPalettes = [...palettes, ...specialEditions];
+const editionPalettes = [...palettes, ...reviewCandidates, ...retiredReviewPalettes, ...specialEditions];
+const workingDraft = {
+  id: 'working-draft', name: suggestPaletteName(),
+  description: 'A neutral starting point to shape in Studio; not part of the curated library.',
+  colors: ['#F7F6F2', '#DFE0DC', '#A9AAA7', '#6E7374', '#252B2F'],
+  image: null, category: 'Draft', tags: ['working draft'], sourcePaletteId: null,
+};
 const requestedPalette = editionPalettes.find(palette => palette.id === params.get('p'));
 const storedPalette = readStoredPalette();
-let current = requestedPalette || (storedPalette && (!params.get('p') || storedPalette.id === params.get('p')) ? storedPalette : palettes[0]);
+const resumablePalette = storedPalette?.id?.startsWith('world-') ? null : storedPalette;
+let current = requestedPalette && resumablePalette?.id === requestedPalette.id ? resumablePalette : requestedPalette || (resumablePalette && (!params.get('p') || resumablePalette.id === params.get('p')) ? resumablePalette : workingDraft);
 if (page === 'studio' && params.get('saved') === '1') {
   const saved = readDraft(sessionStorage, STUDIO_HANDOFF_KEY);
   if (saved?.colors.length === 5) {
     const reference = editionPalettes.find(palette => palette.id === saved.referenceKey);
-    current = { ...(reference || palettes[0]), id: `saved-${Date.now()}`, name: saved.name,
+    current = { ...(reference || workingDraft), id: `saved-${Date.now()}`, name: saved.name,
       description: 'A working copy of your private palette.', colors: saved.colors, sourcePaletteId: reference?.id || null };
     try { sessionStorage.removeItem(STUDIO_HANDOFF_KEY); sessionStorage.setItem('colorverse-current-palette', JSON.stringify(current)); } catch {}
     history.replaceState(null, '', '/studio/');
   }
 }
 let context = 'landing';
-let productKind = current.id === 'skincare-system-01' ? 'skincare' : current.id === 'drift-field-01' ? 'footwear' : 'footwear';
+let productKind = params.get('tool') === 'colorway' ? 'skincare' : current.id === 'drift-field-01' ? 'footwear' : 'skincare';
+const careAssignment = { backdrop: 0, bottle: 2, cap: 4, label: 1, carton: 1 };
+let colorwayBaseline = freezeColorway(current.colorwayBaseline);
+if (current.careAssignment) for (const part of Object.keys(careAssignment)) {
+  const value = current.careAssignment[part];
+  if (Number.isInteger(value) && value >= 0 && value < 5) careAssignment[part] = value;
+}
 let format = 'css';
 let extracted = null;
 let extractedVariants = [];
@@ -87,7 +109,9 @@ function applyWorldAtmosphere(world) {
 applyWorldAtmosphere(savedAtlasWorld);
 
 function persistPalette(palette) {
-  try { sessionStorage.setItem('colorverse-current-palette', JSON.stringify(palette)); } catch {}
+  const saved = page === 'studio' ? { ...palette, careAssignment: { ...careAssignment }, colorwayBaseline } : palette;
+  // Stay on the working page if a custom palette cannot survive navigation.
+  return savePaletteHandoff(saved, () => sessionStorage, message => toast(message));
 }
 
 function toast(message) {
@@ -136,29 +160,22 @@ function setPaletteURL() {
 
 function renderSelection(updateURL = false) {
   const name = $('#paletteName');
-  const heroName = $('#heroPaletteName');
   const description = $('#paletteDescription');
   const heroSwatches = $('#heroSwatches');
-  const heroPaletteContext = $('#heroPaletteContext');
-  const heroPaletteImage = $('#heroPaletteImage');
-  const heroPaletteContextName = $('#heroPaletteContextName');
   const paletteRoles = $('#paletteRoles');
   const ratio = $('#contrastRatio');
   const verdict = $('#contrastVerdict');
   if (name) name.textContent = current.name;
-  if (heroName) heroName.textContent = current.name;
   if (description) description.textContent = current.description || 'A five-color direction ready to test.';
-  if (heroSwatches) heroSwatches.innerHTML = current.colors.slice(0, 5).map(color => swatch(color)).join('');
-  if (heroPaletteContext && heroPaletteImage) {
-    const image = typeof current.image === 'string' && current.image.startsWith('/') ? current.image : '';
-    heroPaletteContext.hidden = !image;
-    if (image) {
-      heroPaletteImage.src = image;
-      heroPaletteImage.alt = `${current.name || 'Current'} palette in context`;
-      if (heroPaletteContextName) heroPaletteContextName.textContent = current.name || 'Current direction';
-    } else {
-      heroPaletteImage.removeAttribute('src');
-    }
+  if (heroSwatches) {
+    const preview = miniStudioColors();
+    heroSwatches.innerHTML = Array.from({ length: 5 }, (_, index) => {
+      const color = preview[index];
+      if (!color) return '<span class="hero-empty-swatch" aria-hidden="true"></span>';
+      if (index >= atlasSelected.length) return `<button type="button" class="hero-suggested-swatch" data-mini-accept="${color}" style="--swatch:${color};--on:${textOn(color)}" title="Add suggested ${color}" aria-label="Add suggested color ${color}">+</button>`;
+      return `<button type="button" class="hero-picked-swatch${atlasActiveSlot === index ? ' is-editing' : ''}${atlasRecentSlot === index ? ' is-new' : ''}" data-mini-slot="${index}" style="--swatch:${color};--on:${textOn(color)}" aria-pressed="${atlasActiveSlot === index}" aria-label="Color ${index + 1}: ${color}. ${atlasActiveSlot === index ? 'Choose its replacement on the globe' : 'Select to replace on the globe'}" title="${color} · select to replace"><code>${color}</code></button>`;
+    }).join('');
+    heroSwatches.setAttribute('aria-label', `${atlasSelected.length} chosen colors and ${atlasSelected.length ? 5 - atlasSelected.length : 0} suggested colors`);
   }
   renderPaletteRoles();
   if (ratio) {
@@ -225,6 +242,8 @@ function studioSnapshot() {
     roles: Object.fromEntries(roles.map((role, index) => [role.toLowerCase(), current.colors[index].toUpperCase()])),
     context,
     productKind,
+    careAssignment: { ...careAssignment },
+    colorwayBaseline,
   };
 }
 
@@ -242,12 +261,19 @@ function loadStudioSnapshot(snapshot) {
     tags: ['project'],
     sourcePaletteId: snapshot.sourcePaletteId || null,
   };
-  context = ['landing', 'interface', 'presentation'].includes(snapshot.context) ? snapshot.context : 'landing';
-  productKind = snapshot.productKind && ['footwear', 'skincare', 'object'].includes(snapshot.productKind) ? snapshot.productKind : 'footwear';
+  context = ['landing', 'interface', 'social', 'presentation'].includes(snapshot.context) ? snapshot.context : 'landing';
+  productKind = snapshot.productKind && ['footwear', 'skincare', 'object'].includes(snapshot.productKind) ? snapshot.productKind : 'skincare';
+  colorwayBaseline = freezeColorway(snapshot.colorwayBaseline);
+  for (const [part, defaultIndex] of Object.entries({ backdrop: 0, bottle: 2, cap: 4, label: 1, carton: 1 })) {
+    const value = snapshot.careAssignment?.[part];
+    careAssignment[part] = Number.isInteger(value) && value >= 0 && value < 5 ? value : defaultIndex;
+  }
   activeColorIndex = 0;
   pendingSwapIndex = null;
   openShadeIndex = null;
   shadeSourceColors = [...colors];
+  const legacyReport = $('#tab-presentation');
+  if (legacyReport) legacyReport.hidden = context !== 'presentation';
   $$('[data-context]').forEach(button => {
     const selected = button.dataset.context === context;
     button.setAttribute('aria-selected', String(selected));
@@ -385,7 +411,13 @@ function renderColorLab() {
   renderColorTray();
 }
 
-let visiblePalettes = [...palettes];
+const libraryEngine = createLibraryEngine(editionPalettes, { approvedIds: approvedPaletteIds, aliases: Object.fromEntries(Object.entries(paletteNameLibrary).map(([id, record]) => [id, record.aliases])) });
+let visiblePalettes = libraryEngine.search().map(result => result.palette);
+if (page === 'explore' && visiblePalettes.length === 0) {
+  document.body.classList.add('is-curation-hold');
+  const hold = $('#libraryCurationHold');
+  if (hold) hold.hidden = false;
+}
 function renderPaletteRail(items = visiblePalettes) {
   const rail = $('#paletteRail');
   if (!rail) return;
@@ -399,6 +431,17 @@ function renderPaletteRail(items = visiblePalettes) {
 let atlasHover = null;
 let atlasPinned = null;
 let atlasSelected = [];
+let atlasActiveSlot = null;
+let atlasRecentSlot = null;
+let miniHueMemory = 0;
+
+function miniStudioColors() {
+  if (!atlasSelected.length) return [];
+  const colors = atlasSelected.map(item => item.hex);
+  const generated = paletteFromColor(colors[0]);
+  for (const color of generated) if (!colors.includes(color) && colors.length < 5) colors.push(color);
+  return colors.slice(0, 5);
+}
 
 function setAtlasReadout(payload, selected = false) {
   const hex = payload?.hex || '#FF7658';
@@ -422,7 +465,7 @@ function setAtlasReadout(payload, selected = false) {
 }
 
 function suggestedPalettes(hex) {
-  return palettes.map(palette => ({ palette, score: Math.min(...palette.colors.map(color => oklabDistance(hex, color))) }))
+  return visiblePalettes.map(palette => ({ palette, score: Math.min(...palette.colors.map(color => oklabDistance(hex, color))) }))
     .sort((a, b) => a.score - b.score).slice(0, 3).map(({ palette }) => palette);
 }
 
@@ -434,36 +477,72 @@ function renderAtlasSelection() {
   const colors = $('#atlasSelectedSwatches');
   const suggestions = $('#atlasSuggestions');
   const action = $('#useAtlasPalette');
+  const clear = $('#clearAtlasSelection');
   if (count) count.textContent = `${atlasSelected.length} / 5`;
+  if (clear) clear.hidden = atlasSelected.length === 0;
+  const remove = $('#removeAtlasColor');
+  if (remove) remove.hidden = atlasActiveSlot === null;
+  const hint = $('#miniStudioHint');
+  if (hint) hint.textContent = atlasActiveSlot !== null ? `Pick a replacement for color ${atlasActiveSlot + 1} on the globe.` : atlasSelected.length ? 'Tap a chosen color to replace it. Faded swatches are suggestions.' : 'Pick a color on the globe.';
   if (colors) colors.innerHTML = atlasSelected.map(({ hex }) => `<span class="atlas-selected-swatch" style="--swatch:${hex};--on:${textOn(hex)}" title="${hex}"><code>${hex}</code></span>`).join('');
   const suggested = atlasSelected.length === 1 ? suggestedPalettes(atlasSelected[0].hex) : [];
   if (suggestions) suggestions.innerHTML = suggested.length ? `<span class="atlas-suggestions-label">Suggested palettes</span>${suggested.map(palette => `<button type="button" class="atlas-suggestion" data-atlas-suggestion="${palette.id}" aria-label="Try ${escape(palette.name)} palette"><span class="atlas-suggestion-swatches">${palette.colors.map(color => `<i style="--swatch:${color}"></i>`).join('')}</span><span>${escape(palette.name)}</span></button>`).join('')}` : '';
-  if (action) action.textContent = atlasSelected.length === 1 ? 'Build around this color' : 'Use selected colors';
+  if (action) action.textContent = atlasSelected.length === 5 ? 'Continue in Studio ↗' : 'Complete in Studio ↗';
+  renderMiniEditor();
+}
+
+function renderMiniEditor() {
+  const controls = $('#miniEditorControls');
+  if (!controls) return;
+  const index = atlasActiveSlot ?? atlasSelected.length - 1;
+  const selected = atlasSelected[index];
+  $('.atlas-scene')?.classList.toggle('has-mini-color', Boolean(selected));
+  controls.hidden = !selected;
+  $('#miniEditorEmpty').hidden = Boolean(selected);
+  if (!selected) return;
+  const point = toHsl(selected.hex, miniHueMemory);
+  miniHueMemory = point.h;
+  $('#miniEditingLabel').textContent = `Color ${index + 1}`;
+  $('#miniHex').value = selected.hex;
+  $('#miniHue').style.setProperty('--mini-track', 'linear-gradient(90deg,#FF0000,#FFFF00,#00FF00,#00FFFF,#0000FF,#FF00FF,#FF0000)');
+  $('#miniIntensity').style.setProperty('--mini-track', `linear-gradient(90deg,${fromHsl({ ...point, s: 0 })},${fromHsl({ ...point, s: 1 })})`);
+  $('#miniLightness').style.setProperty('--mini-track', `linear-gradient(90deg,#000,${fromHsl({ ...point, l: .5 })},#fff)`);
+  for (const [key, id, scale] of [['h', 'Hue', 1], ['s', 'Intensity', 100], ['l', 'Lightness', 100]]) {
+    $(`#mini${id}`).value = point[key] * scale;
+    $(`#mini${id}Value`).textContent = `${Math.round(point[key] * scale)}${key === 'h' ? '°' : '%'}`;
+  }
+  const suggestions = miniStudioColors().slice(atlasSelected.length, atlasSelected.length + 3);
+  $('#miniColorSuggestions').innerHTML = suggestions.map(color => `<button type="button" data-mini-accept="${color}" style="--swatch:${color};--on:${textOn(color)}" aria-label="Add suggested color ${color}">+</button>`).join('');
+  $('#miniEditorStatus').textContent = atlasSelected.length === 5 ? 'Five colors selected. Ready for Studio.' : 'Tap + to accept a suggestion.';
 }
 
 function addAtlasSelection(payload) {
   if (!payload) return;
+  const wasEmpty = atlasSelected.length === 0;
   atlasHover = payload;
-  const existing = atlasSelected.findIndex(item => item.index === payload.index);
-  if (existing >= 0) atlasSelected.splice(existing, 1);
-  else if (atlasSelected.length >= 5) { toast('You can select up to five colors.'); return; }
-  else atlasSelected.push(payload);
+  const existing = atlasSelected.findIndex(item => item.worldId === payload.worldId && item.index === payload.index);
+  if (atlasActiveSlot !== null) {
+    if (existing !== -1 && existing !== atlasActiveSlot) atlasSelected[existing] = atlasSelected[atlasActiveSlot];
+    atlasSelected[atlasActiveSlot] = payload;
+    atlasRecentSlot = atlasActiveSlot;
+    atlasActiveSlot = null;
+  } else if (existing >= 0) {
+    atlasSelected.splice(existing, 1);
+    atlasRecentSlot = null;
+  } else if (atlasSelected.length >= 5) { toast('Select a palette color to replace it, or clear the palette.'); return; }
+  else { atlasRecentSlot = atlasSelected.length; atlasSelected.push(payload); }
+  if (wasEmpty && atlasSelected.length) window.colorverseTrack?.('palette_started', { source: 'globe' });
   atlasPinned = atlasSelected.at(-1) || null;
   setAtlasReadout(atlasPinned, Boolean(atlasPinned));
   renderAtlasSelection();
+  renderSelection();
   toast(atlasPinned ? `${atlasSelected.length} color${atlasSelected.length === 1 ? '' : 's'} selected.` : 'Selection cleared.');
 }
 
 function buildAtlasPalette() {
   if (!atlasSelected.length) return null;
-  const seed = atlasSelected[0].hex;
-  const generated = paletteFromColor(seed);
-  const colors = [...atlasSelected.map(item => item.hex)];
-  for (const color of generated) if (!colors.includes(color) && colors.length < 5) colors.push(color);
-  let generatedIndex = 0;
-  while (colors.length < 5) colors.push(generated[generatedIndex++ % generated.length]);
-  const source = signatureFor(seed);
-  return { id: 'atlas-custom', name: 'Custom palette', description: `${atlasSelected.length} selected color${atlasSelected.length === 1 ? '' : 's'} with generated supporting tones.`, colors: colors.slice(0, 5), image: source.image, category: source.category, tags: source.tags };
+  const colors = miniStudioColors();
+  return { id: 'atlas-custom', name: suggestPaletteName(colors), description: `${atlasSelected.length} selected color${atlasSelected.length === 1 ? '' : 's'} with generated supporting tones.`, colors: colors.slice(0, 5), image: null, category: 'Your palette', tags: ['custom'] };
 }
 
 function renderMockup() {
@@ -490,16 +569,25 @@ function renderMockup() {
     : current.id === 'drift-field-01'
       ? `<div class="mockup context-kit edition-footwear-kit">
       <header><span class="kit-kicker">ColorVerse Edition / footwear study</span><b>DRIFT</b><small>Field 01 · Series 01</small></header>
-      <div class="edition-footwear-scene"><div class="edition-footwear-image"><img src="/assets/editions/drift-field-01-colorways-v1.png" alt="DRIFT Field 01 footwear family in stone, meadow and graphite colorways"><span>FIELD 01</span></div><aside><span class="kit-kicker">Material map</span><strong>Quiet utility.</strong><p>One silhouette, three colorways, four tactile surfaces.</p><dl><div><dt>Upper</dt><dd>Mesh · suede</dd></div><div><dt>Colorways</dt><dd>Stone · Meadow · Graphite</dd></div><div><dt>Base</dt><dd>Modular rubber</dd></div></dl></aside></div>
+      <div class="edition-footwear-scene"><div class="edition-footwear-image visual-pending"><span>Reference image pending</span></div><aside><span class="kit-kicker">Material map</span><strong>Quiet utility.</strong><p>One silhouette, three colorways, four tactile surfaces.</p><dl><div><dt>Upper</dt><dd>Mesh · suede</dd></div><div><dt>Colorways</dt><dd>Stone · Meadow · Graphite</dd></div><div><dt>Base</dt><dd>Modular rubber</dd></div></dl></aside></div>
       <footer><span>Everyday silhouette</span><span>Material-led colour</span><span>CMF direction</span><span>Original study</span></footer>
     </div>`
       : `<div class="mockup context-kit packaging-kit"><header><span class="kit-kicker">Packaging system / small batch</span><b>Field & Form</b><small>Collection 03</small></header><div class="package-scene"><div class="package-box package-box-tall"><span>FIELD<br>& FORM</span><small>Botanical wash<br>250 ml</small><i>03</i></div><div class="package-box package-box-wide"><span>EVERYDAY<br>RITUALS</span><small>Five mineral soaps</small><i>05</i></div><div class="package-bottle"><span>F&F</span><small>01</small></div><div class="package-card"><span>Care notes</span><b>Made slowly.<br>Used daily.</b><p>Plant-based formulas / recyclable paper / batch no. 026</p><i></i></div></div><footer><span>Primary pack</span><span>Gift set</span><span>Label system</span><span>Insert card</span></footer></div>`;
   const productConfig = {
-    footwear: { label: 'Footwear / Field study', title: 'Field 01', image: '/assets/editions/drift-field-01-colorways-v1.png', detail: 'One silhouette. Three directions.', specs: 'Mesh · suede · modular rubber' },
-    skincare: { label: 'Skincare / Series study', title: 'Soft Structure', image: '/assets/editions/skincare-system-01-v1.jpg', detail: 'Five objects. One quiet system.', specs: 'Matte polymer · ribbed cap · mono print' },
-    object: { label: 'Object / Material study', title: 'Everyday object', image: '/assets/palette-library/ceramic-still-life.jpg', detail: 'A useful object with a considered surface.', specs: 'Ceramic · dry glaze · tactile form' },
-  }[productKind] || { label: 'Footwear / Field study', title: 'Field 01', image: '/assets/editions/drift-field-01-colorways-v1.png', detail: 'One silhouette. Three directions.', specs: 'Mesh · suede · modular rubber' };
-  const productPreview = `<div class="mockup context-kit product-preview-kit"><header><div><span class="kit-kicker">${escape(productConfig.label)}</span><h4>${escape(productConfig.title)}</h4></div><span class="product-preview-meta">ColorVerse / product direction</span></header><div class="product-preview-stage"><div class="product-preview-image"><img src="${productConfig.image}" alt="${escape(productConfig.title)} product preview"><span>Palette in context</span></div><aside><strong>${escape(productConfig.detail)}</strong><p>${escape(productConfig.specs)}</p><div class="product-preview-swatches" aria-label="Applied product colors">${current.colors.slice(0, 5).map((color, index) => `<i style="--swatch:${color}" title="${roles[index]} ${color}"></i>`).join('')}</div><small>Click a color to tune the direction.</small></aside></div><footer><span>Product study</span><span>Colour / material direction</span><span>Original ColorVerse concept</span></footer></div>`;
+    footwear: { label: 'Footwear / Field study', title: 'Field 01', detail: 'One silhouette. Three directions.', specs: 'Mesh · suede · modular rubber' },
+    skincare: { label: 'Skincare / Series study', title: 'Soft Structure', detail: 'Five objects. One quiet system.', specs: 'Matte polymer · ribbed cap · mono print' },
+    object: { label: 'Object / Material study', title: 'Everyday object', detail: 'A useful object with a considered surface.', specs: 'Ceramic · dry glaze · tactile form' },
+  }[productKind] || { label: 'Footwear / Field study', title: 'Field 01', detail: 'One silhouette. Three directions.', specs: 'Mesh · suede · modular rubber' };
+  const careOptions = selected => current.colors.map((color, index) => `<option value="${index}"${index === selected ? ' selected' : ''}>${roles[index]} · ${color}</option>`).join('');
+  const careStage = (colors, assignment, title) => `<div class="care-colorway"><span class="care-colorway-label">${title}</span><div class="care-stage" style="--care-backdrop:${colors[assignment.backdrop]};--care-bottle:${colors[assignment.bottle]};--care-cap:${colors[assignment.cap]};--care-label:${colors[assignment.label]};--care-carton:${colors[assignment.carton]};--care-carton-ink:${textOn(colors[assignment.carton])};--care-label-ink:${textOn(colors[assignment.label])}" role="img" aria-label="${title}: body ${colors[assignment.bottle]}, cap ${colors[assignment.cap]}, label ${colors[assignment.label]}, carton ${colors[assignment.carton]}, backdrop ${colors[assignment.backdrop]}"><div class="care-shadow"></div><div class="care-carton"><span>CV / CARE</span><strong>Daily<br>Balance</strong><small>SKINCARE · 100 ML</small></div><div class="care-bottle"><div class="care-bottle-cap"></div><div class="care-bottle-neck"></div><div class="care-bottle-body"><div class="care-bottle-label"><span>CV / CARE</span><strong>Daily<br>Balance</strong><small>SKINCARE · 100 ML</small><i></i></div></div></div></div></div>`;
+  const carePreview = `<div class="mockup context-kit care-preview-kit${colorwayBaseline ? ' is-comparing' : ''}" style="--care-backdrop:${current.colors[careAssignment.backdrop]};--care-bottle:${current.colors[careAssignment.bottle]};--care-cap:${current.colors[careAssignment.cap]};--care-label:${current.colors[careAssignment.label]};--care-label-ink:${textOn(current.colors[careAssignment.label])}">
+    <header><div><span class="kit-kicker">ColorwayKit / Skincare</span><h4>CV / Care</h4></div><span class="product-preview-meta">Live color application</span></header>
+    <div class="colorway-toolbar"><button type="button" data-colorway="lock">${colorwayBaseline ? 'Replace baseline' : 'Lock baseline'}</button>${colorwayBaseline ? '<button type="button" data-colorway="restore">Use baseline colors</button><button type="button" data-colorway="clear">Clear comparison</button>' : ''}<button type="button" data-colorway="export">Export PNG ↗</button></div>
+    <div class="care-preview-body">
+      <div class="care-colorways${colorwayBaseline ? ' is-comparing' : ''}">${colorwayBaseline ? careStage(colorwayBaseline.colors, colorwayBaseline.assignment, 'Baseline · locked') : ''}${careStage(current.colors, careAssignment, 'Current colorway')}</div>
+      <div class="care-map"><span class="kit-kicker">Apply palette colors</span>${[['backdrop', 'Backdrop'], ['bottle', 'Bottle'], ['cap', 'Cap'], ['label', 'Label'], ['carton', 'Carton']].map(([part, title]) => `<label>${title}<select data-care-part="${part}" aria-label="${title} color">${careOptions(careAssignment[part])}</select></label>`).join('')}</div>
+    </div><footer><span>Body / cap / label / carton / backdrop</span><span>CSS concept · no photo recolored</span></footer></div>`;
+  const productPreview = productKind === 'skincare' ? carePreview : `<div class="mockup context-kit product-preview-kit"><header><div><span class="kit-kicker">${escape(productConfig.label)}</span><h4>${escape(productConfig.title)}</h4></div><span class="product-preview-meta">ColorVerse / product direction</span></header><div class="product-preview-stage"><div class="product-preview-image visual-pending"><span>Reference image pending</span></div><aside><strong>${escape(productConfig.detail)}</strong><p>${escape(productConfig.specs)}</p><div class="product-preview-swatches" aria-label="Applied product colors">${current.colors.slice(0, 5).map((color, index) => `<i style="--swatch:${color}" title="${roles[index]} ${color}"></i>`).join('')}</div><small>Palette colors shown at left.</small></aside></div><footer><span>Product study</span><span>Colour / material direction</span><span>Original ColorVerse concept</span></footer></div>`;
   const layouts = {
     landing: productPreview,
     interface: `<div class="mockup context-kit product-kit">
@@ -508,8 +596,8 @@ function renderMockup() {
       <main><div class="product-title"><div><span class="kit-kicker">Monday, September 19</span><h4>Good morning.</h4></div><button type="button">New report <b>＋</b></button></div>
       <div class="metric-row"><article><span>Active projects</span><strong>24</strong><small>+4 this month</small></article><article><span>Completion</span><strong>78%</strong><small>On target</small></article><article class="metric-accent"><span>Next milestone</span><strong>08d</strong><small>Brand handoff</small></article></div>
       <div class="product-grid"><section class="product-chart"><header><div><span>Project momentum</span><strong>Last 8 weeks</strong></div><b>+18.4%</b></header><div class="chart-bars" aria-label="Illustrative project momentum chart"><i style="--h:34%"></i><i style="--h:48%"></i><i style="--h:43%"></i><i style="--h:61%"></i><i style="--h:56%"></i><i style="--h:74%"></i><i style="--h:82%"></i><i style="--h:92%"></i></div></section><section class="product-list"><header><span>Today</span><b>View all</b></header><p><i></i><span><strong>Review design system</strong><small>10:30 · Product</small></span></p><p><i></i><span><strong>Client workshop</strong><small>14:00 · Strategy</small></span></p><p><i></i><span><strong>Publish report</strong><small>16:45 · Research</small></span></p></section></div></main></div></div>`,
-    presentation: `<div class="mockup context-kit report-kit"><header><span>North Region / Operations</span><b>Q3 REVIEW · 08 / 16</b></header><div class="report-body"><section class="report-copy"><span class="kit-kicker">Performance summary</span><h4>Strong demand.<br><em>Smarter pace.</em></h4><p>Revenue grew while delivery time fell across three core markets.</p><div class="report-stat"><strong>+24%</strong><span>Year-over-year<br>revenue growth</span></div></section><section class="report-data"><div class="report-legend"><span><i></i>Current period</span><span><i></i>Previous period</span></div><div class="report-numbers"><p><span>Conversion</span><strong>6.8%</strong><em class="trend-up">↑ 1.4%</em></p><p><span>Retention</span><strong>91%</strong><em class="trend-up">↑ 3.2%</em></p><p><span>Delivery</span><strong>4.2d</strong><em class="trend-down">↓ 0.6d</em></p></div><div class="report-lines" role="img" aria-label="Illustrative performance line chart"><svg viewBox="0 0 360 180" preserveAspectRatio="none" aria-hidden="true"><path d="M4 150 C58 142 72 116 112 121 S176 80 211 91 S267 50 356 24"/><path d="M4 164 C51 148 87 150 121 137 S187 124 218 113 S293 91 356 82"/></svg><span>Jan</span><span>Mar</span><span>May</span><span>Jul</span></div></section></div><footer><span>Internal working document</span><span>ColorVerse palette preview</span></footer></div>`,
     social: `<div class="mockup context-kit campaign-kit"><section class="campaign-poster"><span class="kit-kicker">A one-day gathering</span><div class="campaign-orbit"><i></i><i></i><i></i></div><h4>Common<br>Ground</h4><p>Ideas for kinder cities<br>19.09 — Berlin</p></section><section class="campaign-stack"><article class="campaign-story"><span>COMMON GROUND</span><div><b>19</b><i>SEP</i></div><p>Talks · workshops · food</p></article><article class="campaign-ticket"><span>ADMIT ONE</span><strong>CG / 026</strong><i></i><small>Berlin · 10:00—18:00</small></article><article class="campaign-caption"><b>One palette.<br>Three campaign formats.</b><span>Poster / story / ticket</span></article></section></div>`,
+    presentation: `<div class="mockup context-kit report-kit"><header><span>North Region / Operations</span><b>Q3 REVIEW · 08 / 16</b></header><div class="report-body"><section class="report-copy"><span class="kit-kicker">Performance summary</span><h4>Strong demand.<br><em>Smarter pace.</em></h4><p>Revenue grew while delivery time fell across three core markets.</p><div class="report-stat"><strong>+24%</strong><span>Year-over-year<br>revenue growth</span></div></section><section class="report-data"><div class="report-legend"><span><i></i>Current period</span><span><i></i>Previous period</span></div><div class="report-numbers"><p><span>Conversion</span><strong>6.8%</strong><em class="trend-up">↑ 1.4%</em></p><p><span>Retention</span><strong>91%</strong><em class="trend-up">↑ 3.2%</em></p><p><span>Delivery</span><strong>4.2d</strong><em class="trend-down">↓ 0.6d</em></p></div><div class="report-lines" role="img" aria-label="Illustrative performance line chart"><svg viewBox="0 0 360 180" preserveAspectRatio="none" aria-hidden="true"><path d="M4 150 C58 142 72 116 112 121 S176 80 211 91 S267 50 356 24"/><path d="M4 164 C51 148 87 150 121 137 S187 124 218 113 S293 91 356 82"/></svg><span>Jan</span><span>Mar</span><span>May</span><span>Jul</span></div></section></div><footer><span>Internal working document</span><span>ColorVerse palette preview</span></footer></div>`,
     shop: packagingKit,
     material: `<div class="mockup context-kit material-kit">
       <header class="material-kit-head"><div><span class="kit-kicker">Bridge colour / screen study</span><h4>One color.<br><em>Five surfaces.</em></h4></div><div class="material-role"><span>Selected role</span><strong>${escape(roles[activeColorIndex])}</strong><code>${current.colors[activeColorIndex]}</code></div></header>
@@ -547,7 +635,7 @@ function renderProductPicker() {
 function renderContextCaption() {
   const label = $('#contextCaptionLabel');
   if (!label) return;
-  label.textContent = context === 'presentation' ? 'Report preview' : context === 'interface' ? 'Interface preview' : 'Product preview';
+  label.textContent = context === 'presentation' ? 'Legacy report preview' : context === 'social' ? 'Campaign preview' : context === 'interface' ? 'Screen preview' : `${productKind === 'skincare' ? 'Skincare' : productKind === 'footwear' ? 'Footwear' : 'Object'} product preview`;
 }
 
 function setupTabs(selector, callback) {
@@ -561,22 +649,52 @@ function setupTabs(selector, callback) {
     });
     callback(button);
   };
-  tabs.forEach((button, index) => {
+  tabs.forEach(button => {
     button.addEventListener('click', () => select(button));
     button.addEventListener('keydown', event => {
+      const available = tabs.filter(tab => !tab.hidden);
+      const position = available.indexOf(button);
       let next;
-      if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
-      if (event.key === 'ArrowLeft') next = (index - 1 + tabs.length) % tabs.length;
+      if (event.key === 'ArrowRight') next = (position + 1) % available.length;
+      if (event.key === 'ArrowLeft') next = (position - 1 + available.length) % available.length;
       if (event.key === 'Home') next = 0;
-      if (event.key === 'End') next = tabs.length - 1;
-      if (next !== undefined) { event.preventDefault(); select(tabs[next]); tabs[next].focus(); }
+      if (event.key === 'End') next = available.length - 1;
+      if (next !== undefined) { event.preventDefault(); select(available[next]); available[next].focus(); }
     });
   });
 }
 
-setupTabs('[data-context]', button => { context = button.dataset.context; renderProductPicker(); renderContextCaption(); renderMockup(); track('context_preview', { context }); });
-setupTabs('[data-product-kind]', button => { productKind = button.dataset.productKind; renderProductPicker(); renderMockup(); track('product_preview', { product: productKind }); });
+setupTabs('[data-context]', button => { context = button.dataset.context; renderProductPicker(); renderContextCaption(); renderMockup(); window.dispatchEvent(new CustomEvent('colorverse:studiochange')); track('context_preview', { context }); });
+setupTabs('[data-product-kind]', button => { productKind = button.dataset.productKind; renderProductPicker(); renderContextCaption(); renderMockup(); window.dispatchEvent(new CustomEvent('colorverse:studiochange')); track('product_preview', { product: productKind }); });
+$('#mockup')?.addEventListener('change', event => {
+  const select = event.target.closest('[data-care-part]');
+  if (!select || !Object.hasOwn(careAssignment, select.dataset.carePart)) return;
+  const index = Number(select.value);
+  if (!Number.isInteger(index) || index < 0 || index >= 5) return;
+  careAssignment[select.dataset.carePart] = index;
+  persistPalette(current);
+  renderMockup();
+  window.dispatchEvent(new CustomEvent('colorverse:studiochange'));
+  $('#mockup')?.querySelector(`[data-care-part="${select.dataset.carePart}"]`)?.focus({ preventScroll: true });
+});
 setupTabs('[data-format]', button => { format = button.dataset.format; renderExport(); });
+$('#mockup')?.addEventListener('click', async event => {
+  const button = event.target.closest('[data-colorway]');
+  if (!button) return;
+  const action = button.dataset.colorway;
+  if (action === 'export') {
+    button.disabled = true;
+    try { await downloadColorway({ colors: current.colors, assignment: careAssignment }, current.name); toast('Colorway PNG exported.'); }
+    catch { toast('Could not export the image. Your palette has not changed.'); }
+    finally { button.disabled = false; }
+    return;
+  }
+  if (action === 'lock') colorwayBaseline = freezeColorway({ colors: current.colors, assignment: careAssignment });
+  if (action === 'clear') colorwayBaseline = null;
+  if (action === 'restore' && colorwayBaseline) { current = { ...current, colors: [...colorwayBaseline.colors] }; Object.assign(careAssignment, colorwayBaseline.assignment); shadeSourceColors = [...current.colors]; }
+  persistPalette(current);
+  renderSelection();
+});
 renderProductPicker();
 renderContextCaption();
 
@@ -785,13 +903,13 @@ function makeRandomPalette() {
   const randomValue = globalThis.crypto?.getRandomValues ? globalThis.crypto.getRandomValues(new Uint32Array(1))[0] : Math.floor(Math.random() * 0xFFFFFF);
   const seed = `#${(randomValue & 0xFFFFFF).toString(16).padStart(6, '0').toUpperCase()}`;
   const source = signatureFor(seed);
-  return { id: `random-${seed.slice(1).toLowerCase()}`, name: 'Random direction', description: `A new five-color system generated around ${seed}.`, colors: paletteFromColor(seed), image: source.image, category: 'Generated', tags: ['random', 'generated'] };
+  const colors = paletteFromColor(seed);
+  return { id: `random-${seed.slice(1).toLowerCase()}`, name: suggestPaletteName(colors), description: `A new five-color system generated around ${seed}.`, colors, image: source.image, category: 'Generated', tags: ['random', 'generated'] };
 }
 const randomPaletteButton = $('#randomPalette');
 if (randomPaletteButton) randomPaletteButton.addEventListener('click', () => {
   const palette = makeRandomPalette();
-  persistPalette(palette);
-  location.href = `/studio/?p=${encodeURIComponent(palette.id)}#studio`;
+  if (persistPalette(palette)) location.href = `/studio/?p=${encodeURIComponent(palette.id)}#studio`;
 });
 
 renderPaletteRail();
@@ -800,36 +918,21 @@ if (rail) {
   const search = $('#paletteSearch');
   const use = $('#paletteUse');
   let feeling = 'all';
-  const useGroups = {
-    digital: ['software', 'data', 'technology', 'gaming', 'digital products'],
-    brand: ['retail', 'hospitality', 'packaging', 'campaigns', 'craft'],
-    editorial: ['editorial', 'publishing', 'education'],
-    lifestyle: ['wellness', 'beauty', 'fashion', 'food', 'travel', 'music', 'arts', 'events'],
-  };
-  const feelingGroups = {
-    quiet: ['quiet', 'calm', 'minimal', 'soft', 'grounded', 'atmospheric'],
-    vivid: ['vivid', 'bright', 'electric', 'neon', 'energetic', 'playful', 'high-contrast'],
-    warm: ['warm', 'sunset', 'earthy', 'sun-baked', 'citrus', 'comforting'],
-    cool: ['cool', 'aquatic', 'fresh', 'rain-washed', 'nocturnal'],
-    dark: ['dark', 'nocturnal', 'mysterious', 'precise'],
-  };
   const applyPaletteFilters = () => {
-    const query = (search?.value || '').trim().toLowerCase();
-    const useValue = use?.value || 'all';
-    visiblePalettes = palettes.filter(palette => {
-      const tags = palette.tags || [], useCases = palette.useCases || [];
-      const searchable = [palette.name, palette.description, palette.category, ...tags, ...useCases, ...palette.colors].join(' ').toLowerCase();
-      const matchesQuery = !query || query.split(/\s+/).every(token => searchable.includes(token));
-      const matchesFeeling = feeling === 'all' || (feelingGroups[feeling] || []).some(tag => tags.includes(tag));
-      const matchesUse = useValue === 'all' || useCases.some(item => useGroups[useValue]?.includes(item));
-      return matchesQuery && matchesFeeling && matchesUse;
-    });
+    const color = $('#libraryColor');
+    const useColor = $('#libraryColorEnabled')?.checked;
+    const usePalette = $('#libraryMatchPalette')?.checked;
+    const match = usePalette ? current.colors : useColor ? [color.value] : [];
+    visiblePalettes = libraryEngine.search({ query: search?.value || '', use: use?.value || 'all', feeling, colors: match }).map(result => result.palette);
     renderPaletteRail(visiblePalettes);
     const empty = $('#paletteEmpty');
-    if (empty) empty.hidden = visiblePalettes.length > 0;
+    if (empty) empty.hidden = visiblePalettes.length > 0 || libraryEngine.size === 0;
     const collectionIndex = $('#collectionIndex');
     if (collectionIndex) collectionIndex.textContent = `${visiblePalettes.length} palette${visiblePalettes.length === 1 ? '' : 's'}`;
+    const ranking = $('#libraryRanking');
+    if (ranking) ranking.textContent = match.length || /#[0-9a-f]{6}/i.test(search?.value || '') ? 'Nearest colors · approved selection only' : 'Editorial order · approved selection only';
   };
+  ['libraryColor', 'libraryColorEnabled', 'libraryMatchPalette'].forEach(id => $(`#${id}`)?.addEventListener('input', applyPaletteFilters));
   search?.addEventListener('input', applyPaletteFilters);
   use?.addEventListener('change', applyPaletteFilters);
   $$('.palette-filter').forEach(button => button.addEventListener('click', () => {
@@ -871,52 +974,61 @@ if (page === 'home') {
   const globeScaleStudy = params.get('globe-scale-test') === '1';
   document.body.classList.toggle('is-globe-scale-lab', globeScaleStudy);
   const homeExplorePresentation = {
-    'skincare-system-01': { title: 'Soft Structure', image: '/assets/editions/skincare-system-01-v1.jpg', category: 'ColorVerse Edition · Series 01', context: 'care objects · packaging', href: '/editions/skincare-system-01/' },
-    'warm-cafe': { title: 'Quiet House', image: '/assets/community/quiet-house-editorial.jpg', category: 'Brand system', context: 'hospitality · packaging' },
-    'reef-current': { title: 'After Rain', image: '/assets/community/after-rain-editorial.jpg', category: 'Editorial system', context: 'print · culture' },
-    'archive-green': { title: 'Archive Green', image: '/assets/community/archive-green-editorial.jpg', category: 'Material study', context: 'publishing · interiors' },
-    'civic-shadow': { title: 'Civic Shadow', image: '/assets/home-explore/civic-shadow-project.jpg', category: 'Architecture identity', context: 'architecture · portfolio' },
-    'market-signal': { title: 'Market Signal', image: '/assets/home-explore/market-signal-project.jpg', category: 'Retail identity', context: 'food · retail' },
-    'after-hours': { title: 'After Hours', image: '/assets/home-explore/after-hours-project.jpg', category: 'Cultural identity', context: 'music · digital' },
+    'skincare-system-01': { title: 'Soft Structure', category: 'ColorVerse Edition · Series 01', context: 'care objects · packaging', href: '/editions/skincare-system-01/' },
+    'warm-cafe': { title: 'Quiet House', category: 'Brand system', context: 'hospitality · packaging' },
+    'reef-current': { title: 'After Rain', category: 'Editorial system', context: 'print · culture' },
+    'archive-green': { title: 'Archive Green', category: 'Material study', context: 'publishing · interiors' },
+    'civic-shadow': { title: 'Civic Shadow', category: 'Architecture identity', context: 'architecture · portfolio' },
+    'market-signal': { title: 'Market Signal', category: 'Retail identity', context: 'food · retail' },
+    'after-hours': { title: 'After Hours', category: 'Cultural identity', context: 'music · digital' },
   };
   const homeExploreGroups = {
-    all: ['skincare-system-01', 'reef-current', 'archive-green', 'civic-shadow', 'market-signal', 'after-hours'],
-    brand: ['skincare-system-01', 'market-signal', 'archive-green'],
+    all: [...homeStudies.map(palette => palette.id), 'skincare-system-01', 'reef-current', 'archive-green', 'civic-shadow', 'market-signal', 'after-hours'],
+    brand: [...homeStudies.filter(palette => palette.tags.includes('brand')).map(palette => palette.id), 'skincare-system-01', 'market-signal', 'archive-green'],
     digital: ['after-hours', 'civic-shadow', 'reef-current'],
-    spaces: ['civic-shadow', 'archive-green', 'warm-cafe'],
-    editorial: ['reef-current', 'archive-green', 'after-hours', 'civic-shadow'],
+    spaces: [...homeStudies.filter(palette => palette.tags.includes('space')).map(palette => palette.id), 'civic-shadow', 'archive-green', 'warm-cafe'],
+    editorial: [...homeStudies.filter(palette => palette.tags.includes('editorial')).map(palette => palette.id), 'reef-current', 'archive-green', 'after-hours', 'civic-shadow'],
   };
   const renderHomeExplore = (group = 'all') => {
     const grid = $('#homeExploreGrid');
     if (!grid) return;
-    const items = (homeExploreGroups[group] || homeExploreGroups.all).map(id => palettes.find(palette => palette.id === id)).filter(Boolean);
+    const items = (homeExploreGroups[group] || homeExploreGroups.all)
+      .map(id => homeCandidateFor(id, palettes, location.hostname))
+      .filter(Boolean);
+    grid.classList.toggle('is-pair', items.length === 2);
     grid.innerHTML = items.length ? items.map((palette, index) => {
       const presentation = homeExplorePresentation[palette.id] || {};
       const title = presentation.title || palette.name;
       const studioHref = `/studio/?p=${encodeURIComponent(palette.id)}#studio`;
       const mediaHref = presentation.href || studioHref;
+      if (palette.credit?.kind === 'ai') return `<article class="home-explore-card home-explore-review home-explore-ai" data-palette="${escape(palette.id)}">
+        <div class="home-explore-colors" role="group" aria-label="${escape(title)} palette colors">${palette.colors.slice(0, 5).map((color, roleIndex) => swatch(color, '', roles[roleIndex])).join('')}</div>
+        <a class="home-explore-media is-reference" href="${studioHref}" data-select="${escape(palette.id)}" aria-label="Open ${escape(title)} in Studio"><img src="${escape(palette.image)}" alt="${escape(palette.imageAlt)}" loading="lazy" decoding="async"><span class="ai-concept-badge" title="Owner-supplied AI-generated concept. Not a real product photograph."><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m10 2 2.2 5.8L18 10l-5.8 2.2L10 18l-2.2-5.8L2 10l5.8-2.2Z"/><path d="M17 1v4M15 3h4"/></svg>AI concept</span></a>
+        <div class="home-explore-review-footer">
+          <div class="home-explore-review-identity"><span class="home-explore-review-meta">${escape(palette.category)}</span><h2><a href="${studioHref}" data-select="${escape(palette.id)}">${escape(title)}</a></h2></div>
+          <a class="home-explore-review-cta" href="${studioHref}" data-select="${escape(palette.id)}" aria-label="Open ${escape(title)} in Studio">Studio →</a>
+        </div>
+      </article>`;
       return `<article class="home-explore-card" style="--cover:${palette.colors[1]}">
-      <a class="home-explore-media" href="${escape(mediaHref)}"${presentation.href ? '' : ` data-select="${palette.id}"`} aria-label="${presentation.href ? 'View' : 'Open'} ${escape(title)}${presentation.href ? ' case study' : ' in Studio'}">
-        <img src="${escape(presentation.image || palette.image)}" alt="${escape(title)} project presentation" width="1280" height="800" loading="${index < 3 ? 'eager' : 'lazy'}" decoding="async">
+      <div class="home-explore-colors" role="group" aria-label="${escape(title)} palette colors">${palette.colors.slice(0, 5).map(color => swatch(color)).join('')}</div>
+      <a class="home-explore-media visual-pending" href="${escape(mediaHref)}"${presentation.href ? '' : ` data-select="${palette.id}"`} aria-label="${presentation.href ? 'View' : 'Open'} ${escape(title)}${presentation.href ? ' case study' : ' in Studio'}">
+        <span class="visual-pending-label">Image awaiting curation</span>
         <span class="home-explore-index">${String(index + 1).padStart(2, '0')}</span><span class="home-explore-category">${escape(presentation.category || palette.category)}</span>
         <span class="home-explore-caption"><strong>${escape(title)}</strong><span>${escape(presentation.context || (palette.useCases || []).slice(0, 2).join(' · '))}</span></span>
       </a>
-      <div class="home-explore-colors" aria-label="${escape(title)} colors">${palette.colors.slice(0, 5).map(color => swatch(color)).join('')}</div>
       <div class="home-explore-copy"><p>${escape(palette.description)}</p><a href="${studioHref}" data-select="${palette.id}">Use palette →</a></div>
     </article>`;
-    }).join('') : '<p class="home-explore-empty">No directions in this view yet.</p>';
-    grid.querySelectorAll('img').forEach(image => image.addEventListener('error', () => {
-      image.hidden = true;
-      image.parentElement.classList.add('has-image-fallback');
-    }));
+    }).join('') : '<div class="home-explore-empty"><span class="eyebrow">More studies to come</span><p>No concept studies in this category yet. Try another category, or start a palette on the globe.</p><a href="#atlas">Explore colors on the globe ↑</a></div>';
   };
   renderHomeExplore();
+  $('#discover')?.setAttribute('aria-label', 'AI concept palette studies');
+  const reviewNote = $('.home-explore-foot > span');
+  if (reviewNote) reviewNote.textContent = 'AI product concepts · palette studies, not manufacturer colors. Final selection in progress.';
   $$('.home-explore-filters [data-home-filter]').forEach(button => button.addEventListener('click', () => {
     $$('.home-explore-filters [data-home-filter]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
     renderHomeExplore(button.dataset.homeFilter);
   }));
   let activeAtlasWorld = savedAtlasWorld;
-  let worldVariantIndex = 0;
   const atlasWorldSwitch = $('#atlasWorldSwitch');
   const atlasWorldSelect = $('#atlasWorldSelect');
   const setupGlobeScaleStudy = () => {
@@ -974,29 +1086,8 @@ if (page === 'home') {
   };
   setupGlobeScaleStudy();
   if (!globeScaleStudy && atlasWorldSwitch) {
-    atlasWorldSwitch.innerHTML = `<span class="atlas-world-label">Worlds</span>${atlasWorlds.map((world, index) => `<button type="button" role="tab" data-atlas-world="${world.id}" aria-selected="${world.id === activeAtlasWorld.id}" tabindex="${world.id === activeAtlasWorld.id ? '0' : '-1'}" title="${escape(world.name)}"><span class="atlas-world-index">${String(index + 1).padStart(2, '0')}</span><span class="atlas-world-copy"><strong>${escape(world.shortName)}</strong><small>${escape(world.name)}</small></span><i class="atlas-world-chip" style="--world-accent:${world.accent}"></i></button>`).join('')}`;
+    atlasWorldSwitch.innerHTML = atlasWorlds.map(world => `<button type="button" role="tab" data-atlas-world="${world.id}" aria-selected="${world.id === activeAtlasWorld.id}" tabindex="${world.id === activeAtlasWorld.id ? '0' : '-1'}" title="${escape(world.name)}" aria-label="${escape(world.name)}"><span class="atlas-world-name">${escape(world.shortName)}</span></button>`).join('');
     if (atlasWorldSelect) atlasWorldSelect.innerHTML = atlasWorlds.map(world => `<option value="${world.id}">${escape(world.name)}</option>`).join('');
-    const useWorldStarter = (index = 0, notify = false) => {
-      const starters = activeAtlasWorld.starters || [];
-      if (!starters.length) return;
-      worldVariantIndex = (index + starters.length) % starters.length;
-      const starter = starters[worldVariantIndex];
-      const source = signatureFor(starter.colors[2]);
-      current = {
-        id: `world-${activeAtlasWorld.id}-${worldVariantIndex + 1}`,
-        name: starter.name,
-        description: `${activeAtlasWorld.name} · starter ${worldVariantIndex + 1} of ${starters.length}.`,
-        colors: [...starter.colors],
-        image: source.image,
-        category: activeAtlasWorld.type,
-        tags: [activeAtlasWorld.id, 'world starter'],
-      };
-      persistPalette(current);
-      renderSelection();
-      const variation = $('#worldVariationLabel');
-      if (variation) variation.textContent = `${String(worldVariantIndex + 1).padStart(2, '0')} / ${String(starters.length).padStart(2, '0')}`;
-      if (notify) toast(`${starter.name} ready.`);
-    };
     const renderAtlasWorld = () => {
       $$('#atlasWorldSwitch [data-atlas-world]').forEach(button => {
         const selected = button.dataset.atlasWorld === activeAtlasWorld.id;
@@ -1010,13 +1101,11 @@ if (page === 'home') {
       if (label) label.textContent = `${activeAtlasWorld.name} field`;
     };
     renderAtlasWorld();
-    if (!params.get('p') && (!storedPalette || storedPalette.id?.startsWith('world-'))) useWorldStarter(0);
     const globe = createAtlas($('#globe'), {
       interactionTarget: $('#atlasTouchZone'),
       initialWorld: activeAtlasWorld.id,
       radiusScale: .76,
-      imageFor(hex) { const source = signatureFor(hex); return { image: source.image, name: source.name, category: source.category, tags: source.tags }; },
-      onSelect(payload) { addAtlasSelection(payload); globe.setSelection(atlasSelected.map(item => item.index)); },
+      onSelect(payload) { addAtlasSelection({ ...payload, worldId: activeAtlasWorld.id }); globe.setSelection(atlasSelected.filter(item => item.worldId === activeAtlasWorld.id).map(item => item.index)); },
       onHover(payload) { atlasHover = payload; if (payload && !atlasPinned) setAtlasReadout(payload); },
     });
     const selectAtlasWorld = (id, notify = true) => {
@@ -1024,14 +1113,12 @@ if (page === 'home') {
       if (!nextWorld || nextWorld.id === activeAtlasWorld.id) return;
       activeAtlasWorld = nextWorld;
       globe.setWorld(nextWorld.id);
-      atlasSelected = [];
-      atlasPinned = null;
+      atlasPinned = atlasSelected.at(-1) || null;
       atlasHover = null;
-      globe.setSelection([]);
+      globe.setSelection(atlasSelected.filter(item => item.worldId === nextWorld.id).map(item => item.index));
       renderAtlasSelection();
       setAtlasReadout(null);
       renderAtlasWorld();
-      useWorldStarter(0);
       try { localStorage.setItem('colorverse-world', nextWorld.id); } catch {}
       if (notify) toast(`${nextWorld.name} world selected.`);
     };
@@ -1044,23 +1131,84 @@ if (page === 'home') {
       event.preventDefault();
       const buttons = $$('#atlasWorldSwitch [data-atlas-world]');
       const currentIndex = buttons.findIndex(button => button === document.activeElement);
-      const nextIndex = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : (currentIndex + (event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length;
+      const step = event.key === 'ArrowDown' ? 3 : event.key === 'ArrowUp' ? -3 : event.key === 'ArrowRight' ? 1 : -1;
+      const nextIndex = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : (currentIndex + step + buttons.length) % buttons.length;
       buttons[nextIndex].focus();
       selectAtlasWorld(buttons[nextIndex].dataset.atlasWorld);
     });
     if (atlasWorldSelect) atlasWorldSelect.addEventListener('change', () => selectAtlasWorld(atlasWorldSelect.value));
     setAtlasReadout(null);
+    const syncGlobeSelection = () => globe.setSelection(atlasSelected.filter(item => item.worldId === activeAtlasWorld.id).map(item => item.index));
+    const miniStudioSwatches = $('#heroSwatches');
+    if (miniStudioSwatches) miniStudioSwatches.addEventListener('click', event => {
+      const button = event.target.closest('[data-mini-slot]');
+      if (!button) return;
+      const slot = Number(button.dataset.miniSlot);
+      atlasActiveSlot = atlasActiveSlot === slot ? null : slot;
+      atlasRecentSlot = null;
+      renderAtlasSelection();
+      renderSelection();
+    });
+    const acceptMiniSuggestion = event => {
+      const button = event.target.closest('[data-mini-accept]');
+      if (!button || atlasSelected.length >= 5) return;
+      atlasRecentSlot = atlasSelected.length;
+      atlasSelected.push({ hex: button.dataset.miniAccept, worldId: 'custom', index: -1 });
+      atlasPinned = atlasSelected.at(-1);
+      atlasActiveSlot = null;
+      renderAtlasSelection();
+      renderSelection();
+      setAtlasReadout(atlasPinned, true);
+    };
+    miniStudioSwatches?.addEventListener('click', acceptMiniSuggestion);
+    $('#miniColorSuggestions')?.addEventListener('click', acceptMiniSuggestion);
+    const editMiniColor = hex => {
+      const index = atlasActiveSlot ?? atlasSelected.length - 1;
+      if (index < 0) return;
+      atlasSelected[index] = { hex, worldId: 'custom', index: -1 };
+      atlasPinned = atlasSelected[index];
+      syncGlobeSelection();
+      renderAtlasSelection();
+      renderSelection();
+      setAtlasReadout(atlasPinned, true);
+    };
+    for (const id of ['miniHue', 'miniIntensity', 'miniLightness']) {
+      $(`#${id}`)?.addEventListener('input', () => {
+        miniHueMemory = Number($('#miniHue').value);
+        editMiniColor(fromHsl({ h: miniHueMemory, s: Number($('#miniIntensity').value) / 100, l: Number($('#miniLightness').value) / 100 }));
+      });
+    }
+    $('#miniHex')?.addEventListener('change', event => {
+      const value = event.target.value.trim();
+      if (!/^#[0-9a-f]{6}$/i.test(value)) { event.target.setAttribute('aria-invalid', 'true'); $('#miniEditorStatus').textContent = 'Use six-digit HEX, for example #E38B18.'; return; }
+      event.target.removeAttribute('aria-invalid');
+      editMiniColor(value.toUpperCase());
+    });
+    const removeAtlasColor = $('#removeAtlasColor');
+    if (removeAtlasColor) removeAtlasColor.addEventListener('click', () => {
+      if (atlasActiveSlot === null) return;
+      atlasSelected.splice(atlasActiveSlot, 1);
+      atlasActiveSlot = null;
+      atlasRecentSlot = null;
+      atlasPinned = atlasSelected.at(-1) || null;
+      syncGlobeSelection();
+      renderAtlasSelection();
+      renderSelection();
+      setAtlasReadout(atlasPinned, Boolean(atlasPinned));
+    });
     const clearAtlasSelection = $('#clearAtlasSelection');
-    if (clearAtlasSelection) clearAtlasSelection.addEventListener('click', () => { atlasSelected = []; atlasPinned = null; globe.setSelection([]); renderAtlasSelection(); setAtlasReadout(atlasHover); });
+    if (clearAtlasSelection) clearAtlasSelection.addEventListener('click', () => { atlasSelected = []; atlasPinned = null; atlasActiveSlot = null; atlasRecentSlot = null; globe.setSelection([]); renderAtlasSelection(); renderSelection(); setAtlasReadout(atlasHover); });
+    const openMiniStudio = $('#openMiniStudio');
+    if (openMiniStudio) openMiniStudio.addEventListener('click', event => {
+      const palette = buildAtlasPalette();
+      if (palette && !persistPalette(palette)) event.preventDefault();
+    });
     const useAtlasPalette = $('#useAtlasPalette');
     if (useAtlasPalette) useAtlasPalette.addEventListener('click', () => {
       const palette = buildAtlasPalette();
       if (!palette) return;
-      persistPalette(palette);
-      location.href = `/studio/?p=${encodeURIComponent(palette.id)}#studio`;
+      if (persistPalette(palette)) location.href = `/studio/?p=${encodeURIComponent(palette.id)}#studio`;
     });
-    const nextWorldPalette = $('#nextWorldPalette');
-    if (nextWorldPalette) nextWorldPalette.addEventListener('click', () => useWorldStarter(worldVariantIndex + 1, true));
     const atlasSuggestions = $('#atlasSuggestions');
     if (atlasSuggestions) atlasSuggestions.addEventListener('click', event => {
       const button = event.target.closest('[data-atlas-suggestion]');
@@ -1087,15 +1235,7 @@ if (page === 'home') {
 }
 
 if (page === 'community') {
-  $$('.community-filter').forEach(filter => filter.addEventListener('click', () => {
-    $$('.community-filter').forEach(item => {
-      const active = item === filter;
-      item.classList.toggle('is-active', active);
-      item.setAttribute('aria-pressed', String(active));
-    });
-    const value = filter.dataset.filter;
-    $$('.community-card').forEach(card => { card.hidden = value !== 'all' && card.dataset.category !== value; });
-  }));
+  initCommunity({ getPalette: () => current, openPalette: palette => { if (persistPalette(palette)) location.href = `/studio/?p=${encodeURIComponent(palette.id)}#studio`; } });
 }
 
 const input = $('#imageInput');
@@ -1103,6 +1243,9 @@ const dropzone = $('#dropzone');
 if (input && dropzone) {
   let extractionSequence = 0;
   let extractionSample = null;
+  let manualSample = null;
+  let extractionOriginals = [];
+  let extractionUndo = [];
   let pickerPositions = [];
   let pickerDrag = null;
   const isSupportedImage = file => Boolean(file && SUPPORTED_IMAGE_TYPES.has(file.type));
@@ -1154,29 +1297,28 @@ if (input && dropzone) {
     }).join('');
   }
   function sampleColorAt(xPercent, yPercent) {
-    if (!extractionSample) return null;
-    const { width, height, pixels } = extractionSample;
-    const centerX = clamp(Math.round(xPercent / 100 * (width - 1)), 0, width - 1);
-    const centerY = clamp(Math.round(yPercent / 100 * (height - 1)), 0, height - 1);
-    const sum = [0, 0, 0];
-    let count = 0;
-    for (let y = Math.max(0, centerY - 2); y <= Math.min(height - 1, centerY + 2); y++) {
-      for (let x = Math.max(0, centerX - 2); x <= Math.min(width - 1, centerX + 2); x++) {
-        const offset = (y * width + x) * 4;
-        if (pixels[offset + 3] < 128) continue;
-        for (let channel = 0; channel < 3; channel++) sum[channel] += pixels[offset + channel];
-        count++;
-      }
-    }
-    return count ? toHex(sum.map(value => value / count)) : null;
+    if (!manualSample) return null;
+    return sampleImageColor(manualSample.context, manualSample.width, manualSample.height, xPercent, yPercent);
+  }
+  function rememberExtraction() {
+    extractionUndo.push({ selected: selectedExtraction, colors: extractedVariants.map(variant => [...variant.colors]), positions: pickerPositions.map(point => ({ ...point })) });
+    if (extractionUndo.length > 30) extractionUndo.shift();
+    $('#undoExtraction').disabled = false;
+  }
+  function syncPickerBounds() {
+    const image = $('#extractedImage');
+    const layer = $('#imagePickers');
+    if (!image || !layer || !image.naturalWidth) return;
+    const scale = Math.min(image.clientWidth / image.naturalWidth, image.clientHeight / image.naturalHeight);
+    const width = image.naturalWidth * scale, height = image.naturalHeight * scale;
+    Object.assign(layer.style, { width: `${width}px`, height: `${height}px`, left: `${(image.clientWidth - width) / 2}px`, top: `${(image.clientHeight - height) / 2}px` });
   }
   function updatePicker(index, event) {
-    const wrap = $('#extractedImageWrap');
+    const wrap = $('#imagePickers');
     const variant = extractedVariants[selectedExtraction];
     if (!wrap || !variant) return;
     const bounds = wrap.getBoundingClientRect();
-    const x = clamp((event.clientX - bounds.left) / bounds.width * 100, 0, 100);
-    const y = clamp((event.clientY - bounds.top) / bounds.height * 100, 0, 100);
+    const { x, y } = imagePoint(bounds, event.clientX, event.clientY);
     const color = sampleColorAt(x, y);
     if (!color) return;
     pickerPositions[index] = { x, y };
@@ -1191,28 +1333,26 @@ if (input && dropzone) {
       picker.querySelector('span').textContent = color;
       picker.setAttribute('aria-label', `Move sample ${index + 1}, currently ${color}`);
     }
-    const variantButton = $(`[data-extraction-variant="${selectedExtraction}"]`);
-    const colorChip = variantButton?.querySelectorAll('.extraction-variant-colors i')[index];
-    const colorValue = variantButton?.querySelectorAll('.extraction-variant-values code')[index];
-    if (colorChip) colorChip.style.setProperty('--swatch', color);
-    if (colorValue) colorValue.textContent = color;
+    renderExtractionVariants();
   }
   function selectExtractionVariant(index) {
     if (!extractedVariants[index]) return;
     const changed = selectedExtraction !== index || pickerPositions.length === 0;
     selectedExtraction = index;
     extracted = extractedVariants[index];
-    $$('#extractedSwatches [data-extraction-variant]').forEach((button, buttonIndex) => button.setAttribute('aria-pressed', String(buttonIndex === index)));
+    $('#extractionReading').value = String(index);
     const info = $('#extractionInfo');
     const action = $('#useExtraction');
-    if (info) info.textContent = `${extracted.variantName} · ${extracted.detail}`;
-    if (action) action.textContent = `Use ${extracted.variantName.toLowerCase()}`;
+    if (info) info.textContent = `${extracted.variantName} · 5 colors`;
+    if (action) action.textContent = 'Continue in Studio ↗';
+    renderExtractionVariants();
     renderImagePickers(changed);
+    syncPickerBounds();
   }
   function renderExtractionVariants() {
     const container = $('#extractedSwatches');
     if (!container) return;
-    container.innerHTML = extractedVariants.map((variant, index) => `<button type="button" class="extraction-variant" data-extraction-variant="${index}" aria-pressed="${index === selectedExtraction}" aria-label="Choose ${escape(variant.variantName)} palette"><span class="extraction-variant-head"><strong>${escape(variant.variantName)}</strong><small>${escape(variant.detail)}</small></span><span class="extraction-variant-colors" aria-hidden="true">${variant.colors.map(color => `<i style="--swatch:${color}"></i>`).join('')}</span><span class="extraction-variant-values" aria-hidden="true">${variant.colors.map(color => `<code>${color}</code>`).join('')}</span></button>`).join('');
+    container.innerHTML = (extractedVariants[selectedExtraction]?.colors || []).map((color, index) => `<div class="extract-color-row" style="--swatch:${color};--on:${textOn(color)}"><button type="button" class="extract-color-copy" data-copy="${color}" aria-label="Copy color ${index + 1}: ${color}"><code>${color}</code></button><label class="extract-color-edit">${index + 1}<input type="color" value="${color}" data-extract-color="${index}" aria-label="Edit color ${index + 1}"></label></div>`).join('');
   }
   async function extract(file) {
     if (!file) return;
@@ -1242,28 +1382,45 @@ if (input && dropzone) {
       sampleContext.drawImage(image, 0, 0, sample.width, sample.height);
       const sampleData = sampleContext.getImageData(0, 0, sample.width, sample.height);
       const result = extractPaletteVariants(sampleData.data);
+      const full = document.createElement('canvas');
+      full.width = image.naturalWidth;
+      full.height = image.naturalHeight;
+      const fullContext = full.getContext('2d', { willReadFrequently: true });
+      fullContext.drawImage(image, 0, 0);
       const preview = document.createElement('canvas');
-      const previewScale = Math.min(1, 720 / image.width, 480 / image.height);
+      const previewScale = Math.min(1, 2048 / Math.max(image.width, image.height));
       preview.width = Math.max(1, Math.round(image.width * previewScale));
       preview.height = Math.max(1, Math.round(image.height * previewScale));
       preview.getContext('2d').drawImage(image, 0, 0, preview.width, preview.height);
-      const previewData = preview.toDataURL('image/jpeg', .82);
+      const previewData = preview.toDataURL('image/png');
       if (imageURL) URL.revokeObjectURL(imageURL);
       imageURL = nextURL;
       extractionSample = { width: sample.width, height: sample.height, pixels: sampleData.data };
-      extractedVariants = result.variants.map(variant => ({ id: `your-image-${variant.key}`, name: `Image · ${variant.name}`, variantName: variant.name, detail: variant.detail, description: variant.description, colors: variant.colors, image: previewData }));
+      manualSample = { context: fullContext, width: full.width, height: full.height };
+      extractedVariants = result.variants.map(variant => ({ id: `your-image-${variant.key}`, name: suggestPaletteName(variant.colors), variantName: variant.name, detail: variant.detail, description: variant.description, colors: variant.colors, image: null }));
+      const nameInput = $('#extractionName');
+      if (nameInput && (!nameInput.value.trim() || nameInput.value === nameInput.dataset.suggested || nameInput.value === 'Untitled')) {
+        nameInput.value = extractedVariants[0].name;
+        nameInput.dataset.suggested = nameInput.value;
+      }
+      extractionOriginals = extractedVariants.map(variant => [...variant.colors]);
+      extractionUndo = [];
+      $('#undoExtraction').disabled = true;
+      $('#extractionReading').innerHTML = extractedVariants.map((variant, index) => `<option value="${index}">${escape(variant.variantName)}</option>`).join('');
       selectedExtraction = 0;
       pickerPositions = [];
       const extractedImage = $('#extractedImage');
-      // Use the generated local preview instead of the temporary blob URL. This
-      // is more reliable in embedded browsers and keeps the preview browser-local.
-      if (extractedImage) extractedImage.src = previewData;
+      // Original local image for display; lossless high-resolution fallback for
+      // embedded browsers that cannot display a blob URL. Neither is persisted.
+      if (extractedImage) { extractedImage.onerror = () => { extractedImage.onerror = null; extractedImage.src = previewData; }; extractedImage.src = nextURL; }
       renderExtractionVariants();
       selectExtractionVariant(0);
       dropzone.classList.add('has-result');
       const resultPanel = $('#extractionResult');
       if (resultPanel) resultPanel.hidden = false;
-      if (status) status.textContent = `Three readings ready from ${result.sampled} color clusters.`;
+      $('#extract').classList.add('has-image');
+      requestAnimationFrame(syncPickerBounds);
+      if (status) status.textContent = 'Drag a point to refine a color. Your image stays private.';
       track('image_extract', { result: 'success' });
     } catch (error) {
       URL.revokeObjectURL(nextURL);
@@ -1301,7 +1458,28 @@ if (input && dropzone) {
   for (const eventName of ['dragleave', 'drop']) dropzone.addEventListener(eventName, event => { event.preventDefault(); dropzone.classList.remove('is-over'); });
   dropzone.addEventListener('drop', event => extract(event.dataTransfer.files?.[0] || clipboardImageFromData(event.dataTransfer)));
   const extractedSwatches = $('#extractedSwatches');
-  if (extractedSwatches) extractedSwatches.addEventListener('click', event => { const button = event.target.closest('[data-extraction-variant]'); if (button) selectExtractionVariant(Number(button.dataset.extractionVariant)); });
+  extractedSwatches?.addEventListener('change', event => {
+    const control = event.target.closest('[data-extract-color]');
+    if (!control || !extracted) return;
+    rememberExtraction();
+    extracted.colors[Number(control.dataset.extractColor)] = control.value.toUpperCase();
+    renderExtractionVariants();
+    renderImagePickers(true);
+  });
+  $('#extractionReading')?.addEventListener('change', event => { rememberExtraction(); selectExtractionVariant(Number(event.target.value)); });
+  $('#replaceExtractionImage')?.addEventListener('click', () => input.click());
+  $('#resetExtraction')?.addEventListener('click', () => { rememberExtraction(); extractedVariants[selectedExtraction].colors = [...extractionOriginals[selectedExtraction]]; pickerPositions = []; selectExtractionVariant(selectedExtraction); });
+  $('#undoExtraction')?.addEventListener('click', () => {
+    const saved = extractionUndo.pop();
+    if (!saved) return;
+    extractedVariants.forEach((variant, index) => { variant.colors = saved.colors[index]; });
+    selectedExtraction = saved.selected;
+    pickerPositions = saved.positions;
+    selectExtractionVariant(selectedExtraction);
+    $('#undoExtraction').disabled = extractionUndo.length === 0;
+  });
+  if (globalThis.ResizeObserver) new ResizeObserver(syncPickerBounds).observe($('#extractedImageWrap'));
+  $('#extractedImage')?.addEventListener('load', syncPickerBounds);
   const imagePickers = $('#imagePickers');
   if (imagePickers) {
     imagePickers.addEventListener('pointerdown', event => {
@@ -1309,6 +1487,7 @@ if (input && dropzone) {
       if (!picker || event.button > 0) return;
       event.preventDefault();
       const index = Number(picker.dataset.imagePicker);
+      rememberExtraction();
       pickerDrag = { index, pointerId: event.pointerId };
       picker.setPointerCapture(event.pointerId);
       picker.classList.add('is-dragging');
@@ -1331,16 +1510,34 @@ if (input && dropzone) {
     imagePickers.addEventListener('pointerup', finishPickerDrag);
     imagePickers.addEventListener('pointercancel', finishPickerDrag);
     imagePickers.addEventListener('lostpointercapture', finishPickerDrag);
+    imagePickers.addEventListener('keydown', event => {
+      const picker = event.target.closest('[data-image-picker]');
+      const direction = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[event.key];
+      if (!picker || !direction) return;
+      event.preventDefault();
+      rememberExtraction();
+      const index = Number(picker.dataset.imagePicker), point = pickerPositions[index], bounds = imagePickers.getBoundingClientRect();
+      updatePicker(index, { clientX: bounds.left + bounds.width * (point.x + direction[0]) / 100, clientY: bounds.top + bounds.height * (point.y + direction[1]) / 100 });
+    });
   }
   const useExtraction = $('#useExtraction');
   if (useExtraction) useExtraction.addEventListener('click', () => {
     if (!extracted) return;
-    persistPalette(extracted);
+    if (!persistPalette({ ...extracted, name: $('#extractionName')?.value.trim().slice(0, 120) || extracted.name })) {
+      $('#extractStatus').textContent = 'Browser storage is unavailable. Your palette is still here; copy it before leaving this page.';
+      return;
+    }
     location.href = `/studio/?p=${encodeURIComponent(extracted.id)}#studio`;
   });
 }
 
 renderSelection();
+if (page === 'studio') {
+  const referenceLabel = document.querySelector('.product-preview-image span');
+  const referenceNote = document.querySelector('.product-preview-stage aside small');
+  if (referenceLabel) referenceLabel.textContent = 'Reference image pending';
+  if (referenceNote) referenceNote.textContent = 'Palette roles update the direction; add an approved reference image later.';
+}
 initAccountNavigation();
 if (page === 'studio') {
   $('#savePersonalPalette')?.addEventListener('click', () => {
@@ -1349,7 +1546,7 @@ if (page === 'studio') {
     try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); location.assign('/account/'); }
     catch { toast('Allow browser storage to keep this palette while signing in.'); }
   });
-  import('./project-store.js?v=17')
+  import('./project-store.js?v=25')
     .then(({ initProjectWorkspace }) => initProjectWorkspace(window.colorverseStudio))
     .catch(() => { const label = $('#projectSyncLabel'); if (label) label.textContent = 'Local draft'; });
 }

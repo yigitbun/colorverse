@@ -1,0 +1,41 @@
+/* A focused editor alongside the globe, not a second full Studio. */
+body[data-page=home] .hero{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:28px;min-height:530px;padding:0 clamp(22px,4vw,64px) 24px}
+body[data-page=home] .hero-copy{width:auto;align-self:center;padding:38px 0;margin:0}
+body[data-page=home] .hero h1{font-size:clamp(2.5rem,4.1vw,3.75rem)}
+body[data-page=home] .atlas-scene{position:relative;top:auto;right:auto;bottom:auto;width:100%;height:510px;margin:0}
+body[data-page=home] .atlas-scene #globe{top:55px;bottom:auto;left:-12px;width:calc(100% - 168px);height:390px;margin:0}
+body[data-page=home] .atlas-world-rail{display:none}
+body[data-page=home] .atlas-world-mobile{display:block;position:absolute;top:10px;right:0;width:180px;padding:5px;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+body[data-page=home] .atlas-world-mobile>span:first-child{display:none}
+body[data-page=home] .atlas-world-mobile-control{display:flex;align-items:center;gap:6px}
+body[data-page=home] .atlas-world-mobile-control i{width:5px;height:22px;background:var(--atlas-field);border-radius:5px}
+body[data-page=home] .atlas-world-mobile select{width:100%;height:30px;border:0;background:var(--surface-2);color:var(--ink);font-size:12px;border-radius:5px;padding:4px}
+body[data-page=home] .atlas-controls{left:calc((100% - 180px) / 2);top:auto;bottom:35px}
+body[data-page=home] .atlas-guide{left:0;right:180px;bottom:8px;width:auto;transform:none;justify-content:center;font-size:11px;gap:8px}
+body[data-page=home] .atlas-telemetry{left:0;top:16px;font-size:10px}
+.mini-editor{position:absolute;right:0;top:105px;z-index:6;width:170px;display:grid;gap:17px;align-content:start}
+.mini-editor-head{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px}
+.mini-editor-hex{min-width:0;width:88px;padding:6px;border:1px solid var(--line);border-radius:5px;background:var(--surface);color:var(--ink);font:11px var(--mono)}
+.mini-editor label{display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.mini-editor output{font:11px var(--mono)}
+.mini-editor input[type=range]{grid-column:1/-1;width:100%;margin:8px 0;appearance:none;accent-color:var(--accent);height:6px;background:var(--mini-track,var(--line));border:1px solid var(--line);border-radius:8px;cursor:pointer}
+.mini-editor input[type=range]::-webkit-slider-thumb{appearance:none;width:16px;height:16px;border:2px solid var(--ink);border-radius:50%;background:var(--surface);box-shadow:0 1px 4px #0002}
+.mini-editor input[type=range]::-moz-range-thumb{width:12px;height:12px;border:2px solid var(--ink);border-radius:50%;background:var(--surface)}
+.mini-editor .mini-suggestion-label{font-size:11px;color:var(--muted)}
+.mini-suggestions{display:flex;gap:5px;margin-top:7px}
+.mini-suggestions button{flex:1;min-width:0;min-height:34px;border:1px dashed var(--line-strong);border-radius:5px;background:var(--swatch);color:var(--on);font-size:15px}
+.mini-editor-empty{font-size:12px;color:var(--muted);line-height:1.6;padding:24px 0}
+.mini-editor .mini-editor-controls[hidden]{display:none}
+.mini-editor [hidden]{display:none}
+.mini-editor-controls{display:grid;gap:15px}
+.mini-editor-status{font-size:11px;color:var(--muted);min-height:30px}
+.hero-swatches .hero-suggested-swatch{display:grid;place-items:center;padding:0;color:var(--on)}
+.hero-swatches .hero-suggested-swatch:hover{opacity:1}
+@media(max-width:700px){body[data-page=home] .hero{padding-inline:0}}
+@media(max-width:1050px){body[data-page=home] .hero{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px}body[data-page=home] .atlas-scene{height:590px}body[data-page=home] .atlas-scene #globe{left:0;width:100%;top:55px;height:360px}.mini-editor{top:420px;left:0;right:0;width:100%;gap:8px}.mini-editor-controls{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.mini-editor-head{grid-column:1/-1}.mini-editor-suggestions{grid-column:1/3}.mini-editor-status{align-self:center;min-height:0}.mini-editor-empty{padding:0}body[data-page=home] .atlas-controls{bottom:175px;left:50%}body[data-page=home] .atlas-guide{right:0;bottom:155px}body[data-page=home] .atlas-telemetry{top:24px}.mini-editor input[type=range]{height:18px}}
+@media(max-width:700px){body[data-page=home] .hero{display:flex;flex-direction:column;gap:0;padding-bottom:16px}body[data-page=home] .hero-copy{display:block;width:100%;padding:24px 22px 12px}body[data-page=home] .hero-copy>.eyebrow,body[data-page=home] .hero h1,body[data-page=home] .hero-actions,body[data-page=home] .hero-palette{margin-left:0;margin-right:0}body[data-page=home] .hero-copy>.eyebrow{margin-top:0}body[data-page=home] .hero h1{margin-top:14px}body[data-page=home] .hero-palette{margin-top:20px;width:100%}body[data-page=home] .atlas-scene{order:initial;height:570px;width:100%;padding-inline:22px}body[data-page=home] .atlas-scene #globe{top:52px;left:0;height:330px}body[data-page=home] .atlas-world-mobile{right:22px}.mini-editor{left:22px;right:22px;top:420px;width:auto}body[data-page=home] .atlas-controls{bottom:170px}body[data-page=home] .atlas-guide{bottom:150px}body[data-page=home] .atlas-telemetry{left:22px}.mini-editor-hex{font-size:16px;width:115px}body[data-page=home] .atlas-touch-zone{top:75px;left:calc(50% - 135px);width:270px;height:270px;transform:none}}
+/* Override legacy mobile top offsets so the controls cannot overlap the editor. */
+@media(max-width:1050px){body[data-page=home] .atlas-scene{height:670px}.mini-editor{top:480px}body[data-page=home] .atlas-controls{top:410px;bottom:auto}body[data-page=home] .atlas-guide{display:flex;top:450px;bottom:auto}}
+@media(max-width:700px){body[data-page=home] .atlas-scene{height:650px}.mini-editor{top:450px}body[data-page=home] .atlas-controls{top:385px;bottom:auto}body[data-page=home] .atlas-guide{top:425px;bottom:auto}}
+@media(max-width:1050px){body[data-page=home] .atlas-scene:not(.has-mini-color){height:480px}.atlas-scene:not(.has-mini-color) .mini-editor{display:none}}
+@media(max-width:700px){body[data-page=home] .atlas-scene:not(.has-mini-color){height:455px}}

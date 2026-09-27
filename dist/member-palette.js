@@ -1,3 +1,5 @@
+import { suggestPaletteName } from './palette-names.js?v=1';
+
 export const MIN_COLORS = 2;
 export const MAX_COLORS = 24;
 export const DRAFT_KEY = 'colorverse-palette-draft';
@@ -15,7 +17,7 @@ export function validColors(colors) {
 export function sanitizeDraft(value) {
   if (!value || !validColors(value.colors)) return null;
   return {
-    name: String(value.name || 'Untitled palette').slice(0, 120),
+    name: String(value.name || suggestPaletteName(value.colors)).slice(0, 120),
     collection: String(value.collection || 'My palettes').slice(0, 100),
     colors: value.colors.map(color => color.toUpperCase()),
     referenceKey: typeof value.referenceKey === 'string' && /^[a-z0-9-]{1,120}$/.test(value.referenceKey) ? value.referenceKey : null,

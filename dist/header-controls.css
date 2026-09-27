@@ -1,0 +1,7 @@
+.header-actions .studio-link{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.header-actions .studio-link svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.header-actions .account-icon-link{position:relative;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--ink);text-decoration:none}
+.header-actions .account-icon-link svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.header-actions .account-icon-link:hover{background:var(--surface-2);color:var(--accent)}
+.header-actions .account-icon-link:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.header-actions .account-icon-link[data-signed-in=true]::after{content:'';position:absolute;right:7px;top:7px;width:5px;height:5px;border-radius:50%;background:var(--accent)}

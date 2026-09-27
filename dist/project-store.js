@@ -1,10 +1,12 @@
-import { getAccountClient } from './account-client.js';
+import { getAccountClient } from './account-client.js?v=3';
+import { initEmailCodeFlow } from './email-code-flow.js?v=2';
 const ACTIVE_PROJECT_KEY = 'colorverse-active-project';
 
 const $ = selector => document.querySelector(selector);
 const validProjectId = value => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value || '');
-const contextToDatabase = value => ({ landing: 'brand', interface: 'website', presentation: 'slides' })[value] || 'custom';
+const contextToDatabase = value => ({ landing: 'brand', interface: 'website', social: 'custom', presentation: 'slides' })[value] || 'custom';
 const contextToStudio = value => ({ brand: 'landing', website: 'interface', slides: 'presentation' })[value] || 'landing';
+const contextLabel = value => ({ landing: 'Objects', interface: 'Screens', social: 'Campaigns', presentation: 'Report (legacy)' })[value] || 'Objects';
 
 function relativeTime(value) {
   const then = new Date(value).getTime();
@@ -23,7 +25,27 @@ export async function initProjectWorkspace(studio) {
   const saveTrigger = $('#saveProject');
   const projectsTrigger = $('#openProjects');
   if (!dialog || !saveTrigger || !projectsTrigger || !studio) return;
-  const client = await getAccountClient();
+  let client;
+  try { client = await getAccountClient(); }
+  catch {
+    // A failed SDK/config load must not leave Save and Projects inert.
+    const unavailable = () => {
+      $('#projectAuthView').hidden = false;
+      $('#projectWorkspaceView').hidden = true;
+      $('#projectAuthForm').hidden = true;
+      $('#projectCodePanel').hidden = true;
+      $('#projectMessage').textContent = 'Account services are unavailable. Your palette remains a local draft; copy or export it and reload to try again.';
+      $('#projectMessage').dataset.kind = 'error';
+      dialog.showModal();
+    };
+    saveTrigger.addEventListener('click', unavailable);
+    projectsTrigger.addEventListener('click', unavailable);
+    dialog.querySelectorAll('[data-project-close]').forEach(button => button.addEventListener('click', () => dialog.close()));
+    dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+    $('#projectSyncLabel').textContent = 'Local draft · account unavailable';
+    if (location.hash === '#projects') unavailable();
+    return;
+  }
   const authView = $('#projectAuthView');
   const workspaceView = $('#projectWorkspaceView');
   const authForm = $('#projectAuthForm');
@@ -47,6 +69,7 @@ export async function initProjectWorkspace(studio) {
   const collectionNameInput = $('#collectionName');
   const contextInput = $('#projectContext');
   let session = null;
+  let sessionRestoreError = '';
   let projects = [];
   let archivedProjects = [];
   let templates = [];
@@ -54,8 +77,12 @@ export async function initProjectWorkspace(studio) {
   let activePrototype = null;
   let activeProjectId = null;
   let dirty = false;
-  let authCooldownTimer = null;
-  let authCooldownUntil = 0;
+  const access = initEmailCodeFlow({
+    root: authView, emailForm: authForm, email: $('#projectEmail'), send: $('#projectSendCode'),
+    codePanel: $('#projectCodePanel'), codeForm: $('#projectCodeForm'), code: $('#projectCode'), verify: $('#projectVerifyCode'),
+    sentEmail: $('#projectSentEmail'), resend: $('#projectResendCode'), changeEmail: $('#projectChangeEmail'),
+    getClient: async () => client, status: setMessage,
+  });
 
   try {
     const stored = localStorage.getItem(ACTIVE_PROJECT_KEY);
@@ -80,8 +107,8 @@ export async function initProjectWorkspace(studio) {
       if (code || description) {
         try { history.replaceState(null, '', `${location.pathname}${index === 0 ? location.search : ''}`); } catch {}
         return code === 'otp_expired' || /expired|invalid/i.test(description || code || '')
-          ? 'This sign-in link has expired. Request a fresh link below.'
-          : 'This sign-in link could not be verified. Request a fresh link below.';
+          ? 'This old email link has expired. Request a new sign-in code.'
+          : 'This old email link could not be verified. Request a new sign-in code.';
       }
     }
     return '';
@@ -90,6 +117,7 @@ export async function initProjectWorkspace(studio) {
   function renderSession() {
     const signedIn = Boolean(session?.user);
     authView.hidden = signedIn;
+    if (signedIn) access.stop();
     workspaceView.hidden = !signedIn;
     accountLabel.textContent = signedIn ? session.user.email || 'Signed in' : '';
     signOut.hidden = !signedIn;
@@ -140,7 +168,7 @@ export async function initProjectWorkspace(studio) {
       const meta = document.createElement('span');
       meta.textContent = version ? `${version.is_locked ? 'Locked' : prototype.note} · v${version.version_number}` : 'Not saved yet';
       const context = document.createElement('small');
-      context.textContent = version ? `${contextToStudio(version.editor_state?.context || project.context_type)}${version.editor_state?.productKind ? ` / ${version.editor_state.productKind}` : ''}` : 'Create a private direction';
+      context.textContent = version ? `${contextLabel(version.editor_state?.context || contextToStudio(project.context_type))}${version.editor_state?.productKind ? ` / ${version.editor_state.productKind}` : ''}` : 'Create a private direction';
       const swatches = document.createElement('div');
       swatches.className = 'prototype-swatches';
       for (const color of version?.colors || []) {
@@ -515,7 +543,9 @@ export async function initProjectWorkspace(studio) {
       colors: version.colors,
       roles: version.roles,
       context: version.editor_state?.context || contextToStudio(project.context_type),
-      productKind: version.editor_state?.productKind || 'footwear',
+      productKind: version.editor_state?.productKind || 'skincare',
+      careAssignment: version.editor_state?.careAssignment,
+      colorwayBaseline: version.editor_state?.colorwayBaseline,
     });
     activeProjectId = project.id;
     activePrototype = version.variant_key === 'baseline' || version.variant_key === 'alternative' ? version.variant_key : null;
@@ -535,7 +565,9 @@ export async function initProjectWorkspace(studio) {
       colors: version.colors,
       roles: version.roles,
       context: version.editor_state?.context || contextToStudio(project.context_type),
-      productKind: version.editor_state?.productKind || 'footwear',
+      productKind: version.editor_state?.productKind || 'skincare',
+      careAssignment: version.editor_state?.careAssignment,
+      colorwayBaseline: version.editor_state?.colorwayBaseline,
     });
     activeProjectId = project.id;
     activePrototype = prototypeKey;
@@ -553,7 +585,9 @@ export async function initProjectWorkspace(studio) {
       colors: template.colors,
       roles: template.roles,
       context: template.defaults?.context || contextToStudio(template.context_type),
-      productKind: template.defaults?.productKind || 'footwear',
+      productKind: template.defaults?.productKind || 'skincare',
+      careAssignment: template.defaults?.careAssignment,
+      colorwayBaseline: template.defaults?.colorwayBaseline,
     });
     activeProjectId = null;
     dirty = true;
@@ -564,7 +598,7 @@ export async function initProjectWorkspace(studio) {
   }
 
   async function openDialog(mode = 'save') {
-    setMessage('');
+    setMessage(sessionRestoreError, sessionRestoreError ? 'error' : '');
     const snapshot = studio.getSnapshot();
     nameInput.value = activeProjectId ? (projects.find(project => project.id === activeProjectId)?.name || snapshot.name) : snapshot.name;
     templateNameInput.value = snapshot.name;
@@ -575,40 +609,6 @@ export async function initProjectWorkspace(studio) {
     dialog.showModal();
     requestAnimationFrame(() => (session && mode === 'save' ? nameInput : $('#projectEmail'))?.focus());
   }
-
-  authForm.addEventListener('submit', async event => {
-    event.preventDefault();
-    const email = $('#projectEmail').value.trim();
-    if (!email) return;
-    if (Date.now() < authCooldownUntil) return;
-    const submit = authForm.querySelector('button[type="submit"]');
-    submit.disabled = true;
-    setMessage('Sending a secure sign-in link…');
-    const { error } = await client.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${location.origin}/studio/` },
-    });
-    submit.disabled = false;
-    if (!error) {
-      authCooldownUntil = Date.now() + 20_000;
-      let seconds = 20;
-      submit.disabled = true;
-      submit.textContent = `Link sent - resend in ${seconds}s`;
-      authCooldownTimer = window.setInterval(() => {
-        seconds -= 1;
-        if (seconds <= 0) {
-          window.clearInterval(authCooldownTimer);
-          authCooldownTimer = null;
-          authCooldownUntil = 0;
-          submit.disabled = false;
-          submit.textContent = 'Email me a sign-in link';
-          return;
-        }
-        submit.textContent = `Link sent - resend in ${seconds}s`;
-      }, 1000);
-    }
-    setMessage(error ? 'The sign-in link could not be sent. Check the address and try again.' : 'Check your email. The link returns you to this Studio.', error ? 'error' : 'success');
-  });
 
   saveForm.addEventListener('submit', async event => {
     event.preventDefault();
@@ -623,7 +623,7 @@ export async function initProjectWorkspace(studio) {
       p_source_palette_id: snapshot.sourcePaletteId,
       p_colors: snapshot.colors,
       p_roles: snapshot.roles,
-      p_editor_state: { context: snapshot.context, productKind: snapshot.productKind },
+      p_editor_state: { context: snapshot.context, productKind: snapshot.productKind, careAssignment: snapshot.careAssignment, colorwayBaseline: snapshot.colorwayBaseline },
     });
     submit.disabled = false;
     if (error || !validProjectId(data)) {
@@ -660,7 +660,9 @@ export async function initProjectWorkspace(studio) {
         colors: baseline.colors,
         roles: baseline.roles || {},
         context: baseline.editor_state?.context || contextToStudio(project.context_type),
-        productKind: baseline.editor_state?.productKind || 'footwear',
+        productKind: baseline.editor_state?.productKind || 'skincare',
+        careAssignment: baseline.editor_state?.careAssignment,
+        colorwayBaseline: baseline.editor_state?.colorwayBaseline,
       };
       studio.loadSnapshot({ id: project.id, ...snapshot });
     }
@@ -673,7 +675,7 @@ export async function initProjectWorkspace(studio) {
       p_source_palette_id: snapshot.sourcePaletteId,
       p_colors: snapshot.colors,
       p_roles: snapshot.roles,
-      p_editor_state: { context: snapshot.context, productKind: snapshot.productKind },
+      p_editor_state: { context: snapshot.context, productKind: snapshot.productKind, careAssignment: snapshot.careAssignment, colorwayBaseline: snapshot.colorwayBaseline },
       p_parent_version_id: baseline?.id || null,
       p_lock: lock,
     });
@@ -709,7 +711,7 @@ export async function initProjectWorkspace(studio) {
       p_source_project_id: activeProjectId,
       p_colors: snapshot.colors,
       p_roles: snapshot.roles,
-      p_defaults: { context: snapshot.context, productKind: snapshot.productKind },
+      p_defaults: { context: snapshot.context, productKind: snapshot.productKind, careAssignment: snapshot.careAssignment, colorwayBaseline: snapshot.colorwayBaseline },
     });
     submit.disabled = false;
     if (error || !validProjectId(data)) {
@@ -744,7 +746,14 @@ export async function initProjectWorkspace(studio) {
   });
 
   signOut.addEventListener('click', async () => {
-    await client.auth.signOut();
+    signOut.disabled = true;
+    try {
+      const { error } = await client.auth.signOut();
+      if (error) throw error;
+    } catch {
+      setMessage('Sign-out could not be completed. Please try again.', 'error');
+      return;
+    } finally { signOut.disabled = false; }
     activeProjectId = null;
     dirty = false;
     templates = [];
@@ -755,7 +764,7 @@ export async function initProjectWorkspace(studio) {
   });
 
   deletePrivateData?.addEventListener('click', async () => {
-    const confirmed = window.confirm('Delete your private projects, templates, collections, saved palettes, Color Tray, and extraction history? This cannot be undone.');
+    const confirmed = window.confirm('Delete your private projects, templates, collections, saved palettes, Color Tray, extraction history, and Community drafts on this device? This cannot be undone.');
     if (!confirmed) return;
     deletePrivateData.disabled = true;
     setMessage('Deleting private workspace data…');
@@ -768,6 +777,7 @@ export async function initProjectWorkspace(studio) {
     try {
       localStorage.removeItem(ACTIVE_PROJECT_KEY);
       localStorage.removeItem('colorverse-color-tray');
+      localStorage.removeItem('colorverse-community-private-drafts-v1');
     } catch {}
     setMessage('Private workspace data deleted. Signing out…', 'success');
     await client.auth.signOut();
@@ -786,8 +796,14 @@ export async function initProjectWorkspace(studio) {
     setSyncLabel('Unsaved changes');
   });
 
-  const { data } = await client.auth.getSession();
-  session = data.session;
+  try {
+    const { data, error } = await client.auth.getSession();
+    if (error) throw error;
+    session = data?.session || null;
+  } catch {
+    sessionRestoreError = 'Your account session could not be restored. Request a code to sign in again. Your local palette is intact.';
+    setMessage(sessionRestoreError, 'error');
+  }
   renderSession();
   const authLinkError = readAuthLinkError();
   if (authLinkError && !session) {
@@ -800,8 +816,10 @@ export async function initProjectWorkspace(studio) {
     const version = active && latestVersion(active);
     setSyncLabel(version ? `Saved · v${version.version_number}` : 'Cloud ready');
   }
-  client.auth.onAuthStateChange((_event, nextSession) => {
+  client.auth.onAuthStateChange((event, nextSession) => {
     session = nextSession;
+    if (session?.user || event === 'SIGNED_OUT') sessionRestoreError = '';
+    if (event === 'SIGNED_OUT') access.reset();
     renderSession();
     if (session) setTimeout(() => Promise.all([loadProjects(), loadArchivedProjects(), loadTemplates(), loadSavedPalettes(), loadColorTray()]), 0);
   });

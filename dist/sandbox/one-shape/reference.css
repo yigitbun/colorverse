@@ -1,0 +1,21 @@
+#stage{position:relative;width:1440px;height:1440px;background:#E8E5E0;overflow:hidden;font-family:var(--font),system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;font-feature-settings:"tnum" 1,"ss01" 1;color:#111110}
+#world{position:absolute;left:0;top:0;transform-origin:0 0}
+#clip{position:absolute;overflow:hidden}
+#inner{position:absolute;left:0;top:0;width:0;height:0}
+.a{position:absolute;white-space:nowrap}
+.ic{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#cursor{position:absolute;left:0;top:0;width:52px;height:52px;transform-origin:0 0;pointer-events:none}
+.motion-page{margin:0;background:var(--bg);color:var(--ink)}
+.motion-shell{max-width:820px;margin:auto;padding:28px 22px 45px}
+.motion-shell>header{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-bottom:24px;font-size:13px}
+.motion-shell h1{font-size:40px;letter-spacing:-.05em;margin:12px 0}
+.motion-shell p{font-size:13px;line-height:1.6;color:var(--muted);max-width:560px}
+.motion-viewport{position:relative;width:min(100%,640px);aspect-ratio:1;margin:24px auto;overflow:hidden;border:1px solid var(--line);border-radius:20px;background:#E8E5E0}
+.motion-viewport #stage{position:absolute;left:0;top:0;transform-origin:0 0}
+.motion-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:12px}
+.motion-controls label{display:flex;flex:1;align-items:center;gap:12px;min-width:180px}
+.motion-controls input{width:100%;accent-color:var(--accent)}
+.motion-controls output{font:11px var(--mono);white-space:nowrap}
+.motion-note{font:11px var(--mono);color:var(--muted);margin-top:20px;line-height:1.6}
+@media(max-width:600px){.motion-shell{padding:20px 16px}.motion-viewport{margin:20px 0}.motion-controls label{order:3;flex-basis:100%}}

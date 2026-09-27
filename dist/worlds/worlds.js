@@ -9,11 +9,6 @@ const worlds = [
     tags: ['perceptual', 'full gamut', 'reference'],
     palette: ['#F5F2EA', '#F2C94C', '#E5527D', '#4B88E8', '#172126'],
     reference: 'Chromatic field study',
-    images: [
-      '/assets/palette-library/original/pastel-daydream.jpg',
-      '/assets/palette-library/original/cyber-neon.jpg',
-      '/assets/palette-library/original/soft-voltage.jpg',
-    ],
   },
   {
     id: 'vintage-motion', name: 'Vintage Motion', type: 'Archive study', code: 'CV / ARCHIVE 01', accent: '#C77A51',
@@ -21,11 +16,6 @@ const worlds = [
     tags: ['vintage', 'mechanical', 'sun-worn'],
     palette: ['#F1E4C4', '#B95E3F', '#2F5A58', '#C59B4C', '#6F3E2A', '#22282A', '#D6C1A2'],
     reference: 'Motion and material archive',
-    images: [
-      '/assets/palette-library/original/bold-minimal.jpg',
-      '/assets/palette-library/original/tuscan-earth.jpg',
-      '/assets/palette-library/original/warm-cafe.jpg',
-    ],
   },
   {
     id: 'botanical-nocturne', name: 'Botanical Nocturne', type: 'Seasonal study', code: 'CV / SEASONAL 01', accent: '#8DBB9A',
@@ -33,11 +23,6 @@ const worlds = [
     tags: ['botanical', 'nocturnal', 'quiet'],
     palette: ['#E6E6C5', '#688C56', '#244C49', '#8E4D73', '#CF9B6B', '#101D1D', '#91B7A4'],
     reference: 'Garden after dark',
-    images: [
-      '/assets/palette-library/original/night-garden.jpg',
-      '/assets/palette-library/original/forest-floor.jpg',
-      '/assets/palette-library/original/after-rain.jpg',
-    ],
   },
 ];
 
@@ -91,7 +76,6 @@ function updateWorldText(world, index) {
   $('#worldType').textContent = world.type; $('#worldName').textContent = world.name;
   $('#worldDescription').textContent = world.description; $('#fieldCode').textContent = world.code;
   $('#worldTags').innerHTML = world.tags.map(tag => `<span>${tag}</span>`).join('');
-  $('#worldImage').src = world.images[0]; $('#worldImage').alt = `${world.name} visual reference`;
   $('#worldReference').textContent = world.reference;
   $$('.lens-button').forEach((button, buttonIndex) => button.setAttribute('aria-selected', String(buttonIndex === index)));
 }
@@ -184,7 +168,6 @@ function updateProbe(index, mode = 'Hover') {
   const c = Math.hypot(a, b), h = (Math.atan2(b, a) * 180 / Math.PI + 360) % 360;
   probe.hidden = false; $('#probeMode').textContent = mode; $('#probeWorld').textContent = `${world.name} signal`;
   $('#probeHex').textContent = cell.hex; $('#probeCoordinates').textContent = `L ${Math.round(l * 100)}  C ${c.toFixed(3)}  H ${Math.round(h)}°`;
-  $('#probeImage').src = world.images[index % world.images.length]; $('#probeImage').alt = `${world.name} reference`;
 }
 function resize() {
   const box = canvas.getBoundingClientRect(); width = box.width; height = box.height; ratio = Math.min(devicePixelRatio || 1, 2);

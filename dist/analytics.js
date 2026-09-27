@@ -1,4 +1,4 @@
-import { CONSENT_KEY, CONSENT_VERSION, parseConsent, safePageLocation, analyticsEvent } from './privacy.js?v=3';
+import { CONSENT_KEY, CONSENT_VERSION, parseConsent, safePageLocation, analyticsEvent } from './privacy.js?v=4';
 
 const measurementId = 'G-TJG8M3VE03';
 const production = location.hostname === 'colorverse.byigit.dev';

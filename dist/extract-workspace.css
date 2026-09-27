@@ -1,0 +1,37 @@
+/* The image and its five colors are the workspace; copy is secondary. */
+body[data-page=extract] .extract-page{display:block;padding-top:26px;padding-bottom:34px}
+.extract-page .extract-head{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:18px}
+.extract-page .extract-head h1{font-size:26px;line-height:1.2;letter-spacing:-.035em}
+.extract-page .extract-head span{color:var(--muted);font-size:12px}
+.extract-page .extract-surface{width:100%;min-width:0;padding-top:0;align-self:auto}
+.extract-page .extraction-result{border:0;background:none}
+.extract-page .dropzone{min-height:360px;background:var(--surface);border-radius:10px}
+.extract-page .dropzone strong{font-size:20px}
+.extract-page .dropzone small{font-size:12px}
+.extract-page .paste-image-row{display:flex;justify-content:center;margin:12px 0}
+.extract-page .paste-image-row>span{display:none}
+.extract-page.has-image .paste-image-row{display:none}
+.extract-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:13px}
+.extract-toolbar label{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:12px}
+.extract-toolbar select{padding:8px 30px 8px 10px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:6px;font:inherit}
+.extract-toolbar-actions{display:flex;flex-wrap:wrap;gap:7px}
+.extract-toolbar-actions button,.extract-toolbar-actions label{font-size:12px;min-height:34px;padding:7px 11px;background:var(--surface);border:1px solid var(--line);border-radius:6px;color:var(--ink);cursor:pointer}
+.extract-editor{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:20px;align-items:stretch}
+.extract-page .extracted-image-wrap{display:flex;align-items:center;justify-content:center;height:clamp(360px,58vh,650px);min-height:0;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);overflow:hidden}
+.extract-image-bounds{position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:100%}
+.extract-page .extracted-image-wrap img{width:100%;height:100%;max-height:100%;object-fit:contain}
+.extract-page .image-picker-layer{inset:auto}
+.extract-page .image-picker-hint{z-index:4;font-size:11px;background:var(--surface);color:var(--muted);border:1px solid var(--line)}
+.extract-page .extracted-swatches{display:flex;flex-direction:column;gap:2px;min-height:0;border-radius:10px;overflow:hidden;background:var(--line)}
+.extract-color-row{display:flex;flex:1;min-height:65px;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;background:var(--swatch);color:var(--on)}
+.extract-color-row .extract-color-copy{background:none;color:inherit;min-width:0;text-align:left;padding:9px 0;border:0}
+.extract-color-copy code{font:13px var(--mono)}
+.extract-color-edit{display:flex;align-items:center;gap:9px;font:12px var(--mono)}
+.extract-color-edit input{width:28px;height:28px;border:1px solid currentColor;border-radius:5px;background:none;padding:2px;cursor:pointer}
+.extract-page .extract-result-footer{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;margin-top:16px;padding:12px 0;border:0;background:none}
+.extract-name{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted)}
+.extract-name input{width:210px;max-width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);font-size:14px}
+.extract-page #extractionInfo{color:var(--muted);font-size:12px}
+.extract-page #extractStatus{margin-top:10px;font-size:12px}
+@media(max-width:700px){.extract-editor{grid-template-columns:1fr}.extract-page .extracted-image-wrap{height:400px}.extract-page .extracted-swatches{flex-direction:row;min-height:85px;gap:2px}.extract-color-row{min-width:0;flex-direction:column;padding:10px 2px;gap:6px;justify-content:center}.extract-color-copy code{font-size:clamp(8px,1.8vw,11px)}.extract-color-edit{font-size:10px;gap:4px}.extract-page .extract-head{align-items:flex-start;flex-direction:column}.extract-page #extractionInfo{flex-basis:100%}.extract-name input{width:180px}}
+@media(max-width:420px){.extract-page .extracted-image-wrap{height:340px}.extract-page .extract-name{flex-wrap:wrap}.extract-name input{width:100%}.extract-page .extract-result-footer>.button{width:100%}.extract-page .extract-name{width:100%}}
