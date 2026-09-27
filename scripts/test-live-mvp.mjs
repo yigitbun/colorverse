@@ -1,12 +1,15 @@
 import assert from 'node:assert/strict';
+import { productionAccount } from '../dist/account-config.js';
+import { EMAIL_CODE_LENGTH } from '../dist/email-access.js';
 
 const base = (process.env.COLORVERSE_LIVE_URL || 'https://colorverse.byigit.dev').replace(/\/$/, '');
-const supabaseUrl = 'https://ayzymeogptrqtouwnahh.supabase.co';
-const publishableKey = 'sb_publishable_TY49mfQAzRXvIWjlXKi9Ow_gTCaGid_';
+const supabaseUrl = productionAccount.url;
+const publishableKey = productionAccount.key;
+const candidate = process.argv.includes('--candidate');
 const publicRoutes = ['/', '/explore/', '/extract/', '/studio/', '/inspiration/', '/community/', '/lab/', '/about/', '/privacy/', '/account/'];
 
 async function get(path, options = {}) {
-  return fetch(`${base}${path}`, options);
+  return fetch(`${base}${path}`, { signal: AbortSignal.timeout(15_000), ...options });
 }
 
 const home = await get('/');
@@ -16,12 +19,9 @@ for (const header of ['content-security-policy', 'strict-transport-security', 'x
 }
 
 const homeHtml = await home.text();
-assert.match(homeHtml, /app\.js\?v=61/);
-assert.match(homeHtml, /analytics\.js\?v=5/);
-assert.match(homeHtml, /home-explore\.css\?v=5/);
-assert.match(homeHtml, /class="small-button" href="\/studio\/">Studio<\/a>/);
-assert.match(homeHtml, /hero-palette-context/);
-assert.match(homeHtml, /heroPaletteImage/);
+assert.match(homeHtml, /src="\/app\.js(?:\?[^"\s]+)?"/);
+assert.match(homeHtml, /src="\/analytics\.js(?:\?[^"\s]+)?"/);
+assert.match(homeHtml, /href="\/studio\/"/);
 
 for (const route of publicRoutes.slice(1)) {
   const response = await get(route);
@@ -32,48 +32,66 @@ for (const route of publicRoutes.slice(1)) {
 
 const privacy = await get('/privacy/');
 const privacyHtml = await privacy.text();
-assert.match(privacyHtml, /Prototype 1\/2 versions/);
-assert.match(privacyHtml, /remove this private workspace data/);
 
 const inspiration = await get('/inspiration/');
 assert.equal(inspiration.status, 200, 'inspiration page must be reachable');
 const inspirationHtml = await inspiration.text();
-assert.match(inspirationHtml, /drift-field-01-colorways-v1\.png/);
-assert.match(inspirationHtml, /One runner\.<br>Three directions\./);
+assert.match(inspirationHtml, /ColorVerse/);
 
 const studio = await get('/studio/');
 assert.equal(studio.status, 200, 'studio page must be reachable');
 const studioHtml = await studio.text();
-assert.match(studioHtml, /app\.js\?v=61/);
-assert.match(studioHtml, /studio-editor\.css\?v=7/);
-assert.match(studioHtml, /context-kits\.css\?v=5/);
-assert.match(studioHtml, /data-context="landing"[^>]*>Product/);
-assert.match(studioHtml, /data-context="interface"[^>]*>Interface/);
-assert.match(studioHtml, /data-context="presentation"[^>]*>Report/);
-assert.doesNotMatch(studioHtml, /data-context="(?:social|shop|material)"/);
-assert.doesNotMatch(studioHtml, /shadeStudio|openShadeStudio|shade-studio\.css/);
-assert.match(studioHtml, /Private workspace/);
-assert.match(studioHtml, /Email me a sign-in link/);
-assert.match(studioHtml, /Palette collections/);
-assert.match(studioHtml, /Save palette/);
-assert.match(studioHtml, /Prototype bench/);
-assert.match(studioHtml, /project-store\.css\?v=7/);
-assert.match(studioHtml, /Save to My palettes/);
+assert.match(studioHtml, /src="\/app\.js(?:\?[^"\s]+)?"/);
 
 const account = await get('/account/');
 const accountHtml = await account.text();
 assert.match(accountHtml, /<meta name="robots" content="noindex,nofollow">/);
-assert.match(accountHtml, /Create account/);
-assert.match(accountHtml, /My palettes/);
-assert.match(accountHtml, /Choose five colors/);
 
-const projectStore = await get('/project-store.js?v=17');
+const projectStore = await get('/project-store.js');
 assert.equal(projectStore.status, 200, 'private workspace script must be reachable');
 const projectStoreSource = await projectStore.text();
-assert.match(projectStoreSource, /authCooldownUntil = Date\.now\(\) \+ 20_000/);
-assert.match(projectStoreSource, /Link sent - resend in/);
+assert.match(projectStoreSource, /getAccountClient/);
 
-const analytics = await get('/analytics.js?v=5');
+if (candidate) {
+  assert.match(homeHtml, /id="heroSwatches"/);
+  assert.doesNotMatch(homeHtml, /hero-palette-context|heroPaletteImage/);
+  assert.match(privacyHtml, /Prototype 1\/2 versions/);
+  assert.match(privacyHtml, /remove this private workspace data/);
+  assert.match(studioHtml, /studio-editor\.css/);
+  assert.match(studioHtml, /context-kits\.css/);
+  assert.match(studioHtml, /data-context="landing"[^>]*>Objects/);
+  assert.match(studioHtml, /data-context="interface"[^>]*>Screens/);
+  assert.match(studioHtml, /data-context="social"[^>]*>Campaigns/);
+  assert.doesNotMatch(studioHtml, /data-context="(?:shop|material)"/);
+  assert.doesNotMatch(studioHtml, /shadeStudio|openShadeStudio|shade-studio\.css/);
+  for (const label of ['Private workspace', 'Palette collections', 'Save palette', 'Prototype bench', 'Save to My palettes']) assert.ok(studioHtml.includes(label));
+  assert.match(studioHtml, /project-store\.css/);
+  assert.match(accountHtml, /My palettes/);
+  assert.match(accountHtml, /Choose five colors/);
+  for (const html of [accountHtml, studioHtml]) {
+    assert.match(html, /autocomplete="one-time-code"/);
+    assert.match(html, new RegExp(`pattern="\\[0-9\\]\\{${EMAIL_CODE_LENGTH}\\}"`));
+    assert.doesNotMatch(html, /type="password"/);
+    assert.match(html, /No password needed/);
+  }
+  assert.match(projectStoreSource, /initEmailCodeFlow/);
+  const access = await get('/email-access.js');
+  assert.equal(access.status, 200);
+  assert.match(await access.text(), new RegExp(`EMAIL_CODE_LENGTH = ${EMAIL_CODE_LENGTH}`));
+  const flow = await get('/email-code-flow.js');
+  assert.equal(flow.status, 200);
+  assert.match(await flow.text(), /verifyEmailCode/);
+  const community = await get('/community/');
+  assert.match(await community.text(), /public sharing is not open yet/);
+  // Assert the current site's required assets, not old cache-version numbers.
+  const assets = new Set([...homeHtml.matchAll(/(?:src|href)="(\/[^"\s]+\.(?:js|css)(?:\?[^"\s]*)?)"/g),
+    ...studioHtml.matchAll(/(?:src|href)="(\/[^"\s]+\.(?:js|css)(?:\?[^"\s]*)?)"/g),
+    ...accountHtml.matchAll(/(?:src|href)="(\/[^"\s]+\.(?:js|css)(?:\?[^"\s]*)?)"/g)].map(match => match[1]));
+  await Promise.all([...assets].map(async path => assert.equal((await get(path)).status, 200, `required asset ${path}`)));
+}
+
+const analyticsPath = homeHtml.match(/src="(\/analytics\.js(?:\?[^"\s]+)?)"/)?.[1];
+const analytics = await get(analyticsPath);
 const analyticsSource = await analytics.text();
 assert.match(analyticsSource, /G-TJG8M3VE03/);
 assert.match(analyticsSource, /send_page_view: false/);
@@ -81,6 +99,7 @@ assert.match(analyticsSource, /allow_google_signals: false/);
 assert.match(analyticsSource, /allow_ad_personalization_signals: false/);
 
 const authSettingsResponse = await fetch(`${supabaseUrl}/auth/v1/settings`, {
+  signal: AbortSignal.timeout(15_000),
   headers: { apikey: publishableKey },
 });
 assert.equal(authSettingsResponse.status, 200, 'Supabase Auth settings must be readable');
@@ -89,7 +108,7 @@ assert.equal(authSettings.external?.email, true, 'email sign-up must be enabled'
 assert.equal(authSettings.disable_signup, false, 'account creation must be enabled');
 
 async function supabaseGet(path, headers = {}) {
-  return fetch(`${supabaseUrl}${path}`, { headers: { apikey: publishableKey, ...headers } });
+  return fetch(`${supabaseUrl}${path}`, { signal: AbortSignal.timeout(15_000), headers: { apikey: publishableKey, ...headers } });
 }
 
 const palettes = await supabaseGet('/rest/v1/palettes?select=id', { Prefer: 'count=exact' });
@@ -227,4 +246,4 @@ const rpc = await fetch(`${supabaseUrl}/rest/v1/rpc/save_project_snapshot`, {
 });
 assert.equal(rpc.status, 401, 'snapshot RPC must reject anonymous writes');
 
-console.log(`Live MVP checks passed for ${base}`);
+console.log(`${candidate ? 'Release candidate' : 'Live infrastructure'} checks passed for ${base}. Real inbox authentication is a separate release gate.`);

@@ -38,6 +38,16 @@ test('membership RPC validates every value and scopes edits to the authenticated
 });
 test('account page is CSP-safe and private library is not indexed', () => {
   const html = readFileSync(new URL('../dist/account/index.html',import.meta.url),'utf8');
-  assert.match(html,/noindex,nofollow/); assert.match(html,/autocomplete="current-password"/);
+  assert.match(html,/noindex,nofollow/); assert.match(html,/autocomplete="one-time-code"/);
   assert.doesNotMatch(html,/<script(?![^>]*\bsrc=)[^>]*>|\son[a-z]+\s*=/i);
+});
+test('account entry unifies sign-in and registration using email codes', () => {
+  const html = readFileSync(new URL('../dist/account/index.html',import.meta.url),'utf8');
+  const navigation = readFileSync(new URL('../dist/account-client.js',import.meta.url),'utf8');
+  assert.match(html,/Sign in or create an account/); assert.match(html,/id="codeForm"/);
+  assert.doesNotMatch(html,/type="password"|switchAccountMode/);
+  assert.match(html,/id="authForm" data-mode="email"/);
+  assert.doesNotMatch(html,/data-auth-mode|account-auth-tabs/);
+  assert.match(html,/Account: sign in or create an account/);
+  assert.match(navigation,/decorateAccountNavigation/);
 });

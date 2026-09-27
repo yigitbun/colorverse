@@ -9,29 +9,36 @@ const styles = await readFile(new URL('../dist/context-kits.css', import.meta.ur
 const studioStyles = await readFile(new URL('../dist/studio-editor.css', import.meta.url), 'utf8');
 const store = await readFile(new URL('../dist/project-store.js', import.meta.url), 'utf8');
 
-test('Studio exposes focused Product, Interface, and Report contexts', () => {
+test('Studio groups live applications as Objects, Screens, and Campaigns', () => {
   const contexts = [...studio.matchAll(/data-context="([^"]+)"/g)].map(match => match[1]);
-  assert.deepEqual(contexts, ['landing', 'interface', 'presentation']);
-  assert.match(studio, /Product/);
-  assert.match(studio, /Interface/);
-  assert.match(studio, /Report/);
+  assert.deepEqual(contexts, ['landing', 'interface', 'social', 'presentation']);
+  for (const label of ['Objects', 'Screens', 'Campaigns']) assert.match(studio, new RegExp(`>${label}<`));
+  assert.match(studio, /data-context="presentation" hidden>Report \(legacy\)<\/button>/);
   assert.match(app, /interface:\s*`<div class="mockup context-kit product-kit">/);
   assert.match(app, /landing: productPreview/);
+  assert.match(app, /social:\s*`<div class="mockup context-kit campaign-kit">/);
 });
 
-test('Product preview offers real product directions', () => {
+test('Product preview offers directions without retired images', () => {
   for (const kind of ['footwear', 'skincare', 'object']) assert.match(studio, new RegExp(`data-product-kind="${kind}"`));
   assert.match(app, /product-preview-kit/);
-  assert.match(app, /drift-field-01-colorways-v1\.png/);
-  assert.match(app, /skincare-system-01-v1\.jpg/);
-  assert.match(app, /ceramic-still-life\.jpg/);
+  assert.match(app, /Reference image pending/);
+  assert.doesNotMatch(app, /\/assets\/(?:editions|palette-library)\//);
 });
 
-test('Report puts KPI cards above its chart', () => {
-  const report = app.match(/presentation:\s*`([\s\S]*?)`,\s*social:/)?.[1] || '';
-  assert.ok(report.indexOf('report-numbers') < report.indexOf('report-lines'));
-  assert.match(report, /trend-up/);
-  assert.match(report, /trend-down/);
+test('Skincare preview maps palette roles to separate product surfaces', () => {
+  for (const part of ['backdrop', 'bottle', 'cap', 'label']) assert.match(app, new RegExp(`careAssignment\\.${part}`));
+  assert.match(app, /care-bottle-cap/);
+  assert.match(app, /care-bottle-body/);
+  assert.match(styles, /\.care-stage\{/);
+  assert.match(styles, /\.care-bottle-cap\{/);
+  assert.match(styles, /\.care-bottle-body\{/);
+});
+
+test('older report projects keep their original preview', () => {
+  assert.match(app, /presentation:\s*`<div class="mockup context-kit report-kit">/);
+  assert.match(app, /legacyReport\.hidden = context !== 'presentation'/);
+  assert.match(store, /slides: 'presentation'/);
 });
 
 test('Palette rows open an in-card shade curtain', () => {
@@ -70,20 +77,22 @@ test('the footwear Edition keeps its independent brand identity inside Studio', 
   assert.match(app, /name: 'Field 01'/);
   assert.match(app, /brand: 'DRIFT'/);
   assert.match(app, /current\.id === 'drift-field-01'/);
-  assert.match(app, /DRIFT Field 01 footwear family/);
+  assert.match(app, /edition-footwear-image visual-pending/);
   assert.match(app, /edition-footwear-kit/);
   assert.match(styles, /\.edition-footwear-scene/);
 });
 
-test('Inspiration presents the footwear Edition as a three-colorway capsule', () => {
-  assert.match(inspiration, /drift-field-01-colorways-v1\.png/);
-  assert.match(inspiration, /One runner\.<br>Three directions\./);
-  for (const name of ['Stone', 'Meadow', 'Graphite']) assert.match(inspiration, new RegExp(name));
+test('Inspiration presents the footwear Edition as a compact palette-first study', () => {
+  assert.match(inspiration, /Image awaiting curation/);
+  assert.match(inspiration, /class="study-card"><div class="study-palette" aria-label="Field 01 palette"/);
+  assert.match(inspiration, /href="\/editions\/drift-field-01\/"/);
+  assert.match(inspiration, /href="\/studio\/\?p=drift-field-01#studio"/);
+  assert.doesNotMatch(inspiration, /<img|capsule-colorway/);
 });
 
 test('Inspiration presents RoomKit as an in-house experiment with a Lab path', () => {
-  assert.match(inspiration, /roomkit-living-spaces-v1\.png/);
-  assert.match(inspiration, /A palette<br>you can live in\./);
+  assert.match(inspiration, /Image awaiting curation/);
+  assert.match(inspiration, /class="study-palette" aria-label="RoomKit example direction"/);
   assert.match(inspiration, /Try RoomKit in the Lab/);
   assert.match(inspiration, /private upload/);
 });
@@ -92,8 +101,8 @@ test('Focused Studio contexts map cleanly into project snapshots', () => {
   assert.match(app, /context,\n    productKind/);
   assert.match(store, /interface: 'website'/);
   assert.match(store, /brand: 'landing'/);
-  assert.match(store, /productKind: version\.editor_state\?\.productKind \|\| 'footwear'/);
-  assert.match(store, /p_editor_state: \{ context: snapshot\.context, productKind: snapshot\.productKind \}/);
+  assert.match(store, /productKind: version\.editor_state\?\.productKind \|\| 'skincare'/);
+  assert.match(store, /p_editor_state: \{ context: snapshot\.context, productKind: snapshot\.productKind, careAssignment: snapshot\.careAssignment, colorwayBaseline: snapshot\.colorwayBaseline \}/);
 });
 
 test('Studio exposes private reusable template actions', () => {

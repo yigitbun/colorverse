@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../dist");
 const files = [];
@@ -49,6 +50,17 @@ for (const file of files.filter((path) => path.endsWith(".html"))) {
     if (!existsSync(target)) {
       problems.push(`${relative(root, file)} -> ${url}`);
     }
+  }
+}
+
+for (const file of files.filter(path => path.endsWith('.js'))) {
+  const syntax = spawnSync(process.execPath, ['--check', file], { encoding: 'utf8' });
+  if (syntax.status !== 0) problems.push(`${relative(root, file)} -> invalid JavaScript syntax\n${syntax.stderr}`);
+  const source = readFileSync(file, 'utf8');
+  for (const match of source.matchAll(/(?:\bfrom\s*|\bimport\s*(?:\(\s*)?)["'](\.{1,2}\/[^"']+)["']/g)) {
+    const reference = match[1].split(/[?#]/)[0];
+    const target = resolve(dirname(file), reference);
+    if (!target.startsWith(root + '/') || !existsSync(target)) problems.push(`${relative(root, file)} -> missing module ${match[1]}`);
   }
 }
 

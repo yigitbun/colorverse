@@ -72,8 +72,8 @@ test('analytics events reject unknown names and user-authored values', () => {
   assert.equal(analyticsEvent('form_text', { value: 'secret' }), null);
 });
 
-test('palette imagery is self-hosted and third-party image CDNs are not allowed by CSP', () => {
-  palettes.forEach(palette => assert.match(palette.image, /^\/assets\/(?:palette-library|editions)\/.+\.jpg$/, palette.id));
+test('retired palette imagery is absent and third-party image CDNs are not allowed by CSP', () => {
+  palettes.forEach(palette => assert.equal(palette.image, null, palette.id));
   assert.doesNotMatch(worlds, /images\.unsplash\.com/);
   assert.doesNotMatch(headers, /img-src[^\n]*images\.unsplash\.com/);
 });
