@@ -1,10 +1,15 @@
 # ColorVerse — açık işler ve karar kuyruğu
 
-Güncelleme: 2026-09-27. Kanonik backlog; yeni bir ajan önce
+Güncelleme: 2026-09-28. Kanonik backlog; yeni bir ajan önce
 [devir paketini](handoff.md) okumalı. Kaynaklar: sahibin kapanan sohbetteki
 istekleri, mevcut repo, ürün kararları ve MVP denetimi. Claude projesi okunmadı.
 
 ## Aktif yayın hazırlığı — 27–28 Eylül 2026
+
+28 Eylül 02:04 Europe/Berlin: kullanıcı **bir saatlik yoğun yayın hazırlığı**
+istedi; hedef 03:04. Claude ana mühendis, üç read-only subagent paralel denetim
+yapar; Codex ürün yönlendirmesi, dosya sahipliği, inceleme ve yayını yönetir.
+Kullanıcının yeni somut değişiklikleri sırayla bu kuyruğa eklenir.
 
 Ürün sahibi haftalara yayılan planı istemiyor. Hedef, en geç **28 Eylül 2026
 (Europe/Berlin)** kendi testini yapabileceği bir yayın adayı hazırlamak ve
@@ -20,14 +25,17 @@ korur. Tarih hedefi, geçilmemiş kontrolleri tamamlanmış saydırmaz.
 | İş | Sahip | Durum / sıradaki çıktı |
 | --- | --- | --- |
 | TEAM-01 — ortak kurallar ve Claude girişi | Codex | Hazır; Claude Code çalıştırıldı. Tek yazıcı, Codex'in başlattığı mevcut uygulama oturumu; diğer Claude görüşmeleri read-only inceleyici. Teknik branch koruması kurulmadı |
+| LAUNCH-HOUR-01 — bir saatlik mühendislik | Claude; koordinasyon Codex | [Görev](tasks/launch-hour-01.md) hazır, henüz başlatılmadı. Kullanıcı ilk önceliği Color Corpus değerlendirmesi olarak belirledi; bu görevden önce CORPUS-INTEGRATION-01 sunulur ve onay beklenir |
+| CORPUS-INTEGRATION-01 — dış corpus entegrasyon değerlendirmesi | Claude; üç read-only subagent; sunum Codex | [Görev](tasks/corpus-integration-01.md): mevcut model/tüketim/provenance incelemesi ve A–G raporu. Yalnız assessment dosyası yazılır; corpus üretimi dış ekipte. Kullanıcıya sunumdan sonra DUR; implementasyon için yeni onay gerekir |
 | AUTH-EMAIL-01 — markalı kod e-postası | Claude; entegrasyon Codex | Yerel şablon, metin eşlikçisi ve testler tamamlandı. Hosted Confirm sign up ile Magic link or OTP şablonlarına aynı kod e-postası ve `Your ColorVerse sign-in code` konusu kaydedildi; Supabase başarı bildirimi ve yeniden açılan içerik kontrol edildi. Gerçek inbox henüz denenmedi |
 | AUTH-UI-01 — ortak e-posta/kod ekranları | Claude'a devredildi | Codex'in kısmi UI çalışması AUTH-ACCOUNT-01'e aktarıldı; paralel yazım yapılmadı |
 | AUTH-ACCOUNT-01 — hesap/giriş mühendisliğinin tamamı | Claude; inceleme/entegrasyon Codex | [Tam görev](tasks/auth-account-01.md) teslim edildi, main'e alındı. Yerel build ve 119/119 test geçti; Account/Studio signed-out ekranları masaüstü ve 320/390 px'de görsel incelendi. Gerçek inbox/session ve private save/resume kanıtı AUTH-01/02/03'te açık |
-| QA-01 — bağımsız yerel yolculuk denetimi | Claude | AUTH işleri entegre edilince sırada; aşağıdaki brief ile read-only inceleme |
+| QA-01 — bağımsız yayın denetimi | Claude | `09bba40` üzerinde tamamlandı: 119 yerel test PASS; canlı route/asset/header kontrolleri PASS. Eski canlı-test metin beklentisi QA-RELEASE-02 ile düzeltildi. Claude etkileşimli tarayıcı ve gerçek inbox testini çalıştırmadı |
+| QA-RELEASE-02 — canlı aday kontrol düzeltmesi | Claude; entegrasyon Codex | [Dar kapsam](tasks/qa-release-02.md) tamamlandı; yalnız `scripts/test-live-mvp.mjs` için bir satırlık düzeltme incelenip main'e alındı. Claude'un canlı aday kontrolü PASS; isolated worktree yerel testleri 118 PASS / 1 private-backup SKIP |
 | Son kullanıcı istekleri ve çıkan yayın hataları | Codex | İlk istek hesap/kod/e-posta deneyiminin tamamlanması olarak alındı; ek istekler ve QA bulguları burada takip edilir |
 | AUTH-01/02/03 — gerçek inbox ve save/resume | Ürün sahibi; hazırlık Codex | En geç 28 Eylül kullanıcı testi hedefi. Gerçek giriş ve veri korunumu kanıtı açık |
 | CUR-01 / LEGAL-01 — içerik ve yayın metni kararları | Ürün sahibi; hazırlık Codex | Yayın öncesi açık. Onaylı ilk içerik veya açıkça boş Library kararı gerekli |
-| REL-01 / REL-02 — aday kontrolü ve yayın | Codex | Düzeltmeler ve kullanıcı testi sonrası; operations akışıyla deployment ve hosted doğrulama |
+| REL-01 / REL-02 — aday kontrolü ve yayın | Codex | Kullanıcının açık yayın talimatıyla `09bba40` yayınlandı; Cloudflare Pages check completed/success. Public giriş sayfaları ve altı ana JS/CSS dosyası yerel içerikle birebir doğrulandı. Canlı aday kontrolü düzeltmeyle PASS. Gerçek inbox/save-resume henüz doğrulanmadı; bu sınırlı yayın, tam MVP kabulü değildir |
 
 ### QA-01 — Claude'a hazır ilk görev
 

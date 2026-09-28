@@ -72,7 +72,7 @@ if (candidate) {
     assert.match(html, /autocomplete="one-time-code"/);
     assert.match(html, new RegExp(`pattern="\\[0-9\\]\\{${EMAIL_CODE_LENGTH}\\}"`));
     assert.doesNotMatch(html, /type="password"/);
-    assert.match(html, /No password needed/);
+    assert.match(html, /No password/i);
   }
   assert.match(projectStoreSource, /initEmailCodeFlow/);
   const access = await get('/email-access.js');

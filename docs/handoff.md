@@ -1,11 +1,11 @@
 # ColorVerse — sohbetten bağımsız devir paketi
 
-Güncelleme: 2026-09-27. Bu dosya kapanan sohbetin yerine geçecek başlangıç
+Güncelleme: 2026-09-28. Bu dosya kapanan sohbetin yerine geçecek başlangıç
 kaydıdır. Ham sohbetin veya başka bir AI projesinin okunması gerekmemelidir.
 Önceki devir oturumu dokümantasyon ve yerel commit ile sınırlıydı; aşağıdaki
 güncel yönlendirme sonraki görüşmeyi kaydeder.
 
-## Güncel yönlendirme — 2026-09-27
+## Güncel yönlendirme — 2026-09-28
 
 - Kullanıcı yoğun çalışıp en geç **28 Eylül 2026 (Europe/Berlin)** kendi testini
   yapmak ve yayın koşulları kapanınca çıkmak istiyor. Haftalara yayılan plan
@@ -21,8 +21,16 @@ güncel yönlendirme sonraki görüşmeyi kaydeder.
   hosted ayarları yönetir. Claude teslimi tamamlandı ve Codex main'e entegre
   etti. Confirm sign up ile Magic link or OTP için yeni markalı kod e-postası
   Supabase'de kaydedildi. Yerel build ve 119 test geçti; Account/Studio giriş
-  görünümü dar/geniş ekranda kontrol edildi. QA-01 ile gerçek inbox ve
+  görünümü dar/geniş ekranda kontrol edildi. Claude QA-01'i tamamladı; eski
+  canlı-test metin beklentisini QA-RELEASE-02'de düzeltti. Gerçek inbox ve
   save/resume kanıtı hâlâ açıktır. Diğer Claude oturumları read-only kalır.
+- Kullanıcı birikmiş çalışmaları açıkça public adreste yayınlatmak istedi.
+  `09bba40` main'e push edildi; Cloudflare Pages check completed/success.
+  Ana sayfa, Account/Studio HTML ve altı ana JS/CSS dosyası public adreste
+  yerel içerikle birebir doğrulandı. Canlı aday kontrolü, testteki eski metin
+  beklentisi düzeltildikten sonra PASS. Yayın gerçekleşti; gerçek inbox,
+  authenticated save/resume, içerik ve metin kararlarının hepsi tamamlanmış
+  gibi sunulmamalıdır. Library approval listesi boş kalır.
 - Süre hedefi inbox/save-resume, içerik ve yayın metni kontrollerini kapatmaz.
   Kullanıcı testi ve hosted doğrulama hâlâ kanıt gerektirir; canlı veri silme
   veya başka AI projelerine erişim bu hazırlığın parçası değildir.

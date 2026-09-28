@@ -91,6 +91,16 @@ code consumption still require a real inbox test.
 
 ## Remaining implementation checks
 
+- 2026-09-28: the new branded code email from
+  `supabase/email-templates/sign-in-code.html` was saved for both Confirm sign
+  up and Magic link or OTP using the authenticated dashboard. Both success
+  notifications were observed; reopening Confirm sign up showed the saved
+  template. Subject remains `Your ColorVerse sign-in code`; the single
+  `{{ .Token }}` placeholder, eight-digit flow and one-hour expiry remain.
+  The plain-text companion is a local source only, not a separately configured
+  hosted body. No real email was sent; actual Gmail/Outlook inbox rendering
+  and new/returning-member consumption remain unverified.
+
 - Current, 2026-09-27: Account and Studio use a shared email-code controller,
   `signInWithOtp` with `shouldCreateUser: true`, then `verifyOtp` with type `email`.
   No password UI or separate signup/recovery branch. Hosted Confirm sign up and
