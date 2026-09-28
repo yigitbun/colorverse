@@ -7,6 +7,17 @@ güncel yönlendirme sonraki görüşmeyi kaydeder.
 
 ## Güncel yönlendirme — 2026-09-28
 
+- Son owner isteği Palette Studio/Extract/galeri iyileştirmeleridir; Corpus
+  değerlendirmesini uygulama onayı sayma. İlk Studio paketi main `c6a187d`'de
+  (yerel, henüz yayın değil). Fotoğraf modülü `ae27737`, supplied çalışma
+  galerisi `103ae96` eklendi; shared test/app bağlantıları final entegrasyon
+  bekler. Aktif `STUDIO-MEMBERS-01` aynı Studio Claude yazarıyla sürer;
+  ardından [dar entegrasyon follow-up](tasks/studio-integration-03.md) hazırdır.
+  Dosya sahipliğini open-work'ten doğrula. Katre gerçek fotoğraf prototipi
+  açık/koyu/maske görünümünde kontrol edildi; yeni bitmap/palet üretilmedi.
+- Campaigns: aynı paletin afiş/story/bilet uygulaması, kampanya yönetimi değil.
+  Owner'a tut/Print & Social adıyla tut/kaldır seçimi soruldu; henüz karar yok.
+  Extract 1–5 kontrolleri görseldeki numaralı örnek noktalarına karşılık gelir.
 - İlk somut öncelik dış ekipten gelecek Color Corpus entegrasyonudur.
   `CORPUS-INTEGRATION-01` üç read-only Claude alt ajanıyla incelendi;
   [A–G raporu](color-corpus-integration-assessment.md) Codex incelemesiyle hazır.
