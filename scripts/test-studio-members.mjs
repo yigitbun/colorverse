@@ -6,7 +6,7 @@ import {
   setMember, assignRole, swapRoles, insertMember, removeMember, previewMapping, EXTRACT_MAX_MEMBERS,
 } from '../dist/studio-members.js';
 import { exportPalette } from '../dist/color.js';
-import { sanitizeDraft } from '../dist/member-palette.js';
+import { sanitizeDraft, readDraft } from '../dist/member-palette.js';
 
 const read = path => readFile(new URL(`../dist/${path}`, import.meta.url), 'utf8');
 const [app, store, account, extractHtml, studioStyles, extractStyles, globe] = await Promise.all([
@@ -139,6 +139,53 @@ test('My palettes hands every color plus the chosen five positions to Studio', (
   assert.match(app, /workspaceFromColors\(saved\.colors, saved\.roleIndex \|\| \(saved\.colors\.length === 5 \? undefined : null\)\)/);
   assert.doesNotMatch(app, /saved\?\.colors\.length === 5/);
   assert.match(app, /sanitizeDraft\(\{ \.\.\.snapshot, colors: \[\.\.\.current\.workspace\.members\]/);
+});
+
+// Replays the storage chain the Studio routes use (JSON through sessionStorage or
+// editor_state), with the same helpers app.js calls, for 8, 10 and 24 members.
+test('8, 10 and 24 members survive handoff, reload, edits, export and project state', () => {
+  const memory = () => { const map = new Map(); return { getItem: key => map.get(key) ?? null, setItem: (key, value) => map.set(key, String(value)), removeItem: key => map.delete(key) }; };
+  const cases = [[ten.slice(0, 8), [7, 0, 3, 5, 1]], [ten, [9, 0, 4, 5, 2]], [many, [23, 0, 12, 5, 17]]];
+  for (const [members, roleIndex] of cases) {
+    const storage = memory();
+    // My palettes → Studio (?saved=1): every color plus the chosen positions.
+    storage.setItem('colorverse-member-palette', JSON.stringify(sanitizeDraft({ name: 'Wide', collection: 'Work', colors: members, roleIndex })));
+    const saved = readDraft(storage, 'colorverse-member-palette');
+    const handed = workspaceFromColors(saved.colors, saved.roleIndex || (saved.colors.length === 5 ? undefined : null));
+    assert.deepEqual(handed, { v: 1, members, roleIndex });
+    // Reload: persisted current palette → withWorkspace.
+    storage.setItem('colorverse-current-palette', JSON.stringify({ id: 'saved-1', name: 'Wide', colors: roleColors(handed), workspace: handed }));
+    let current = withWorkspace(JSON.parse(storage.getItem('colorverse-current-palette')));
+    assert.deepEqual(current.workspace, handed);
+    // Edit an unassigned member, then place it explicitly in the preview.
+    const extra = members.findIndex((_, index) => !roleIndex.includes(index));
+    let workspace = setMember(current.workspace, extra, '#123456');
+    assert.deepEqual(roleColors(workspace), roleColors(handed), 'unassigned edit leaves the preview alone');
+    workspace = assignRole(workspace, 3, extra);
+    assert.equal(roleColors(workspace)[3], '#123456');
+    const expected = members.map((color, index) => index === extra ? '#123456' : color);
+    assert.deepEqual(workspace.members, expected, 'order and count unchanged');
+    storage.setItem('colorverse-current-palette', JSON.stringify({ ...current, colors: roleColors(workspace), workspace }));
+    current = withWorkspace(JSON.parse(storage.getItem('colorverse-current-palette')));
+    assert.deepEqual(current.workspace, workspace, 'edited workspace survives a second reload');
+    // Full JSON export.
+    const json = JSON.parse(exportPalette(current, 'json'));
+    assert.deepEqual(json.members, expected);
+    assert.deepEqual(json.previewRoles, previewMapping(workspace));
+    // Project/template editor_state round trip, as loadStudioSnapshot validates it.
+    const editorState = JSON.parse(JSON.stringify({ workspace: current.workspace }));
+    assert.deepEqual(sanitizeWorkspace(editorState.workspace, current.colors), workspace);
+  }
+});
+
+test('a five-color derivative written beside a stale workspace is not resurrected', () => {
+  // A writer that edits `colors` but carries the old workspace (as the legacy
+  // /home-test/ copy does) is rejected; Studio does not invent a merge.
+  const workspace = workspaceFromColors(ten, [5, 1, 2, 3, 9]);
+  const edited = roleColors(workspace).map((color, role) => role === 0 ? '#010203' : color);
+  assert.deepEqual(withWorkspace({ id: 'x', colors: edited, workspace }).workspace, workspaceFromColors(edited));
+  // Five-member snapshots stay on the historic identity mapping.
+  assert.deepEqual(withWorkspace({ id: 'old', colors: five }).workspace, { v: 1, members: five, roleIndex: [0, 1, 2, 3, 4] });
 });
 
 test('project, prototype and template paths save and restore the complete workspace', () => {
