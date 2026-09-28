@@ -189,10 +189,10 @@ test('Selected color tells the truth about actual usage; no product assignment p
 });
 
 test('Studio assets are cache-busted', () => {
-  assert.match(studio, /\/app\.js\?v=106/);
-  assert.match(studio, /\/studio-editor\.css\?v=18/);
+  assert.match(studio, /\/app\.js\?v=107/);
+  assert.match(studio, /\/studio-editor\.css\?v=19/);
   assert.match(studio, /\/report-preview\.css\?v=4/);
-  assert.match(app, /'\.\/color-alternatives\.js\?v=3'/);
+  assert.match(app, /'\.\/color-alternatives\.js\?v=4'/);
 });
 
 test('neutral member names and legacy exports remain independent of application', () => {
@@ -237,6 +237,15 @@ test('the rail shows exactly the authored 2/3/4/5/8 colors; 2–4 add a muted su
   assert.match(studioStyles, /\.palette-support-chips i\{[^}]*outline:1px dashed var\(--muted\)/);
   assert.match(studioStyles, /\.is-palette-collapsed \.palette-support-text\{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect\(0 0 0 0\)/);
   assert.doesNotMatch(studioStyles, /\.is-palette-collapsed[^{]*\.palette-support[^{]*\{[^}]*display:none/);
+});
+
+test('short palettes put both authored starting colors on visible serum surfaces', () => {
+  assert.match(app, /const SHORT_CARE_ASSIGNMENT = Object\.freeze\(\{ backdrop: 0, bottle: 2, cap: 1, label: 3, carton: 0 \}\)/);
+  assert.match(app, /isShort\(current\.workspace\) \? SHORT_CARE_ASSIGNMENT : DEFAULT_CARE_ASSIGNMENT/);
+  assert.match(app, /isShort\(workspace\) \? SHORT_CARE_ASSIGNMENT : DEFAULT_CARE_ASSIGNMENT/);
+  const short = workspaceOf(2);
+  assert.equal(short.roleIndex[2], 0, 'body uses first authored color');
+  assert.equal(short.roleIndex[3], 1, 'label uses second authored color');
 });
 
 test('Use in preview shows for 2–4 and 6–24, labels support slots, and keeps five-color controls', () => {

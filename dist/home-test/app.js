@@ -13,7 +13,7 @@ import { initCommunity } from '../community-feed.js?v=1';
 import { freezeColorway, downloadColorway } from '../colorway-kit.js?v=1';
 import { initAccountNavigation } from '../account-client.js?v=3';
 import { DRAFT_KEY, STUDIO_HANDOFF_KEY, readDraft, sanitizeDraft } from '../member-palette.js';
-import { sanitizeWorkspace, swapRoles, syncRoleColors } from '../studio-members.js?v=4';
+import { sanitizeWorkspace, swapRoles, syncRoleColors } from '../studio-members.js?v=5';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];

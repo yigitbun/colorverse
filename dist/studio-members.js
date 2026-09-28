@@ -1,4 +1,4 @@
-import { roles, SUPPORT_ROLE, SUPPORT_COLORS } from './color.js?v=2';
+import { roles, SUPPORT_ROLE, SUPPORT_COLORS } from './color.js?v=3';
 
 export { SUPPORT_ROLE, SUPPORT_COLORS };
 

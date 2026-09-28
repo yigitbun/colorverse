@@ -4,7 +4,7 @@
 
 export const TOOLS = [
   { id: 'globe', href: '/', title: 'Explore globe', outcome: 'Find a starting color by moving through hue and light.', action: 'Open the globe' },
-  { id: 'extract', href: '/extract/', title: 'Image to palette', outcome: 'Turn a reference photo into five usable colors.', action: 'Read an image' },
+  { id: 'extract', href: '/extract/', title: 'Image to palette', outcome: 'Find a color direction in an image, then refine it.', action: 'Read an image' },
   { id: 'studio', href: '/studio/', title: 'Palette Studio', outcome: 'Refine a palette and test it in real contexts.', action: 'Open Studio' },
   { id: 'inspiration', href: '/inspiration/', title: 'Inspiration', outcome: 'See palettes applied to products and spaces.', action: 'Browse studies' },
   { id: 'library', href: '/explore/', title: 'Library', outcome: 'Search named palettes by mood and use.', action: 'Browse the library' },

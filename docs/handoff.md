@@ -7,6 +7,15 @@ güncel yönlendirme sonraki görüşmeyi kaydeder.
 
 ## Güncel yönlendirme — 2026-09-28
 
+- En son yerel checkpoint: kısa palet 14B/14C/14D, renk alternatifleri 13,
+  görselden okuma 15A ve ortak araç kataloğu 16 ana dalda. Premium uygulama
+  araştırması 03 de yerel; onaylı corpus kaydı hâlâ **yok**. 15B Claude'a
+  gerçek Opus 5.5 oturumunda verildi fakat kota sınırında hiç dosya yazmadan
+  durdu; Codex açıklama ve Copy/Edit arayüzünü üstlendi. Kullanıcının rapor
+  görselinde yeşil/mercanı seçme kalitesi açık. İki renkli Katre başlangıcı
+  artık ilk rengi body, ikinciyi label yüzeyinde gösteriyor; önizleme destek
+  nötrleri yine authored palette dahil değil. Yerel testler geçti; bu satır
+  hosted yayın veya gerçek inbox/private save kanıtı değildir.
 - Owner ana sayfanın kürede tek seçili renk ile açılmasını istedi.
   [HOME-GLOBE-SEED-09](tasks/home-globe-seed-09.md) Claude Opus 5.5 tarafından
   ayrı worktree'de `553f72c` + `ed21c97` olarak teslim edildi, Codex inceleyip

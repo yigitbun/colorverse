@@ -5,7 +5,7 @@ import { suggestPaletteName } from './palette-names.js?v=1';
 import { savePaletteHandoff } from './palette-handoff.js?v=1';
 import { createLibraryEngine } from './library-engine.js?v=1';
 import { paletteNameLibrary } from './palette-name-library.js?v=3';
-import { roles, clamp, contrast, textOn, rgb, toHex, oklab, oklch, paletteFromColor, exportPalette, extractPaletteVariants, oklabDistance } from './color.js?v=2';
+import { roles, clamp, contrast, textOn, rgb, toHex, oklab, oklch, paletteFromColor, exportPalette, extractPaletteVariants, oklabDistance } from './color.js?v=3';
 import { createAtlas, atlasWorlds } from './globe.js?v=30';
 import { buildShadeFamilies } from './shade-studio.js?v=1';
 import { createColorGlobe, toHsl, fromHsl } from './color-globe.js?v=4';
@@ -15,9 +15,9 @@ import { initCommunity } from './community-feed.js?v=1';
 import { freezeColorway } from './colorway-kit.js?v=3';
 import { mountPhotoColorway, PHOTO_COLORWAY_NOTE } from './photo-colorway.js?v=3';
 import { KATRE_SERUM_PROFILE, SERUM_SOURCE_COLORS } from './katre-serum.js?v=1';
-import { paletteAlternatives, quickColorAdjustments, NEUTRAL_CHROMA } from './color-alternatives.js?v=3';
+import { paletteAlternatives, quickColorAdjustments, NEUTRAL_CHROMA } from './color-alternatives.js?v=4';
 import { reportPreview } from './report-preview.js?v=2';
-import { withWorkspace, workspaceFromColors, roleColors, roleOfMember, memberLabel, previewColorLabel, isCompact, isShort, isSupportRole, SUPPORT_ROLE, setMember, assignRole, swapRoles, insertMember, removeMember, EXTRACT_MAX_MEMBERS } from './studio-members.js?v=4';
+import { withWorkspace, workspaceFromColors, roleColors, roleOfMember, memberLabel, previewColorLabel, isCompact, isShort, isSupportRole, SUPPORT_ROLE, setMember, assignRole, swapRoles, insertMember, removeMember, EXTRACT_MAX_MEMBERS } from './studio-members.js?v=5';
 import { initAccountNavigation } from './account-client.js?v=4';
 import { DRAFT_KEY, STUDIO_HANDOFF_KEY, readDraft, sanitizeDraft } from './member-palette.js?v=2';
 
@@ -92,7 +92,10 @@ current = withWorkspace(current) || withWorkspace(workingDraft);
 let context = 'landing';
 let productKind = params.get('tool') === 'colorway' ? 'skincare' : current.id === 'drift-field-01' ? 'footwear' : 'skincare';
 const DEFAULT_CARE_ASSIGNMENT = Object.freeze({ backdrop: 0, bottle: 2, cap: 1, label: 0, carton: 3 });
-const careAssignment = { ...DEFAULT_CARE_ASSIGNMENT };
+// With two to four authored colors, put the first two on the visible body and
+// label. The missing slots stay neutral preview support, never new members.
+const SHORT_CARE_ASSIGNMENT = Object.freeze({ backdrop: 0, bottle: 2, cap: 1, label: 3, carton: 0 });
+const careAssignment = { ...(isShort(current.workspace) ? SHORT_CARE_ASSIGNMENT : DEFAULT_CARE_ASSIGNMENT) };
 let colorwayBaseline = freezeColorway(current.colorwayBaseline);
 if (current.careAssignment) for (const part of Object.keys(careAssignment)) {
   const value = current.careAssignment[part];
@@ -298,7 +301,8 @@ function loadStudioSnapshot(snapshot) {
   context = ['landing', 'interface', 'social', 'presentation'].includes(snapshot.context) ? snapshot.context : 'landing';
   productKind = snapshot.productKind && ['footwear', 'skincare', 'object'].includes(snapshot.productKind) ? snapshot.productKind : 'skincare';
   colorwayBaseline = freezeColorway(snapshot.colorwayBaseline);
-  for (const [part, defaultIndex] of Object.entries(DEFAULT_CARE_ASSIGNMENT)) {
+  const defaultCareAssignment = isShort(workspace) ? SHORT_CARE_ASSIGNMENT : DEFAULT_CARE_ASSIGNMENT;
+  for (const [part, defaultIndex] of Object.entries(defaultCareAssignment)) {
     const value = snapshot.careAssignment?.[part];
     careAssignment[part] = Number.isInteger(value) && value >= 0 && value < 5 ? value : defaultIndex;
   }
@@ -1474,8 +1478,19 @@ if (input && dropzone) {
     extracted = extractedVariants[index];
     $('#extractionReading').value = String(index);
     const info = $('#extractionInfo');
+    const readingDescription = $('#extractionReadingDescription');
     const action = $('#useExtraction');
     if (info) info.textContent = `${extracted.variantName} · ${extracted.colors.length} colors`;
+    if (readingDescription) {
+      const sampled = extracted.origins?.filter(origin => origin === 'sampled').length || 0;
+      const derived = extracted.origins?.filter(origin => origin === 'derived').length || 0;
+      const summary = {
+        Observed: 'Colors that occupy the most space in your image.',
+        Focused: 'Distinct colors found in your image, led by its strongest accents.',
+        Applied: 'A working palette built from the image, with adjusted support tones.',
+      }[extracted.variantName] || extracted.description;
+      readingDescription.textContent = `${summary} Starting reading: ${sampled} sampled · ${derived} derived. Edits are yours.`;
+    }
     if (action) action.textContent = 'Continue in Studio ↗';
     renderExtractionVariants();
     renderImagePickers(changed);
@@ -1492,7 +1507,7 @@ if (input && dropzone) {
     container.setAttribute('aria-label', `${colors.length} extracted palette colors`);
     container.innerHTML = colors.map((color, index) => {
       const role = variant.roleIndex.indexOf(index), sample = index + 1;
-      return `<div class="extract-color-row${role < 0 ? ' is-extra' : ''}" style="--swatch:${color};--on:${textOn(color)}"><button type="button" class="extract-color-copy" data-copy="${color}" aria-label="Copy HEX ${color}, sample ${sample}"><code>${color}</code><small>Color ${sample}</small></button><span class="extract-color-tools">${role < 0 ? `<button type="button" class="extract-remove" data-extract-remove="${index}" aria-label="Remove extra color, sample ${sample}" title="Remove this extra color">×</button>` : ''}<label class="extract-color-edit"><span aria-hidden="true" title="Image point ${sample}">${sample}</span><input type="color" value="${color}" data-extract-color="${index}" aria-label="Edit color of sample ${sample} (image point ${sample})"></label></span>${canInsert && index < colors.length - 1 ? `<button type="button" class="extract-insert" data-extract-insert="${index + 1}" aria-label="Insert a color between samples ${sample} and ${sample + 1}" title="Insert a color here">+</button>` : ''}</div>`;
+      return `<div class="extract-color-row${role < 0 ? ' is-extra' : ''}" style="--swatch:${color};--on:${textOn(color)}"><span class="extract-color-value"><code>${color}</code><small>Color ${sample}</small></span><span class="extract-color-tools"><button type="button" class="extract-color-copy" data-copy="${color}" aria-label="Copy HEX ${color}, sample ${sample}" title="Copy ${color}">Copy</button><label class="extract-color-edit"><span>Edit</span><input type="color" value="${color}" data-extract-color="${index}" aria-label="Edit color of sample ${sample} (image point ${sample})"></label>${role < 0 ? `<button type="button" class="extract-remove" data-extract-remove="${index}" aria-label="Remove extra color, sample ${sample}" title="Remove this extra color">×</button>` : ''}</span>${canInsert && index < colors.length - 1 ? `<button type="button" class="extract-insert" data-extract-insert="${index + 1}" aria-label="Insert a color between samples ${sample} and ${sample + 1}" title="Insert a color here">+</button>` : ''}</div>`;
     }).join('');
   }
   // Existing points stay where the user left them; only the inserted/removed point changes.
@@ -1557,7 +1572,7 @@ if (input && dropzone) {
       imageURL = nextURL;
       extractionSample = { width: sample.width, height: sample.height, pixels: sampleData.data };
       manualSample = { context: fullContext, width: full.width, height: full.height };
-      extractedVariants = result.variants.map(variant => ({ id: `your-image-${variant.key}`, name: suggestPaletteName(variant.colors), variantName: variant.name, detail: variant.detail, description: variant.description, colors: variant.colors, roleIndex: [0, 1, 2, 3, 4], image: null }));
+      extractedVariants = result.variants.map(variant => ({ id: `your-image-${variant.key}`, name: suggestPaletteName(variant.colors), variantName: variant.name, detail: variant.detail, description: variant.description, colors: variant.colors, origins: variant.origins, roleIndex: [0, 1, 2, 3, 4], image: null }));
       const nameInput = $('#extractionName');
       if (nameInput && (!nameInput.value.trim() || nameInput.value === nameInput.dataset.suggested || nameInput.value === 'Untitled')) {
         nameInput.value = extractedVariants[0].name;

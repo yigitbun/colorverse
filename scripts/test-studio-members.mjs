@@ -431,12 +431,12 @@ test('legacy five-slot edits update the matching full workspace, keeping extras,
   const broken = { id: 'x', colors: five, workspace: { v: 1, members: ten, roleIndex: [0, 0, 1, 2, 3] } };
   assert.equal(syncRoleColors(broken), broken);
   assert.deepEqual(withWorkspace(broken).workspace.members, five, 'Studio validation unchanged');
-  assert.match(legacy, /import \{ sanitizeWorkspace, swapRoles, syncRoleColors \} from '\.\.\/studio-members\.js\?v=4';/);
+  assert.match(legacy, /import \{ sanitizeWorkspace, swapRoles, syncRoleColors \} from '\.\.\/studio-members\.js\?v=5';/);
   assert.match(legacy, /function persistPalette\(palette\) \{\n  const synced = syncRoleColors\(palette\);\n  if \(palette === current\) current = synced;/);
   assert.match(legacy, /function renderSelection\(updateURL = false\) \{\n  current = syncRoleColors\(current\);/);
   assert.match(legacy, /workspace: swapRoles\(workspace, from, to\)/);
   assert.match(legacyHtml, /\/home-test\/app\.js\?v=83/);
-  assert.match(app, /from '\.\/studio-members\.js\?v=4'/);
+  assert.match(app, /from '\.\/studio-members\.js\?v=5'/);
 });
 
 test('larger palettes get a compact two-column rail with a count and overflow cue; collapsed stays swatch-only', () => {
@@ -523,7 +523,7 @@ test('Extract inserts between rows up to ten, keeps points, and hands the full p
   assert.match(app, /const workspace = workspaceFromColors\(extracted\.colors, extracted\.roleIndex\);/);
   assert.match(app, /colors: roleColors\(workspace\), workspace \}\)\)/);
   assert.doesNotMatch(extractHtml, /Five draggable/);
-  assert.match(extractHtml, /\/app\.js\?v=104/);
+  assert.match(extractHtml, /\/app\.js\?v=107/);
   assert.match(extractStyles, /\.extract-page \.extracted-swatches \.extract-insert\{position:absolute;/);
 });
 

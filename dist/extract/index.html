@@ -12,10 +12,10 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/styles.css?v=25">
   <link rel="stylesheet" href="/design-system.css?v=29">
-<link rel="stylesheet" href="/extract-workspace.css?v=4">
+<link rel="stylesheet" href="/extract-workspace.css?v=5">
   <link rel="stylesheet" href="/privacy.css?v=2">
   <link rel="stylesheet" href="/header-controls.css?v=2" data-header-controls>
-  <script type="module" src="/app.js?v=104"></script>
+  <script type="module" src="/app.js?v=107"></script>
   <script type="module" src="/analytics.js?v=6"></script>
   <link rel="stylesheet" href="/tool-catalog.css?v=1">
   <script type="module" src="/tool-catalog.js?v=1"></script>
@@ -34,7 +34,7 @@
         <label class="dropzone" id="dropzone" for="imageInput"><input type="file" id="imageInput" accept="image/png,image/jpeg,image/webp"><span class="upload-icon"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="5" width="24" height="22" rx="3"/><circle cx="12" cy="12" r="2"/><path d="m4 23 8-7 5 4 5-7 6 8"/></svg></span><strong>Choose an image</strong><span>Drop here, browse, or paste</span><small>JPG, PNG, WebP · up to 20 MB / 25 MP</small></label>
         <div class="paste-image-row"><button type="button" class="small-button" id="pasteImage">Paste image</button></div>
         <div class="extraction-result" id="extractionResult" hidden>
-          <div class="extract-toolbar"><label>Reading <select id="extractionReading" aria-label="Palette reading"></select></label><div class="extract-toolbar-actions"><button type="button" id="undoExtraction" disabled>Undo</button><button type="button" id="resetExtraction">Reset reading</button><button type="button" id="replaceExtractionImage">Change image ↗</button></div></div>
+          <div class="extract-toolbar"><div class="extract-reading"><label>Reading <select id="extractionReading" aria-label="Palette reading" aria-describedby="extractionReadingDescription"></select></label><p id="extractionReadingDescription" aria-live="polite"></p></div><div class="extract-toolbar-actions"><button type="button" id="undoExtraction" disabled>Undo</button><button type="button" id="resetExtraction">Reset reading</button><button type="button" id="replaceExtractionImage">Change image ↗</button></div></div>
           <div class="extract-editor"><div class="extracted-image-wrap" id="extractedImageWrap"><div class="extract-image-bounds"><img id="extractedImage" alt="Your selected image"><div class="image-picker-layer" id="imagePickers" aria-label="Draggable color sample points"></div></div><div class="image-picker-hint">Drag a point to sample a color</div></div><div id="extractedSwatches" class="extracted-swatches" aria-label="Extracted palette colors"></div></div>
           <div class="extract-result-footer"><label class="extract-name" for="extractionName">Palette name <input id="extractionName" maxlength="120" placeholder="A name will be suggested"></label><span id="extractionInfo">Choose a reading</span><button class="button primary" id="useExtraction">Continue in Studio ↗</button></div>
         </div><p id="extractStatus" role="status" aria-live="polite"></p>

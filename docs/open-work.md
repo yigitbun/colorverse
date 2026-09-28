@@ -6,17 +6,12 @@ istekleri, mevcut repo, ürün kararları ve MVP denetimi.
 
 ## Güncel çalışma modu
 
-Owner'ın en son talimatı Claude'u mühendislik işlerinde yeniden kullanmaktır;
-önceki kapasite rezervasyonu artık geçerli değildir. İlk dar görev
-[STUDIO-COLORS-08](tasks/studio-colors-08.md): >5 renkli paletin Studio'ya tam
-aktarılması ve görünmesi, Claude Opus 5.5 tarafından yerelde teslim edildi ve
-Codex tarafından incelenip entegre edildi. Sonraki mühendislik görevleri yine
-Claude'a dar scope ile verilir; Codex kapsam/inceleme/entegrasyon sahibidir.
-Hazır, başladı ve teslim durumları ayrı kanıtla kaydedilir. Son yerel
-checkpoint'te STUDIO-SHORT-12, 14A ve 14B, ALTERNATIVES-13 ve
-CORPUS-APPLIED-02 entegre edildi. STUDIO-SHORT-14C arayüz işi ile
-CORPUS-APPLIED-03 premium uygulama araştırması ayrı Claude Opus 5.5
-oturumlarında sürüyor; birbirlerinin dosyalarına yazamazlar.
+Owner Claude'u dar mühendislik işleri için kullanmak istiyor; Codex
+kapsam/inceleme/entegrasyon sahibidir. 14C kısa palet arayüzü, 14D küre
+aktarımı, EXTRACT-READINGS-15A, SITE-TOOL-CATALOG-16 ve CORPUS-APPLIED-03
+yerel ana dala alındı. EXTRACT-AFFORDANCES-15B gerçek Claude Opus 5.5
+oturumunda kota sınırına takıldı; dosya yazmadı. Codex aynı dar arayüz işini
+yerelde tamamladı. Bu yerel durum canlı yayın veya corpus onayı değildir.
 
 ## Aktif yayın hazırlığı — 27–28 Eylül 2026
 
@@ -40,8 +35,10 @@ korur. Tarih hedefi, geçilmemiş kontrolleri tamamlanmış saydırmaz.
 | STUDIO-SHADES-10 — sağda dikey tam genişlikli ton şeritleri | Claude Opus 5.5; Codex entegrasyon | [Tamamlandı, yerel](tasks/studio-shades-10.md): Claude değişikliği `2a7898c`, ana dalda `0324c1e`; Codex 36 Studio testi, diff-check ve 4211 görsel kontrolü yaptı. Yayına çıkmadı. |
 | STUDIO-SCREENS-11 — sakin rapor zemini ve giriş animasyonu | Claude Opus 5.5; Codex entegrasyon | [Tamamlandı, yerel](tasks/studio-screens-11.md): Claude `4f4b816`, ana dalda `0f02a18` + CSS/cache entegrasyonu `89eda22`. 198 test ve 4211 tarayıcı kontrolü; rapor üste hizalı, sabit açık canvas ve tek seferlik grafik animasyonu. Yayına çıkmadı. |
 | STUDIO-SHORT-12/14A/14B — 2–4 gerçek renk, önizleme desteği, Account→Studio ve kayıt | Claude Opus 5.5; Codex entegrasyon | [Model](tasks/studio-short-model-12.md) `a3eb1ec`, [Account](tasks/studio-short-handoff-14a.md) `c2e5ba4`, [Studio kayıt](tasks/studio-short-persistence-14b.md) `024a7c9` yerel ana dalda. 14B odak testi 12/12; eski statik test ifadeleri `a700cb5` ile düzeltildi. Arayüz ve uçtan uca browser/hosted kayıt hâlâ açık; yayın yok. |
-| STUDIO-SHORT-14C — yalnız gerçek renkleri göster | Claude Opus 5.5; Codex inceleme | [Dar arayüz görevi](tasks/studio-short-ui-14c.md) ayrı worktree'de başladı; görünür canlı oturum `http://127.0.0.1:4217/`. Model/kayıt/Account yazma yetkisi yok. |
-| CORPUS-APPLIED-02/03 — uygulanmış proje kanıtı | Claude Opus 5.5; Codex inceleme | [İlk rapor](research/corpus-applied-projects-02.md) `208283e`: dört gerçek aday, ama onaylı/import-ready kayıt yok. [Premium örnek araştırması](tasks/corpus-applied-premium-03.md) ayrı oturumda sürüyor; görünür `http://127.0.0.1:4218/`. Görsel hakları ve renklerin sayısal kanıtı açık. |
+| STUDIO-SHORT-14C/14D — gerçek renk arayüzü ve küre aktarımı | Claude Opus 5.5; Codex entegrasyon | [14C](tasks/studio-short-ui-14c.md) `bacdaaf`, [14D](tasks/home-short-handoff-14d.md) `f8fa394` yerel ana dalda. 2–4 üye aynen korunur; destek tonları yazar rengi sayılmaz. 4211 tarayıcıda iki renkli akış kontrol edildi. Katre'de ikinci gerçek rengin etikette görünmesi için kısa palet varsayılan ataması Codex tarafından yerelde düzeltildi. Hosted/owner kabulü açık. |
+| CORPUS-APPLIED-02/03 — uygulanmış proje kanıtı | Claude Opus 5.5; Codex inceleme | [İlk rapor](research/corpus-applied-projects-02.md) `208283e` ve [premium rapor](research/corpus-applied-premium-03.md) `4dc7848` yerel. Gerçek proje adayları var; fakat kaynak HEX doğrulaması/görsel hakları tamamlanmadı. Onaylı/import-ready kayıt yok. |
+| EXTRACT-READINGS-15A / AFFORDANCES-15B | Claude Opus 5.5 (15A), Codex fallback (15B) | [15A](tasks/extract-readings-15a.md) `22f57ba`: üç ayrı, kaynak/türetilmiş ayrımını koruyan renk okuması. [15B](tasks/extract-affordances-15b.md) Claude kota nedeniyle dosya yazmadan durdu; Codex açıklama ve şerit üzerindeki Copy/Edit'i yerelde uyguladı. Kullanıcının rapor görselinde sonuç daha çeşitli ama yeşil/mercan hâlâ zayıf; algılama kalitesi açık. |
+| SITE-TOOL-CATALOG-16 — sayfa sonu araç kataloğu | Claude Opus 5.5; Codex entegrasyon | [Görev](tasks/site-tool-catalog-16.md) `e8965c9`: on ana rotada beş mevcut araca giden ortak raf. Boş özellik kartı yok; hesap/hukuk sayfalarında sakin. Yerel, yayında değil. |
 | STUDIO-ALTERNATIVES-13 — diğer gerçek renklere göre eleme | Claude Opus 5.5; Codex entegrasyon | [Dar görev](tasks/studio-alternatives-13.md) `2c00074` yerel ana dalda. Öneriler seçilen rengin varyantı; diğer gerçek üyelerle algısal benzerlik ve kontrast açısından elenir. Onaylı corpus kullanılmıyor; “estetik uyum garantisi” verilmez. Yayın yok. |
 | VOTING-01 — beğenilen ilk 10 palet | Ürün sahibi aday seçimi; Codex kapsam | A/B karşılaştırması geri alındı. Kullanıcının yönü: paletlere beğeni, ilk 10 sıralaması; ilişkili uygulama görseli küçük görünür, hover/focus/tap ile büyür. Oylama verisi ve sıralama ilk adaylar/haklar/kimlik tasarımı kararlaştırılmadan açılmaz; boş corpus'a sahte ilk 10 eklenmez. |
 | HOME-GLOBE-SEED-09 — ana sayfa tek seçili küre rengiyle açılsın | Claude Opus 5.5 teslim; Codex inceleme/entegrasyon/yayın | [Teslim](tasks/home-globe-seed-09.md): `553f72c` + `ed21c97` → main `ed21c97`, public `8c305da`. İzole 4208 açılış/temizle/kayıtlı dünya/Studio handoff geçti; ana checkout 195 PASS. Hosted aday kontrolü ve Cloudflare/custom-domain byte-match PASS; mobil/reduced-motion/owner kabulü açık. |
