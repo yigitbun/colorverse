@@ -7,6 +7,13 @@ güncel yönlendirme sonraki görüşmeyi kaydeder.
 
 ## Güncel yönlendirme — 2026-09-28
 
+- Owner ana sayfanın kürede tek seçili renk ile açılmasını istedi.
+  [HOME-GLOBE-SEED-09](tasks/home-globe-seed-09.md) Claude Opus 5.5 tarafından
+  ayrı worktree'de `553f72c` + `ed21c97` olarak teslim edildi, Codex inceleyip
+  yerel main'e aldı. Aktif/kayıtlı dünyadaki gerçek ön yüz hücresi Mini Studio'da
+  `1 / 5` görünür; Clear boş bırakır, Studio'ya aktarım korunur. 4208 izole
+  browser kanıtı ve 194 PASS / 1 skip var. Mobil/hosted/owner kabulü ve yayın
+  henüz yok; Claude'un canlı oturumu `http://127.0.0.1:4207/` tamamlandı.
 - Owner'ın son talimatı Claude'u yeniden tüm mühendislik işlerinde kullanmak;
   eski kapasite rezervasyonu aşağıda tarihsel kalır. İlk öncelik >5 palet renginin
   Studio'da kaybolması: [STUDIO-COLORS-08 / 08A](tasks/studio-colors-08.md) dar
