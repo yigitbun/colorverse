@@ -61,7 +61,10 @@ Start a new session with [the handoff](handoff.md) and [open work](open-work.md)
 - Homepage: preserve the compact six-world text menu, two rows of three, and the
   existing Mini Studio. The latest full instrument trial was **reverted**; seeded
   startup, transactional Apply/auto-advance and reverse globe coupling are not
-  current homepage behavior. Revisit only with a new owner decision.
+  current homepage behavior. The owner has now requested one actual globe color
+  selected at homepage open; HOME-GLOBE-SEED-09 supersedes only the empty-start
+  part of this earlier decision. Transactional Apply/auto-advance and reverse
+  coupling remain rejected.
 - Palette-first cards have a compact color row, supporting image, short name and
   small Studio action. No hero photo or oversized description/curated-by blocks.
 - Explore displays **four** owner-supplied AI concepts; the experiment registry
