@@ -1,11 +1,12 @@
 {
   "manifestVersion": "research-candidate-lightweight-01",
   "task": "CORPUS-RESEARCH-01A",
+  "correctedBy": "CORPUS-RESEARCH-01B",
   "producedAt": "2026-09-28",
   "editorialStatus": "research-candidate",
-  "note": "Lightweight research manifest for a small first source/rights audit. This is NOT the final ColorVerse corpus interchange schema described in docs/color-corpus-integration-assessment.md section E, and no entry here is an approved product record, approved palette, or approved color. Full source detail, rights citations and reasoning live in docs/research/corpus-source-audit-01.md.",
+  "note": "Lightweight research manifest for a small first source/rights audit, corrected once (01B) per Codex evidence review. This is NOT the final ColorVerse corpus interchange schema described in docs/color-corpus-integration-assessment.md section E, and no entry here is an approved product record, approved palette, or approved color. Full source detail, rights citations and reasoning live in docs/research/corpus-source-audit-01.md.",
   "candidates": [],
-  "candidatesEmptyReason": "No primary source reviewed in this pass both (a) supplies authoritative numeric color values and (b) has a clear, appropriate reuse basis for those exact values. See sourcesReviewed[].eligibleForCandidate and docs/research/corpus-source-audit-01.md for the full per-source reasoning. An empty list here is an honest result, not a placeholder to be filled with invented HEX values.",
+  "candidatesEmptyReason": "The brief accepts an original numeric value in its own original space (e.g. Munsell notation or CIE xyY) and never requires HEX. The empty list here is not about HEX conversion: it is because no primary source's raw numeric table was actually fetched and read in this pass (two sources describe numeric data on their listing/abstract pages, but the raw files/centroid table themselves were not retrieved), and no other source has both authoritative numeric values and a clear reuse basis. See sourcesReviewed[].eligibleForCandidate and docs/research/corpus-source-audit-01.md for full per-source reasoning. An empty list here is an honest result, not a placeholder to be filled with invented or hand-converted values.",
   "sourcesReviewed": [
     {
       "sourceId": "munsell-renotation-data",
@@ -18,7 +19,7 @@
       "rightsStatus": "unresolved",
       "rightsStatementUrl": null,
       "eligibleForCandidate": false,
-      "reason": "Hosting page states data files are provided \"as is\" with no explicit reuse license. Numeric xyY renotation values exist but their reuse basis is not established; direct fetch of the data-file host returned HTTP 403 during this audit."
+      "reason": "Hosting/listing page offers the files with no explicit reuse license (paraphrased: distributed as-is, no license grant stated). Reuse basis is unresolved, and the raw real.dat/all.dat/1929.dat tables were not actually fetched or read in this pass (direct fetch of the data-file host returned HTTP 403), so no specific xyY value has been verified. The brief does not require HEX; original Munsell/xyY values could be a valid future candidate once both the license is resolved and the raw values are actually read."
     },
     {
       "sourceId": "nbs-sp440-kelly-judd",
@@ -31,7 +32,7 @@
       "rightsStatus": "verified-public-domain",
       "rightsStatementUrl": "https://www.nist.gov/open/license",
       "eligibleForCandidate": false,
-      "reason": "Text and Munsell-notation tables are public domain (17 U.S.C. 105), but the values are Munsell notations, not HEX. Converting to HEX needs a disclosed illuminant/observer/adaptation/primaries pipeline that has not been produced or independently reviewed yet; deferred to a dedicated follow-up task rather than hand-derived here."
+      "reason": "Text is public domain (17 U.S.C. 105). The brief does not require converting Munsell-notation centroids to HEX; the actual reason no candidate was taken from this source is that the centroid table inside the scanned PDF was not actually fetched and read in this pass (it exceeded this session's fetch size limit), so no specific centroid value has been verified against the primary document."
     },
     {
       "sourceId": "cie-015-2018-colorimetry",
@@ -41,10 +42,10 @@
       "evidenceUrl": "https://cie.co.at/publications/colorimetry-4th-edition",
       "numericDataAvailable": false,
       "numericDataSpace": null,
-      "rightsStatus": "verified-restricted",
+      "rightsStatus": "commercial-terms-unverified",
       "rightsStatementUrl": null,
       "eligibleForCandidate": false,
-      "reason": "Commercial standard sold via the CIE Webshop and National Committees; not a color list and not freely redistributable. Cited only as methodology background for any future colorimetric conversion."
+      "reason": "Confirmed as a paid standard sold via the CIE Webshop and National Committees; not a color list. Being sold confirms it is not freely available, but its actual license/redistribution terms were not fetched or read, so they are not independently verified. Cited only as methodology background."
     },
     {
       "sourceId": "ridgway-1912-color-standards",
@@ -57,7 +58,7 @@
       "rightsStatus": "verified-public-domain",
       "rightsStatementUrl": "https://library.si.edu/digital-library/book/colorstandardsc00ridg",
       "eligibleForCandidate": false,
-      "reason": "53 printed pigment plates with 1,115 named colors, but no colorimetric measurement data accompanies them. A scan's RGB pixels are not the historical original per the task brief, so no HEX values were extracted."
+      "reason": "53 printed pigment plates with 1,115 named colors, but no colorimetric measurement data accompanies them. A scan's RGB pixels are not the historical original per the task brief, so no HEX values were extracted. (A secondary-source claim about influencing later commercial color systems was found but not independently verified, so it is not repeated here.)"
     },
     {
       "sourceId": "werners-nomenclature-1821",
@@ -80,10 +81,10 @@
       "evidenceUrl": "https://ndlsearch.ndl.go.jp/books/R100000039-I1191847",
       "numericDataAvailable": false,
       "numericDataSpace": null,
-      "rightsStatus": "verified-restricted",
-      "rightsStatementUrl": null,
+      "rightsStatus": "unresolved",
+      "rightsStatementUrl": "https://www.bunka.go.jp/seisaku/chosakuken/hokaisei/kantaiheiyo_chosakuken/1411890.html",
       "eligibleForCandidate": false,
-      "reason": "Still under Japanese copyright: author died 1967, term is life plus 70 years (Copyright Act of Japan Art. 51), protected through end of 2037. No colorimetric data was found regardless. Matches the task brief's explicit rule against bulk Wada ingestion; identified for rights-audit purposes only, not proposed for use."
+      "reason": "Do not apply today's life-plus-70 term retroactively: Japan's official Agency for Cultural Affairs Q&A confirms the 2018 term-extension reform does not revive a copyright that had already expired before it took effect (2018-12-30). Under the pre-reform life-plus-50 term, an author who died in 1967 arguably lapsed into the public domain just before that date, but this was not independently confirmed (exact date-counting method, possible collective-work treatment, and territory-specific status outside Japan remain open). Status is therefore unresolved, not verified-restricted and not free-to-use; edition- and territory-specific clearance is required. No colorimetric data was found regardless. Matches the task brief's explicit rule against bulk Wada ingestion; identified for rights-audit purposes only, not proposed for use."
     }
   ]
 }
