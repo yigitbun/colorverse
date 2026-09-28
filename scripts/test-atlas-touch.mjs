@@ -63,4 +63,7 @@ test('homepage seeds one silent selection only at startup; Clear and deselect do
   assert.match(app, /if \(wasEmpty && atlasSelected\.some\(item => !item\.seeded\)\) window\.colorverseTrack\?\.\('palette_started'/);
   assert.match(app, /clearAtlasSelection\.addEventListener\('click', \(\) => \{ atlasSelected = \[\];/);
   assert.match(app, /from '\.\/globe\.js\?v=30'/);
+  assert.match(app, /from '\.\/color-globe\.js\?v=4'/);
+  const colorGlobe = await readFile(new URL('../dist/color-globe.js', import.meta.url), 'utf8');
+  assert.match(colorGlobe, /from '\.\/globe\.js\?v=30'/, 'one globe module version on the homepage');
 });
