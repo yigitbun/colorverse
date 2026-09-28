@@ -117,6 +117,27 @@ test('Alternatives state their single-color scope and use the neutral-safe gener
   assert.match(app, /replacePaletteColor\(activeColorIndex, color\);/);
 });
 
+test('shades are edited only inline; the right panel keeps selected-color tools', () => {
+  const panel = studio.slice(studio.indexOf('<aside class="color-lab"'), studio.indexOf('</aside>', studio.indexOf('<aside class="color-lab"')));
+  // The duplicated vertical Light-to-deep strip and its hooks are gone everywhere.
+  for (const removed of [/colorShadeGrid/, /vertical-shades?/, /shadeCurrentHex/, /shadeOptionCount/, /Light to deep/, /Choose a shade to apply it/]) {
+    assert.doesNotMatch(panel, removed);
+    assert.doesNotMatch(app, removed);
+  }
+  assert.doesNotMatch(studioStyles, /\.vertical-shades|\.shade-endpoint/);
+  assert.match(panel, /<h3 id="colorLabTitle">Selected color<\/h3><span id="selectedColorLabel">/);
+  assert.match(panel, /Shades open beside the color on the left\./);
+  // Alternatives, contrast and tray remain in the panel.
+  for (const id of ['colorAlternativeGrid', 'colorContrastGrid', 'addColorToTray', 'colorTray']) assert.match(panel, new RegExp(`id="${id}"`));
+  // No empty second column where the strip used to be.
+  assert.match(studioStyles, /\.shade-panel-body\{display:block\}/);
+  assert.doesNotMatch(studioStyles, /\.shade-panel-body\{[^}]*grid-template-columns/);
+  // The inline strip is the one shade path, with its own keyboard handling.
+  assert.match(app, /data-inline-role-shade="\$\{index\}"/);
+  assert.match(app, /const tone = event\.target\.closest\('\[data-inline-role-shade\]'\);/);
+  assert.doesNotMatch(app, /\$\('#colorLab'\)\?\.addEventListener\('click', event => \{\n  const shade/);
+});
+
 test('Studio assets are cache-busted', () => {
   assert.match(studio, /\/app\.js\?v=98/);
   assert.match(studio, /\/studio-editor\.css\?v=11/);

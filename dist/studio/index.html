@@ -50,14 +50,9 @@
           <div class="context-caption"><span id="contextCaptionLabel">Skincare product preview</span></div>
         </div>
         <aside class="color-lab" id="colorLab" aria-labelledby="colorLabTitle">
-          <header class="shade-panel-head"><h3 id="colorLabTitle">Shades</h3><span id="shadeRoleNameInline">Background</span></header>
-          <p class="shade-panel-intro">Choose a shade to apply it.</p>
+          <header class="shade-panel-head"><h3 id="colorLabTitle">Selected color</h3><span id="selectedColorLabel">Background</span></header>
+          <p class="shade-panel-intro"><i id="selectedColorSwatch" aria-hidden="true"></i><code id="selectedColorHex"></code><span>Shades open beside the color on the left.</span></p>
           <div class="shade-panel-body">
-            <section class="vertical-shade-section" aria-label="Light to deep shades">
-              <div class="shade-endpoint"><span>Light</span><code id="shadeCurrentHex"></code></div>
-              <div class="vertical-shades" id="colorShadeGrid" aria-label="Choose a shade"></div>
-              <div class="shade-endpoint"><span>Deep</span><span id="shadeOptionCount"></span></div>
-            </section>
             <div class="shade-companions">
               <section class="shade-alternatives" aria-labelledby="alternativeTitle"><h4 id="alternativeTitle">Alternatives</h4><p id="alternativeScope">Changes the selected color only</p><div class="color-choice-grid alternative-grid" id="colorAlternativeGrid"></div></section>
               <section class="shade-contrast" aria-labelledby="contrastTitle"><h4 id="contrastTitle">Contrast</h4><p id="colorContrastPair"></p><div id="colorContrastGrid"></div></section>

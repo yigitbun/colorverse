@@ -465,16 +465,12 @@ function renderColorLab() {
   const source = shadeSourceColors[activeColorIndex] || color;
   const coordinates = colorCoordinates(source);
   const label = activeLabel();
-  $('#shadeRoleNameInline').textContent = label;
+  // Shades live only in the inline strip on the left; this panel holds tools for the selected color.
+  $('#selectedColorLabel').textContent = label;
+  $('#selectedColorHex').textContent = color;
+  $('#selectedColorSwatch')?.style.setProperty('--swatch', color);
   const scope = $('#alternativeScope');
   if (scope) scope.textContent = `${coordinates.chroma < NEUTRAL_CHROMA ? 'Nearby neutrals' : 'Nearby hues'} · changes ${label} only`;
-  $('#shadeCurrentHex').textContent = color;
-  const family = buildShadeFamilies(source)[0].colors;
-  const shades = [...new Set([...family.filter((_, index) => index % 2 === 0), source])]
-    .sort((a, b) => colorCoordinates(b).lightness - colorCoordinates(a).lightness);
-  const shadeGrid = $('#colorShadeGrid');
-  shadeGrid.innerHTML = shades.map(value => `<button type="button" style="--tone:${value};--tone-ink:${textOn(value)}" data-inline-shade="${value}" aria-pressed="${value === color}" aria-label="Apply shade ${value} to ${label}" title="${value}"><code>${value}</code><span aria-hidden="true">${value === color ? '✓' : ''}</span></button>`).join('');
-  $('#shadeOptionCount').textContent = `${shades.length} tones`;
   const alternatives = colorAlternatives(color);
   $('#colorAlternativeGrid').innerHTML = alternatives.map(value => `<button type="button" style="--choice:${value};--on:${textOn(value)}" data-use-color="${value}" aria-label="Replace ${label} with ${value}" title="${value} · ${label} only"><code>${value.slice(1)}</code></button>`).join('');
   const activeRole = roleOfMember(current.workspace, activeColorIndex);
@@ -1070,13 +1066,6 @@ if (paletteRoles) {
 }
 
 $('#colorLab')?.addEventListener('click', event => {
-  const shade = event.target.closest('[data-inline-shade]');
-  if (shade) {
-    const color = shade.dataset.inlineShade;
-    replacePaletteColor(activeColorIndex, color, { keepShadeSource: true });
-    $('#colorShadeGrid').querySelector(`[data-inline-shade="${color}"]`)?.focus({ preventScroll: true });
-    return;
-  }
   const choice = event.target.closest('[data-use-color]');
   if (choice) {
     const containerId = choice.closest('[id]')?.id;
@@ -1098,14 +1087,6 @@ $('#colorLab')?.addEventListener('click', event => {
     (next[Math.min(index, next.length - 1)] || $('#addColorToTray')).focus({ preventScroll: true });
     $('#trayStatus').textContent = `${remove.dataset.removeColor} removed from color tray.`;
   }
-});
-$('#colorShadeGrid')?.addEventListener('keydown', event => {
-  const buttons = [...event.currentTarget.querySelectorAll('button')];
-  const index = buttons.indexOf(event.target);
-  if (index < 0 || !['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
-  event.preventDefault();
-  const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : clamp(index + (event.key === 'ArrowDown' ? 1 : -1), 0, buttons.length - 1);
-  buttons[next].focus();
 });
 $('#addColorToTray')?.addEventListener('click', () => {
   const color = current.colors[activeColorIndex].toUpperCase();
