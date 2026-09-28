@@ -9,9 +9,10 @@ istekleri, mevcut repo, ürün kararları ve MVP denetimi. Claude projesi okunma
 Owner'ın en son talimatı Claude'u mühendislik işlerinde yeniden kullanmaktır;
 önceki kapasite rezervasyonu artık geçerli değildir. İlk dar görev
 [STUDIO-COLORS-08](tasks/studio-colors-08.md): >5 renkli paletin Studio'ya tam
-aktarılması ve görünmesi. Claude ayrı worktree'de tek uygulama yazarı; Codex
-kapsam/inceleme/entegrasyon sahibidir. Hazır görev, gerçek başlangıç/teslim
-kanıtı değildir; oturum başlatılınca ayrı kaydedilir.
+aktarılması ve görünmesi, Claude Opus 5.5 tarafından yerelde teslim edildi ve
+Codex tarafından incelenip entegre edildi. Sonraki mühendislik görevleri yine
+Claude'a dar scope ile verilir; Codex kapsam/inceleme/entegrasyon sahibidir.
+Hazır, başladı ve teslim durumları ayrı kanıtla kaydedilir; aktif worker yok.
 
 ## Aktif yayın hazırlığı — 27–28 Eylül 2026
 
@@ -33,7 +34,7 @@ korur. Tarih hedefi, geçilmemiş kontrolleri tamamlanmış saydırmaz.
 
 | İş | Sahip | Durum / sıradaki çıktı |
 | --- | --- | --- |
-| STUDIO-COLORS-08 / 08A — Studio'ya bütün palet renklerini taşı | Claude Code; inceleme/entegrasyon Codex | [Dar görev](tasks/studio-colors-08.md): ilk audit/test-only `2e8d179` incelendi; gerçek izole browser'da normal Extract 10 üye korunur, legacy home-test edit→Studio 5'e düşer; ayrıca 8–10 üye rail'de görünür alanın altında saklanır. 08A dar görünürlük + legacy yazar düzeltmesi aynı Opus 5.5 oturumuna atanır; legacy cleanup/HQ-03 kararı genişletilmez. Oturum `1e38f465-63e3-45dd-b455-dc4e03d68b3b`, canlı `http://127.0.0.1:4205/`; Codex paralel uygulama yazmaz |
+| STUDIO-COLORS-08 / 08A — Studio'ya bütün palet renklerini taşı | Claude Opus 5.5 teslim; Codex inceleme/entegrasyon | [Yerel teslim](tasks/studio-colors-08.md): `2e8d179` + `6e3f334` → main `c2b63e1` + `f352b8d`. 8–10 renk iki kompakt sütunda tam görünür; toplam/sürükleme-kaydırma ipucu, collapsed dar şerit, klavye satır seçimi. Legacy home-test yazar düzeltmesi tüm üyeleri/sırayı/haritayı korur; HQ-03 cleanup kararı açık. 4206 gerçek 5/8/10, extra-edit→placement→reload, legacy 10→10 ve 320px PASS; main 193 PASS. Orijinal owner yolu henüz verilmedi; 24 browser/private save NOT RUN, yayın yok. Oturum `1e38f465-63e3-45dd-b455-dc4e03d68b3b`, canlı `http://127.0.0.1:4205/`; worker bekliyor |
 | STUDIO-FOCUS-07 — sonuç odaklı Studio ve görünür düzenleme | Codex tek yazar | [Yerel teslim](tasks/studio-focus-07.md): renkli yeni başlangıç, Apply paneli yok, solda 184/64px rail ve seçme, sağda görünür tonlar/tek tıklık ayarlar/açık Globe. Üyeler/atamalar/baseline korunur; >5 üye için explicit sağ yerleştirme. 111 static / 189 PASS; 4203 5/10 renk, select-only/shade/collapse/comparison/Globe/reload ve 320px kontrolü; owner UX kabulü/yayın yok, Claude kullanılmadı |
 | STUDIO-NAMING-06 — palet rengi ile uygulama yüzeyini ayır | Codex tek yazar | [Yerel teslim](tasks/studio-naming-06.md): Studio/Extract Color 1…N; ürün yüzeyleri ve Print gerçek üyeyi gösterir. Kayıt/rol/HEX/sıra korunur; başlangıç shade anchor ve 320px kesilme düzeltildi. 189 PASS, 4202 gerçek 5/10 renk/atama/reload/comparison/mobil yolu ve temiz console. Owner görsel kabulü henüz yok; Claude/ajan çağrılmadı, yayın yok |
 | SERUM-RENDERER-01A — onaylı şişenin beş yüzeyli renk uygulaması | Codex fallback worker teslim; Codex lead inceleme | Claude quota %100 ile durdu, hiç dosya değiştirmedi. Base `06f78e4` → `f4eff775`, tam inceleme sonrası yerel main `903f9ea`; worker durdu. [Dar scope](tasks/serum-renderer-01a.md); beş yüzey, exact source identity, arka plan/clear base sabit; eski photo API korunur |

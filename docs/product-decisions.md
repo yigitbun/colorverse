@@ -14,6 +14,13 @@ Start a new session with [the handoff](handoff.md) and [open work](open-work.md)
   A fresh Studio draft starts with existing colorful serum source colors;
   requested/resumable palettes and the homepage default remain unchanged.
   Local implementation complete; owner visual acceptance still pending.
+- Studio COLORS-08A makes larger palettes visibly complete: 8–10 members fit
+  in two compact columns in the expanded rail; counts/scroll or swipe cues
+  explain longer lists. Collapsed remains a narrow swatch strip. The legacy
+  home-test writer preserves the full workspace when editing its five-slot
+  projection; this does not decide the pending legacy cleanup. Strict workspace
+  validation, member order and five product-preview slots remain unchanged.
+  Implemented by Claude Opus 5.5, reviewed/integrated locally by Codex; no release.
 - Studio/Extract separate palette identity from application: neutral Color 1…N
   display names, with actual product surfaces on the right. This narrow local
   implementation follows the owner's request to continue ordinary work after

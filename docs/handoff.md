@@ -9,12 +9,20 @@ güncel yönlendirme sonraki görüşmeyi kaydeder.
 
 - Owner'ın son talimatı Claude'u yeniden tüm mühendislik işlerinde kullanmak;
   eski kapasite rezervasyonu aşağıda tarihsel kalır. İlk öncelik >5 palet renginin
-  Studio'da kaybolması: [STUDIO-COLORS-08](tasks/studio-colors-08.md) dar görevi
-  başladı. Ayrı `codex/claude-studio-colors` branch/worktree, base `e69731f`;
+  Studio'da kaybolması: [STUDIO-COLORS-08 / 08A](tasks/studio-colors-08.md) dar
+  görevi yerelde teslim edildi. Ayrı `codex/claude-studio-colors` branch/worktree, base `e69731f`;
   gerçek Claude oturumu `1e38f465-63e3-45dd-b455-dc4e03d68b3b`, model
-  `claude-opus-5-5`, canlı konuşma `http://127.0.0.1:4205/`. Mesajı aldığını
-  doğrulayıp dosya okumaya başladı; henüz teslim yok. Codex kapsamı/entegrasyonu
-  yönetir, Claude uygulama yazarıdır.
+  `claude-opus-5-5`, canlı konuşma `http://127.0.0.1:4205/`. Claude `2e8d179` ve
+  `6e3f334` teslim etti; exact review→main `c2b63e1` / `f352b8d`. Codex uygulama
+  düzeltmesi yazmadı. 8–10 renk iki kompakt sütunda tam görünür; büyük listede
+  toplam/scroll-swipe/fade, collapsed dar şerit, klavye satır seçimi. Eski
+  home-test beş-slot yazarının tüm workspace'i koruması düzeltildi; HQ-03 cleanup
+  kararı verilmedi. 4206 izole gerçek 5/8/10, unassigned edit→atama→reload,
+  legacy 10→10 ve 320px PASS; main 111 static / 193 PASS. İlk 4204 canlı yazım
+  sırasında cache-pin/CSS ara sürümünü tuttu, final kanıt değil; final 4206
+  immutable teslim üstünde. Owner 4202/4203 taslağı işletilmedi. Orijinal owner
+  yolu henüz verilmedi; 24 gerçek UI/private save/inbox/device PNG açık. Worker
+  bekliyor; yeni hosted işlem/push/yayın yok. Codex kapsamı/entegrasyonu yönetir.
 - Owner yeni Studio UX yönünü açıkça istedi; [STUDIO-FOCUS-07](tasks/studio-focus-07.md)
   yerelde tamamlandı. Bu karar UX-05A'nın solda inline shade tercihini değiştirir:
   sol yalnız renk seçimi, sağda görünür tonlar ve tek tıklık ayarlar. Yeni Studio

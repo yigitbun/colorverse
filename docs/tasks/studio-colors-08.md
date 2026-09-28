@@ -4,10 +4,12 @@ Owner/writer: Claude Code; coordination, exact-revision review and integration:
 Codex. Prepared from clean main `c36b19f`; implementation base is the subsequent
 assignment-only commit. Branch `codex/claude-studio-colors`, separate worktree
 `.local/worktrees/claude-studio-colors`. Do not write the shared main checkout.
-Status: started. Actual implementation base `e69731f`. Claude Code session
+Status: delivered, reviewed and integrated locally; owner acceptance of the
+original reported journey remains pending. Actual implementation base `e69731f`. Claude Code session
 `1e38f465-63e3-45dd-b455-dc4e03d68b3b`, requested and reported model
 `claude-opus-5-5`. Visible live conversation: `http://127.0.0.1:4205/`.
-Claude acknowledged the exact task and began reading files. No delivery yet.
+Claude delivered `2e8d179` and follow-up `6e3f334`; reviewed local main commits
+`c2b63e1` and `f352b8d`. No active implementation writer; no push/deployment.
 
 ## Owner's current instructions
 
@@ -106,3 +108,37 @@ tests. Read this follow-up in the main checkout; do not edit main documents.
    edit/swap round trip, unassigned edit and explicit placement, full export and
    reload. Run release checks and submit one new local task-branch commit.
    Codex will perform actual UI QA of the exact revision. No push/deploy.
+
+## Final delivery and evidence
+
+- Claude Opus 5.5 implemented the changes; Codex did not write application
+  fixes. Exact submitted revisions above were inspected and integrated;
+  `git diff codex/claude-studio-colors -- dist scripts` is empty after integration.
+- 6–24-member expanded rail uses two compact columns with a visible total.
+  At 720px height, eight members occupy 248px and ten 309px: every swatch visible.
+  Collapsed rail remains 64px and swatch-only, with a numeric count; scroll/fade
+  indicates extra items. Keyboard Up/Down follows rows; End reaches the last
+  member. On mobile the existing internal horizontal strip gains a swipe cue.
+- Legacy `/home-test/` explicitly syncs five-slot edits back into their mapped
+  members and swaps role assignments; unassigned values/order survive. Studio
+  validation remains strict. No legacy removal/redirection or HQ-03 decision.
+- Cache pins: app v104, Studio CSS v17, workspace helper v4, legacy app v83.
+- Codex actual isolated 4206 browser on immutable `6e3f334`: ten-member Extract
+  handoff, all ten visible, keyboard row selection, unassigned quick edit
+  leaves preview unchanged, explicit placement, identical full JSON/map after
+  reload, collapsed End→Color 10, 320px collapsed/expanded with document width
+  and scrollWidth both 320. Legacy Hue End→Apply→Open Studio now keeps ten,
+  exact role map and all unassigned values. Eight-member all-visible check and
+  explicit existing five-color Citrus Muse compatibility also PASS. Console
+  warn/error empty; viewport reset. Owner 4202/4203 drafts were not operated.
+- Earlier 4204 developed while the worker changed cache pins before CSS; its
+  cached partial stylesheet was not accepted as final evidence. Final tests used
+  a fresh 4206 origin after delivery. No public cache/hosting changes were made.
+- Claude worktree release: 111 static / 192 PASS / 1 private-backup SKIP;
+  integrated main: 111 static / 193 PASS / 0 FAIL / 0 skipped. Diff check PASS.
+- 24-member helper/handoff/persistence/export cases PASS; actual 24-member UI,
+  authenticated save/resume, inbox and device PNG NOT RUN. The owner's original
+  route was not supplied; do not attribute that report to home-test as fact.
+- Visible Claude conversation stays at `http://127.0.0.1:4205/`. The separate
+  4206 ten-member view is a temporary QA draft, not approved corpus content.
+  Remaining product decisions and release gates stay open.
