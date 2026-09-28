@@ -159,8 +159,8 @@ test('Selected color states where it is used on the Skincare photo, and only the
 });
 
 test('Studio assets are cache-busted', () => {
-  assert.match(studio, /\/app\.js\?v=98/);
-  assert.match(studio, /\/studio-editor\.css\?v=11/);
+  assert.match(studio, /\/app\.js\?v=99/);
+  assert.match(studio, /\/studio-editor\.css\?v=12/);
   assert.match(studio, /\/report-preview\.css\?v=2/);
   assert.match(app, /'\.\/color-alternatives\.js\?v=1'/);
 });

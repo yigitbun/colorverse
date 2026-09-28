@@ -188,6 +188,6 @@ test('Extract inserts between rows up to ten, keeps points, and hands the full p
   assert.match(app, /const workspace = workspaceFromColors\(extracted\.colors, extracted\.roleIndex\);/);
   assert.match(app, /colors: roleColors\(workspace\), workspace \}\)\)/);
   assert.doesNotMatch(extractHtml, /Five draggable/);
-  assert.match(extractHtml, /\/app\.js\?v=98/);
+  assert.match(extractHtml, /\/app\.js\?v=99/);
   assert.match(extractStyles, /\.extract-page \.extracted-swatches \.extract-insert\{position:absolute;/);
 });

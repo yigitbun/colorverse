@@ -38,7 +38,7 @@ test('larger Extract lists switch to readable rows on narrow screens', () => {
 });
 test('shared clients and account handoff are cache-busted and narrow headers use two columns', () => {
   assert.match(account, /\/account\.js\?v=9/);
-  assert.match(studio, /\/app\.js\?v=98/);
+  assert.match(studio, /\/app\.js\?v=99/);
   assert.match(header, /grid-template-columns:minmax\(0,1fr\) auto;column-gap:6px/);
 });
 test('photo size stays bounded and new colorways use Accent without replacing saved mappings', () => {
