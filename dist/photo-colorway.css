@@ -1,0 +1,12 @@
+.photo-colorway{display:flex;flex-direction:column;gap:8px;margin:0;min-width:0;color:var(--ink)}
+.photo-colorway-stages{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+.photo-colorway.is-comparing .photo-colorway-stages{grid-template-columns:repeat(2,minmax(0,1fr))}
+.photo-colorway-stage{position:relative;overflow:hidden;aspect-ratio:4/5;border:1px solid var(--line);border-radius:5px;background:var(--surface-2)}
+.photo-colorway-stage[hidden]{display:none}
+.photo-colorway-canvas{display:block;width:100%;height:100%;object-fit:contain}
+.photo-colorway-tag{position:absolute;left:8px;bottom:8px;padding:3px 6px;border-radius:3px;background:#17171bcc;color:#fff;font:9px var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.photo-colorway-note{color:var(--muted);font:10px/1.4 var(--mono)}
+.photo-colorway-status{margin:0;color:var(--muted);font-size:11px}
+.photo-colorway-status[hidden]{display:none}
+.photo-colorway[data-state="loading"] .photo-colorway-canvas,.photo-colorway[data-state="error"] .photo-colorway-canvas{visibility:hidden}
+@media (max-width:520px){.photo-colorway.is-comparing .photo-colorway-stages{grid-template-columns:minmax(0,1fr)}}
