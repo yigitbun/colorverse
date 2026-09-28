@@ -4,7 +4,10 @@ Owner/writer: Claude Code; coordination, exact-revision review and integration:
 Codex. Prepared from clean main `c36b19f`; implementation base is the subsequent
 assignment-only commit. Branch `codex/claude-studio-colors`, separate worktree
 `.local/worktrees/claude-studio-colors`. Do not write the shared main checkout.
-Status: prepared, not yet started. Codex will record the actual session/start.
+Status: started. Actual implementation base `e69731f`. Claude Code session
+`1e38f465-63e3-45dd-b455-dc4e03d68b3b`, requested and reported model
+`claude-opus-5-5`. Visible live conversation: `http://127.0.0.1:4205/`.
+Claude acknowledged the exact task and began reading files. No delivery yet.
 
 ## Owner's current instructions
 
