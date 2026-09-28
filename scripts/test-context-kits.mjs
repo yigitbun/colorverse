@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { reportData, reportEntering, reportPreview } from '../dist/report-preview.js';
 
 const app = await readFile(new URL('../dist/app.js', import.meta.url), 'utf8');
 const studio = await readFile(new URL('../dist/studio/index.html', import.meta.url), 'utf8');
@@ -8,6 +9,7 @@ const inspiration = await readFile(new URL('../dist/inspiration/index.html', imp
 const styles = await readFile(new URL('../dist/context-kits.css', import.meta.url), 'utf8');
 const studioStyles = await readFile(new URL('../dist/studio-editor.css', import.meta.url), 'utf8');
 const store = await readFile(new URL('../dist/project-store.js', import.meta.url), 'utf8');
+const reportStyles = await readFile(new URL('../dist/report-preview.css', import.meta.url), 'utf8');
 
 test('Studio groups live applications as Products, Screens, and Campaigns', () => {
   const contexts = [...studio.matchAll(/data-context="([^"]+)"/g)].map(match => match[1]);
@@ -41,6 +43,58 @@ test('Skincare keeps approved serum mappings without an extra assignment panel',
   assert.match(app, /if \(role === 4\) surfaces\.push\('Print'\)/);
   assert.doesNotMatch(app, /class="care-bottle"|const careStage/);
   assert.match(studio, /photo-colorway\.css/);
+});
+
+test('Screens report owns a neutral canvas; palette colors stay accents and swatches', () => {
+  const root = reportStyles.match(/\.bi-report\{([^}]*)\}/)[1];
+  assert.match(root, /background:var\(--bi-canvas\)/);
+  assert.match(root, /color:var\(--bi-ink\)/);
+  // At most a faint tint of the palette background reaches the canvas.
+  const tint = Number(root.match(/--bi-canvas:color-mix\(in srgb,var\(--p-bg\) (\d+)%/)[1]);
+  assert.ok(tint <= 6, `canvas tint ${tint}%`);
+  assert.match(root, /--bi-card:white/);
+  // Text and labels never take a palette member that may be pale or saturated.
+  assert.doesNotMatch(reportStyles, /(?:^|[;{])color:var\(--p-/m);
+  assert.doesNotMatch(reportStyles, /\.bi-axis\{fill:var\(--p-/);
+  // Pale primaries keep a darker edge on white; the swatch strip shows all five roles honestly.
+  assert.match(reportStyles, /\.bi-line-case\{[^}]*stroke:var\(--bi-edge\)/);
+  assert.match(reportStyles, /\.bi-bar\{[^}]*box-shadow:inset 0 0 0 1px var\(--bi-edge\)/);
+  ['bg', 'surface', 'primary', 'accent', 'text'].forEach((role, index) => assert.match(reportStyles, new RegExp(`\\.bi-swatches li:nth-child\\(${index + 1}\\)\\{background:var\\(--p-${role}\\)\\}`)));
+  const html = reportPreview();
+  assert.equal(html.match(/<ul class="bi-swatches"[^>]*>(.*?)<\/ul>/)[1].match(/<li /g).length, 5);
+  assert.equal(html.match(/<article>/g).length, 4, 'four KPIs');
+  assert.match(html, /class="bi-trend"/);
+  assert.match(html, /class="bi-bars"/);
+  // Narrow previews stack header, KPIs and charts; the footer wraps.
+  const narrow = reportStyles.slice(reportStyles.indexOf('@container (max-width:560px)'));
+  assert.match(narrow, /\.bi-kpis\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(narrow, /\.bi-charts\{grid-template-columns:1fr\}/);
+  assert.match(reportStyles, /\.bi-foot\{[^}]*flex-wrap:wrap/);
+});
+
+test('Screens charts animate once on entrance and respect reduced motion', () => {
+  // A mounted report means a palette edit re-render: no replay. No DOM: no motion class.
+  assert.equal(reportEntering({ querySelector: () => null }), true);
+  assert.equal(reportEntering({ querySelector: () => ({}) }), false);
+  assert.equal(reportEntering(undefined), false);
+  assert.match(reportPreview(reportData, { enter: true }), /^<div class="mockup context-kit bi-report bi-enter">/);
+  assert.match(reportPreview(reportData, { enter: false }), /^<div class="mockup context-kit bi-report">/);
+  const html = reportPreview(reportData, { enter: true });
+  assert.equal(html.match(/class="bi-line-(?:case|current)"[^>]*pathLength="1"/g).length, 2);
+  assert.deepEqual([...html.matchAll(/<li style="--i:(\d)">/g)].map(match => Number(match[1])), [0, 1, 2, 3, 4]);
+  const motion = reportStyles.slice(0, reportStyles.indexOf('@media (prefers-reduced-motion'));
+  const animated = [...motion.matchAll(/\.bi-enter [^{]*\{animation:([^}]*)\}/g)].map(match => match[1]);
+  assert.ok(animated.length >= 5);
+  for (const rule of animated) {
+    assert.match(rule, /^bi-(?:draw|grow|fade) /);
+    assert.match(rule, /backwards$/, 'motion releases to the static final state');
+  }
+  assert.doesNotMatch(reportStyles, /infinite|alternate|animation-iteration-count/);
+  // Static styles are the finished chart; no dash or scale is left behind.
+  assert.doesNotMatch(reportStyles.replace(/@keyframes[^{]*\{(?:[^{}]*\{[^}]*\})*[^}]*\}/g, ''), /stroke-dashoffset|scaleX/);
+  const reduced = reportStyles.match(/@media \(prefers-reduced-motion:reduce\)\{([^]*?)\n\}/)[1];
+  for (const part of ['bi-line-case', 'bi-line-current', 'bi-line-previous', 'bi-area', 'bi-point', 'bi-bar', 'bi-target']) assert.match(reduced, new RegExp(`\\.bi-enter \\.${part}[,{]`), part);
+  assert.match(reduced, /\{animation:none\}/);
 });
 
 test('older report projects keep their original preview', () => {

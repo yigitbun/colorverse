@@ -1,6 +1,7 @@
-// A calm, native report preview for the Screens context. Every color comes from
-// the palette CSS variables on #mockup, so Studio edits and Color Globe previews
-// restyle it live. The figures are illustrative and fixed; nothing is fetched.
+// A calm, native report preview for the Screens context. The report owns a
+// neutral canvas; palette CSS variables on #mockup color its charts, accents and
+// swatches, so Studio edits and Color Globe previews restyle it live. The
+// figures are illustrative and fixed; nothing is fetched.
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 export const reportData = Object.freeze({
   title: 'Sales performance',
@@ -31,7 +32,8 @@ function trendChart({ current, previous }) {
     ${ticks.map(tick => `<line class="bi-grid" x1="${plot.left}" x2="${plot.right}" y1="${y(tick)}" y2="${y(tick)}"/><text class="bi-axis" x="${plot.left - 6}" y="${y(tick) + 3}" text-anchor="end">${tick}</text>`).join('')}
     <path class="bi-area" d="${line(current)} L${x(last)} ${plot.bottom} L${x(0)} ${plot.bottom} Z"/>
     <path class="bi-line-previous" d="${line(previous)}"/>
-    <path class="bi-line-current" d="${line(current)}"/>
+    <path class="bi-line-case" d="${line(current)}" pathLength="1"/>
+    <path class="bi-line-current" d="${line(current)}" pathLength="1"/>
     <circle class="bi-point" cx="${x(last)}" cy="${y(current[last])}" r="3.5"/>
     ${months.map((month, index) => index % 2 === 0 || index === last ? `<text class="bi-axis" x="${x(index)}" y="${plot.bottom + 16}" text-anchor="middle">${month}</text>` : '').join('')}
   </svg>`;
@@ -39,16 +41,26 @@ function trendChart({ current, previous }) {
 
 function regionChart(regions) {
   const scale = 1.6;
-  return `<ul class="bi-bars" aria-label="Illustrative revenue by region against target">${regions.map(([name, actual, target]) => `<li>
+  return `<ul class="bi-bars" aria-label="Illustrative revenue by region against target">${regions.map(([name, actual, target], index) => `<li style="--i:${index}">
     <span class="bi-bar-label">${name}</span>
     <span class="bi-bar-track" aria-hidden="true"><i class="bi-bar" style="width:${(actual / scale * 100).toFixed(1)}%"></i><b class="bi-target" style="left:${(target / scale * 100).toFixed(1)}%"></b></span>
     <span class="bi-bar-value">€${actual.toFixed(2)}M<span class="sr-only">, target €${target.toFixed(2)}M</span></span>
   </li>`).join('')}</ul>`;
 }
 
-export function reportPreview(data = reportData) {
-  return `<div class="mockup context-kit bi-report">
-    <header class="bi-head"><div><span class="kit-kicker">Report · Overview</span><h4>${data.title}</h4></div><ul class="bi-filters" aria-label="Report filters">${data.filters.map(filter => `<li>${filter}</li>`).join('')}</ul></header>
+// Swatch fills come from report-preview.css in this order.
+const swatches = ['Background', 'Surface', 'Primary', 'Accent', 'Text'];
+
+// Charts play their entry motion only when the report newly appears. Studio
+// re-renders the mockup on every palette edit; a report already on screen
+// means this call is an edit, so the new markup arrives still.
+export function reportEntering(root = globalThis.document) {
+  return Boolean(root) && !root.querySelector('#mockup .bi-report');
+}
+
+export function reportPreview(data = reportData, { enter = reportEntering() } = {}) {
+  return `<div class="mockup context-kit bi-report${enter ? ' bi-enter' : ''}">
+    <header class="bi-head"><div><span class="kit-kicker">Report · Overview</span><h4>${data.title}</h4></div><div class="bi-head-side"><ul class="bi-filters" aria-label="Report filters">${data.filters.map(filter => `<li>${filter}</li>`).join('')}</ul><ul class="bi-swatches" aria-label="Palette colors">${swatches.map(label => `<li title="${label}"><span class="sr-only">${label}</span></li>`).join('')}</ul></div></header>
     <section class="bi-kpis" aria-label="Key figures">${data.kpis.map(kpi => `<article><span>${kpi.label}</span><strong>${kpi.value}</strong><small><b aria-hidden="true">${kpi.up ? '▲' : '▼'}</b> <span class="sr-only">${kpi.up ? 'Up' : 'Down'} </span>${kpi.change}</small></article>`).join('')}</section>
     <div class="bi-charts">
       <section class="bi-panel"><header><h5>Revenue trend</h5><p class="bi-legend"><span><i class="bi-key-current"></i>FY 2026</span><span><i class="bi-key-previous"></i>Previous year</span></p></header>${trendChart(data)}</section>
