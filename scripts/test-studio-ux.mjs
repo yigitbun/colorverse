@@ -2,10 +2,44 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { reportPreview, reportData } from '../dist/report-preview.js';
+import * as members from '../dist/studio-members.js';
 
 const read = path => readFile(new URL(`../dist/${path}`, import.meta.url), 'utf8');
 const [app, studio, studioStyles, reportStyles] = await Promise.all([read('app.js'), read('studio/index.html'), read('studio-editor.css'), read('report-preview.css')]);
 const functionBody = name => app.slice(app.indexOf(`function ${name}(`), app.indexOf('\n}\n', app.indexOf(`function ${name}(`)));
+const constBody = name => app.slice(app.indexOf(`const ${name} = `), app.indexOf('\n};\n', app.indexOf(`const ${name} = `)) + 3);
+
+// Runs the real Studio functions from app.js against the real workspace model,
+// with only the DOM and persistence stubbed. `prelude` may declare mutable state.
+function studioFunctions(names, scope = {}, prelude = '') {
+  const all = { ...members, ...scope };
+  const body = [prelude, constBody('paletteSupportText'), ...names.map(name => `${functionBody(name)}\n}`), `return { ${names.join(', ')}, state: () => typeof current === 'undefined' ? null : current };`].join('\n');
+  return new Function(...Object.keys(all), body)(...Object.values(all));
+}
+
+const PALETTE = ['#1B3A4B', '#E07A5F', '#F2CC8F', '#81B29A', '#3D405B', '#F4F1DE', '#6D597A', '#B56576'];
+const sizes = [2, 3, 4, 5, 8];
+const workspaceOf = count => members.workspaceFromColors(PALETTE.slice(0, count), count > 5 ? [7, 0, 3, 5, 1] : undefined);
+
+function fakeElement(registry, id) {
+  const element = { id, hidden: false, title: '', innerHTML: '', className: '', attributes: {},
+    classList: { toggle() {} }, setAttribute(name, value) { this.attributes[name] = value; },
+    after(next) { registry[`#${next.id}`] = next; } };
+  if (id) registry[`#${id}`] = element;
+  return element;
+}
+
+function renderRail(workspace) {
+  const registry = {};
+  fakeElement(registry, 'paletteRoles');
+  fakeElement(registry, 'paletteCount');
+  const { renderPaletteRoles } = studioFunctions(['renderPaletteRoles', 'paletteSupportNote'], {
+    $: selector => registry[selector] || null, document: { createElement: () => fakeElement(registry) },
+    current: { workspace }, activeColorIndex: 0, textOn: () => '#000000', updatePaletteOverflow() {},
+  });
+  renderPaletteRoles();
+  return { rail: registry['#paletteRoles'], support: registry['#paletteSupport'] };
+}
 
 test('Studio is modestly wider on its own page only', () => {
   assert.match(studioStyles, /\.studio-page\.section-wrap\{width:min\(1480px,100%\)\}/);
@@ -150,7 +184,7 @@ test('Selected color tells the truth about actual usage; no product assignment p
   assert.match(hint, /Background and clear glass base stay fixed/);
   assert.doesNotMatch(app, /Apply palette colors|data-care-part|class="care-map"|careOptions/);
   assert.match(functionBody('renderColorLab'), /renderColorUseHint\(\)/);
-  assert.match(app, /previewPlacement'\)\.hidden = !isCompact\(current\.workspace\)/);
+  assert.match(app, /previewPlacement'\)\.hidden = current\.workspace\.members\.length === 5;/);
   assert.match(app, /assignPreviewRole\(activeColorIndex, role\)/);
 });
 
@@ -173,6 +207,94 @@ test('neutral member names and legacy exports remain independent of application'
 test('initial shade anchors use ordered members, not the five mapped preview colors', () => {
   assert.match(app, /let shadeSourceColors = \[\.\.\.current\.workspace\.members\];/);
   assert.doesNotMatch(app, /let shadeSourceColors = current\.colors/);
+});
+
+test('the rail shows exactly the authored 2/3/4/5/8 colors; 2–4 add a muted support note, not members', () => {
+  for (const count of sizes) {
+    const workspace = workspaceOf(count);
+    const { rail, support } = renderRail(workspace);
+    assert.equal([...rail.innerHTML.matchAll(/data-select-member="/g)].length, count, `${count} member buttons`);
+    assert.deepEqual([...rail.innerHTML.matchAll(/data-select-member="\d+"[^>]*aria-label="Select Color \d+, (#[0-9A-F]{6})/g)].map(match => match[1]), PALETTE.slice(0, count));
+    for (const neutral of members.SUPPORT_COLORS) assert.doesNotMatch(rail.innerHTML, new RegExp(neutral), `${count}: no support swatch in the rail`);
+    if (count < 5) {
+      const neutrals = 5 - count;
+      assert.equal(support.hidden, false);
+      assert.match(rail.attributes['aria-label'], new RegExp(`^${count} palette colors, plus neutral preview support that is not part of the palette\\.`));
+      const text = `Preview support: ${neutrals} fixed neutral${neutrals === 1 ? '' : 's'}, not in your palette`;
+      assert.equal(support.title, text);
+      assert.match(support.innerHTML, new RegExp(`<span class="palette-support-text">${text}</span>`));
+      assert.equal([...support.innerHTML.matchAll(/<i style="--swatch:/g)].length, neutrals);
+      assert.match(support.innerHTML, /<span class="palette-support-chips" aria-hidden="true">/);
+      assert.doesNotMatch(support.innerHTML, /<button|data-select-member|tabindex/);
+    } else {
+      assert.equal(support.hidden, true, `${count}: no support note`);
+      assert.equal(support.innerHTML, '');
+      assert.equal(rail.attributes['aria-label'], `${count} palette colors. Select a color to edit it on the right.`);
+    }
+  }
+  // Collapsed keeps the swatch-first column; the note keeps its chips and a clipped, still-readable label.
+  assert.match(studioStyles, /\.palette-support\{display:flex;[^}]*color:var\(--muted\)\}/);
+  assert.match(studioStyles, /\.palette-support-chips i\{[^}]*outline:1px dashed var\(--muted\)/);
+  assert.match(studioStyles, /\.is-palette-collapsed \.palette-support-text\{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect\(0 0 0 0\)/);
+  assert.doesNotMatch(studioStyles, /\.is-palette-collapsed[^{]*\.palette-support[^{]*\{[^}]*display:none/);
+});
+
+test('Use in preview shows for 2–4 and 6–24, labels support slots, and keeps five-color controls', () => {
+  const { previewSlotChoices } = studioFunctions(['previewSlotChoices']);
+  for (const count of [2, 3, 4]) {
+    const workspace = workspaceOf(count);
+    for (let member = 0; member < count; member += 1) {
+      const html = previewSlotChoices(workspace, member);
+      const slots = [...html.matchAll(/<button [^>]*>/g)].map(match => match[0]);
+      assert.equal(slots.length, 5);
+      assert.equal(slots.filter(slot => slot.includes('class="is-support"')).length, 5 - count);
+      assert.equal([...html.matchAll(/<span>Preview support<\/span>/g)].length, 5 - count);
+      assert.equal(slots.filter(slot => slot.includes('aria-pressed="true"')).length, 1);
+      const held = members.roleOfMember(workspace, member);
+      assert.match(slots[held], new RegExp(`aria-label="Color ${member + 1} fills preview slot ${held + 1}"`));
+      const open = members.defaultRoleIndex(count).indexOf(members.SUPPORT_ROLE);
+      if (open !== held) assert.match(slots[open], new RegExp(`aria-label="Move Color ${member + 1} to preview slot ${open + 1}, trading places with Preview support"`));
+      assert.doesNotMatch(html, /NaN|undefined|Color support/);
+    }
+  }
+  const eight = previewSlotChoices(workspaceOf(8), 2);
+  assert.doesNotMatch(eight, /is-support|Preview support/);
+  assert.match(eight, /aria-label="Use Color 3 instead of Color 8 in preview" title="Replace Color 8 in preview"/);
+  assert.match(functionBody('renderColorLab'), /isShort\(current\.workspace\) \? `Move \$\{label\} to another slot; the two trade places\. Preview support is never added to your palette\.` : 'Replace one of these five preview colors\.'/);
+  assert.match(studioStyles, /#previewSlotChoices button\.is-support\{border-style:dashed\}/);
+  // Swap with next exists only when the five members are the five preview slots.
+  assert.match(functionBody('renderColorLab'), /\(current\.workspace\.members\.length === 5 \? `<button type="button" data-swap-next>/);
+  assert.match(app, /if \(event\.target\.closest\('\[data-swap-next\]'\)\) \{\n\s*\/\/[^\n]*\n\s*if \(current\.workspace\.members\.length !== 5\) return;/);
+});
+
+test('assigning any 2–4 slot trades with support, never says NaN, and never promotes support', () => {
+  for (const count of sizes) {
+    for (let member = 0; member < count; member += 1) {
+      for (let role = 0; role < 5; role += 1) {
+        const initial = { workspace: workspaceOf(count) };
+        if (members.roleOfMember(initial.workspace, member) === role) continue;
+        const status = { textContent: '' };
+        const { assignPreviewRole, state } = studioFunctions(['assignPreviewRole'], {
+          initial, $: selector => selector === '#paletteOrderStatus' ? status : null, track() {},
+        }, 'let current = initial; const commitWorkspace = workspace => { current = { ...current, workspace, colors: roleColors(workspace) }; };');
+        const before = initial.workspace.roleIndex[role], held = members.roleOfMember(initial.workspace, member);
+        assignPreviewRole(member, role);
+        const { workspace } = state();
+        assert.doesNotMatch(status.textContent, /NaN|undefined|support\d|Color support/, status.textContent);
+        assert.match(status.textContent, new RegExp(`^Color ${member + 1} now fills preview slot ${role + 1}; `));
+        if (count < 5) {
+          assert.deepEqual(workspace.members, initial.workspace.members, 'authored members unchanged');
+          assert.equal(workspace.roleIndex.filter(index => index === members.SUPPORT_ROLE).length, 5 - count);
+          assert.equal(members.roleOfMember(workspace, member), role);
+          assert.equal(status.textContent, `Color ${member + 1} now fills preview slot ${role + 1}; ${before === members.SUPPORT_ROLE ? 'Preview support' : `Color ${before + 1}`} moves to slot ${held + 1}.`);
+        } else if (count === 8) {
+          assert.equal(workspace.members.length, 8);
+          assert.match(status.textContent, held >= 0 ? new RegExp(`Color ${before + 1} moves to slot ${held + 1}\\.$`) : new RegExp(`Color ${before + 1} is no longer in the preview\\.$`));
+        }
+        for (const neutral of members.SUPPORT_COLORS) assert.ok(!workspace.members.includes(neutral) || PALETTE.includes(neutral));
+      }
+    }
+  }
 });
 
 test('small screens keep a scrollable horizontal palette rather than squeezing the result', () => {

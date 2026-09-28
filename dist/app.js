@@ -17,7 +17,7 @@ import { mountPhotoColorway, PHOTO_COLORWAY_NOTE } from './photo-colorway.js?v=3
 import { KATRE_SERUM_PROFILE, SERUM_SOURCE_COLORS } from './katre-serum.js?v=1';
 import { paletteAlternatives, quickColorAdjustments, NEUTRAL_CHROMA } from './color-alternatives.js?v=3';
 import { reportPreview } from './report-preview.js?v=2';
-import { withWorkspace, workspaceFromColors, roleColors, roleOfMember, memberLabel, previewColorLabel, isCompact, setMember, assignRole, swapRoles, insertMember, removeMember, EXTRACT_MAX_MEMBERS } from './studio-members.js?v=4';
+import { withWorkspace, workspaceFromColors, roleColors, roleOfMember, memberLabel, previewColorLabel, isCompact, isShort, isSupportRole, SUPPORT_ROLE, setMember, assignRole, swapRoles, insertMember, removeMember, EXTRACT_MAX_MEMBERS } from './studio-members.js?v=4';
 import { initAccountNavigation } from './account-client.js?v=4';
 import { DRAFT_KEY, STUDIO_HANDOFF_KEY, readDraft, sanitizeDraft } from './member-palette.js?v=2';
 
@@ -247,11 +247,14 @@ function replacePaletteColor(index, color, { keepShadeSource = false } = {}) {
   commitWorkspace(workspace, { name: current.name.replace(/^Custom · /, '') });
 }
 
+// A member already in the preview trades slots with the slot's member or
+// support; otherwise the slot's member leaves the preview. Support is named, never numbered.
 function assignPreviewRole(member, role) {
-  const before = current.workspace.roleIndex[role];
+  const before = current.workspace.roleIndex[role], held = roleOfMember(current.workspace, member);
   commitWorkspace(assignRole(current.workspace, role, member));
+  const moved = before === SUPPORT_ROLE ? 'Preview support' : memberLabel(current.workspace, before);
   const status = $('#paletteOrderStatus');
-  if (status) status.textContent = `Color ${member + 1} now fills preview slot ${role + 1}${current.workspace.roleIndex.includes(before) ? '' : `; Color ${before + 1} is no longer in the preview`}.`;
+  if (status) status.textContent = `${memberLabel(current.workspace, member)} now fills preview slot ${role + 1}; ${held >= 0 ? `${moved} moves to slot ${held + 1}` : `${moved} is no longer in the preview`}.`;
   track('color_edit', { method: 'assign-role' });
 }
 
@@ -372,7 +375,7 @@ function renderPaletteRoles() {
   // Larger palettes use a compact two-column rail with a visible count, so 8–10 colors fit without scrolling.
   container.classList.toggle('is-scrolling', workspace.members.length > 5);
   container.classList.toggle('is-compact-grid', workspace.members.length > 5);
-  container.setAttribute('aria-label', `${workspace.members.length} palette colors. Select a color to edit it on the right.`);
+  container.setAttribute('aria-label', `${workspace.members.length} palette colors${isShort(workspace) ? ', plus neutral preview support that is not part of the palette' : ''}. Select a color to edit it on the right.`);
   container.innerHTML = workspace.members.map((color, index) => {
     const label = memberLabel(workspace, index), assigned = roleOfMember(workspace, index) >= 0;
     return `<button class="palette-member${activeColorIndex === index ? ' is-selected' : ''}${assigned ? '' : ' is-unassigned'}" type="button" data-select-member="${index}" style="--swatch:${color};--on:${textOn(color)}" aria-pressed="${activeColorIndex === index}" aria-label="Select ${label}, ${color}${assigned ? '' : ', not in preview'}" title="${label} · ${color}${assigned ? '' : ' · not in preview'}"><i aria-hidden="true"></i><span class="palette-member-label">${label}<code>${color}</code></span></button>`;
@@ -382,7 +385,31 @@ function renderPaletteRoles() {
     count.hidden = workspace.members.length <= 5;
     count.innerHTML = `<b>${workspace.members.length}</b><span> colors</span><small></small>`;
   }
+  let support = $('#paletteSupport');
+  if (!support) {
+    support = document.createElement('p');
+    support.id = 'paletteSupport';
+    support.className = 'palette-support';
+    container.after(support);
+  }
+  const note = paletteSupportNote(workspace);
+  support.hidden = !note;
+  support.title = note ? paletteSupportText(workspace) : '';
+  support.innerHTML = note;
   updatePaletteOverflow();
+}
+
+const paletteSupportText = workspace => {
+  const count = workspace.roleIndex.filter(index => index === SUPPORT_ROLE).length;
+  return `Preview support: ${count} fixed neutral${count === 1 ? '' : 's'}, not in your palette`;
+};
+
+// 2–4 colors: a muted, non-interactive note that the preview borrows fixed
+// neutrals for its open slots. They are shown apart from the rail, never as members.
+function paletteSupportNote(workspace) {
+  if (!isShort(workspace)) return '';
+  const chips = roleColors(workspace).filter((_, role) => isSupportRole(workspace, role)).map(color => `<i style="--swatch:${color}"></i>`).join('');
+  return `<span class="palette-support-chips" aria-hidden="true">${chips}</span><span class="palette-support-text">${paletteSupportText(workspace)}</span>`;
 }
 
 // A contained rail that still hides colors says so and fades toward them.
@@ -411,6 +438,18 @@ function renderColorTray() {
   add.querySelector('span').textContent = saved ? 'Added to color tray' : 'Add to color tray';
 }
 
+// The five "Use in preview" slots. Support slots are marked as such; in a 2–4
+// color palette choosing one trades places, so the member count never changes.
+function previewSlotChoices(workspace, member) {
+  const label = memberLabel(workspace, member), short = isShort(workspace), held = roleOfMember(workspace, member);
+  return roleColors(workspace).map((value, role) => {
+    const name = previewColorLabel(workspace, role), support = isSupportRole(workspace, role);
+    const action = held === role ? `${label} fills preview slot ${role + 1}`
+      : short ? `Move ${label} to preview slot ${role + 1}, trading places with ${name}` : `Use ${label} instead of ${name} in preview`;
+    return `<button type="button"${support ? ' class="is-support"' : ''} data-assign-slot="${role}" aria-pressed="${held === role}" aria-label="${action}" title="${short ? action : `Replace ${name} in preview`}"><i style="background:${value}" aria-hidden="true"></i><span>${name}</span></button>`;
+  }).join('');
+}
+
 function renderColorLab() {
   const lab = $('#colorLab');
   if (!lab) return;
@@ -425,9 +464,11 @@ function renderColorLab() {
   $('#selectedColorSwatch')?.style.setProperty('--swatch', color);
   const shades = selectedShadeValues(activeColorIndex);
   $('#colorShadeGrid').innerHTML = shades.map(value => `<button type="button" data-use-color="${value}" data-color-shade aria-label="Use shade ${value} for ${label}" aria-pressed="${value === color}" title="${value}" style="--choice:${value};--on:${textOn(value)}"><span class="sr-only">${value}</span></button>`).join('');
-  $('#colorQuickActions').innerHTML = quickColorAdjustments(color).map(({ id, label: action, color: value, disabled }) => `<button type="button" data-use-color="${value}" data-quick-action="${id}"${disabled ? ' disabled' : ''} aria-label="Make ${label} ${action.toLowerCase()}"><i style="background:${value}" aria-hidden="true"></i>${action}</button>`).join('') + (!isCompact(current.workspace) ? `<button type="button" data-swap-next>Swap with ${memberLabel(current.workspace, (activeColorIndex + 1) % 5)} ↔</button>` : '');
-  $('#previewPlacement').hidden = !isCompact(current.workspace);
-  $('#previewSlotChoices').innerHTML = current.colors.map((value, role) => `<button type="button" data-assign-slot="${role}" aria-pressed="${roleOfMember(current.workspace, activeColorIndex) === role}" aria-label="Use ${label} instead of ${previewLabel(role)} in preview" title="Replace ${previewLabel(role)} in preview"><i style="background:${value}" aria-hidden="true"></i><span>${previewLabel(role)}</span></button>`).join('');
+  $('#colorQuickActions').innerHTML = quickColorAdjustments(color).map(({ id, label: action, color: value, disabled }) => `<button type="button" data-use-color="${value}" data-quick-action="${id}"${disabled ? ' disabled' : ''} aria-label="Make ${label} ${action.toLowerCase()}"><i style="background:${value}" aria-hidden="true"></i>${action}</button>`).join('') + (current.workspace.members.length === 5 ? `<button type="button" data-swap-next>Swap with ${memberLabel(current.workspace, (activeColorIndex + 1) % 5)} ↔</button>` : '');
+  // Exactly five colors are the preview. 2–4 trade slots with support; 6–24 choose which members fill it.
+  $('#previewPlacement').hidden = current.workspace.members.length === 5;
+  $('#previewPlacement p').textContent = isShort(current.workspace) ? `Move ${label} to another slot; the two trade places. Preview support is never added to your palette.` : 'Replace one of these five preview colors.';
+  $('#previewSlotChoices').innerHTML = previewSlotChoices(current.workspace, activeColorIndex);
   const scope = $('#alternativeScope');
   // Candidates are checked against the other authored members, never the preview-only roles.
   const alternatives = paletteAlternatives(color, current.workspace.members, activeColorIndex);
@@ -927,6 +968,8 @@ $('#colorLab')?.addEventListener('click', event => {
     return;
   }
   if (event.target.closest('[data-swap-next]')) {
+    // Only exactly five members are the five preview slots.
+    if (current.workspace.members.length !== 5) return;
     const next = (activeColorIndex + 1) % 5;
     swapPaletteColors(activeColorIndex, next);
     activeColorIndex = next;
