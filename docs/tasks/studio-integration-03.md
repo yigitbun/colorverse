@@ -43,6 +43,8 @@ hosted writes, real mail, corpus work, palette/image generation or new agents.
 - Update stale visible Objects expectations and Projects label to Products.
   Canonical routes using changed shared scripts need cache versions; preserve
   public experimental pages and unrelated UX. No global redesign.
+- Codex fixed a pre-existing 320px header grid overflow in header-controls.css;
+  use v=2 on canonical routes and dynamic stylesheet fallback, do not undo it.
 - Campaigns stays as-is until owner decides; do not remove or relabel preemptively.
 - Clarify Extract numbered controls only: linked sample point, edit versus copy.
 

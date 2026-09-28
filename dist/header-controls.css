@@ -5,3 +5,11 @@
 .header-actions .account-icon-link:hover{background:var(--surface-2);color:var(--accent)}
 .header-actions .account-icon-link:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .header-actions .account-icon-link[data-signed-in=true]::after{content:'';position:absolute;right:7px;top:7px;width:5px;height:5px;border-radius:50%;background:var(--accent)}
+/* The navigation occupies its own row; a zero-width third grid column must
+   not add a second gap or force the account control outside a 320px header. */
+@media(max-width:360px){
+  .header{grid-template-columns:minmax(0,1fr) auto;column-gap:6px}
+  .header-actions{grid-column:2}
+  .header .wordmark{font-size:19px;gap:5px}
+  .header-actions .studio-link{gap:4px;padding-inline:7px}
+}
