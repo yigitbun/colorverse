@@ -7,8 +7,8 @@ function validProjectId(value) { return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{
 const contextToDatabase = value => ({ landing: 'brand', interface: 'website', social: 'custom', presentation: 'slides' })[value] || 'custom';
 const contextToStudio = value => ({ brand: 'landing', website: 'interface', slides: 'presentation' })[value] || 'landing';
 const contextLabel = value => ({ landing: 'Products', interface: 'Screens', social: 'Campaigns', presentation: 'Report (legacy)' })[value] || 'Products';
-// One editor-state shape for project, prototype and template saves. A larger
-// palette's complete members ride here; RPC color fields stay the five roles.
+// One editor-state shape for project, prototype and template saves. A 2–4 or
+// 6–24 palette's complete members ride here; RPC color fields stay the five roles.
 const editorStateFor = snapshot => ({
   context: snapshot.context, productKind: snapshot.productKind, careAssignment: snapshot.careAssignment, colorwayBaseline: snapshot.colorwayBaseline,
   ...(snapshot.workspace ? { workspace: snapshot.workspace } : {}),
@@ -396,7 +396,7 @@ export async function initProjectWorkspace(studio) {
   }
 
   function openSavedPalette(item) {
-    // Other sizes need the explicit five-role choice in My palettes, which then hands over every color.
+    // Other sizes (2–4, 6–24) open through My palettes, which hands over every authored color.
     if (item.colors.length !== 5) { location.assign('/account/'); return; }
     studio.loadSnapshot({
       name: item.name || 'Saved palette',
@@ -746,8 +746,9 @@ export async function initProjectWorkspace(studio) {
     setMessage('Saving palette to your collection…');
     const members = snapshot.workspace?.members;
     let error;
-    if (members?.length > 5) {
-      // The five-only collection RPC would drop colors; save a new member palette (2–24) instead.
+    if (Array.isArray(members) && members.length !== 5) {
+      // The five-only collection RPC would drop members (6–24) or store preview
+      // support as colors (2–4); save the authored members as a member palette instead.
       const save = referenceKey => client.rpc('save_member_palette', {
         p_item_id: null,
         p_collection_name: collectionNameInput.value.trim(),

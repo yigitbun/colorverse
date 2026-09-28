@@ -17,7 +17,7 @@ import { mountPhotoColorway, PHOTO_COLORWAY_NOTE } from './photo-colorway.js?v=3
 import { KATRE_SERUM_PROFILE, SERUM_SOURCE_COLORS } from './katre-serum.js?v=1';
 import { paletteAlternatives, quickColorAdjustments, NEUTRAL_CHROMA } from './color-alternatives.js?v=3';
 import { reportPreview } from './report-preview.js?v=2';
-import { withWorkspace, workspaceFromColors, sanitizeWorkspace, roleColors, roleOfMember, memberLabel, previewColorLabel, isCompact, setMember, assignRole, swapRoles, insertMember, removeMember, EXTRACT_MAX_MEMBERS } from './studio-members.js?v=4';
+import { withWorkspace, workspaceFromColors, roleColors, roleOfMember, memberLabel, previewColorLabel, isCompact, setMember, assignRole, swapRoles, insertMember, removeMember, EXTRACT_MAX_MEMBERS } from './studio-members.js?v=4';
 import { initAccountNavigation } from './account-client.js?v=4';
 import { DRAFT_KEY, STUDIO_HANDOFF_KEY, readDraft, sanitizeDraft } from './member-palette.js?v=2';
 
@@ -77,8 +77,9 @@ const resumablePalette = storedPalette?.id?.startsWith('world-') ? null : stored
 let current = requestedPalette && resumablePalette?.id === requestedPalette.id ? resumablePalette : requestedPalette || (resumablePalette && (!params.get('p') || resumablePalette.id === params.get('p')) ? resumablePalette : workingDraft);
 if (page === 'studio' && params.get('saved') === '1') {
   const saved = readDraft(sessionStorage, STUDIO_HANDOFF_KEY);
-  // Every saved color arrives; the five explicitly chosen positions drive the preview.
-  const workspace = saved && workspaceFromColors(saved.colors, saved.roleIndex || (saved.colors.length === 5 ? undefined : null));
+  // Every saved color arrives. 2–5 colors take the default mapping (2–4 with
+  // preview-only support); 6–24 require the five explicitly chosen positions.
+  const workspace = saved && workspaceFromColors(saved.colors, saved.roleIndex || (saved.colors.length <= 5 ? undefined : null));
   if (workspace) {
     const reference = editionPalettes.find(palette => palette.id === saved.referenceKey);
     current = { ...(reference || workingDraft), id: `saved-${Date.now()}`, name: saved.name, collection: saved.collection,
@@ -233,7 +234,7 @@ function commitWorkspace(workspace, extra = {}) {
 // (as before); larger palettes swap which members fill the roles, keeping member order.
 function swapPaletteColors(from, to) {
   if (from === to || from < 0 || to < 0 || from > 4 || to > 4) return;
-  if (!isCompact(current.workspace)) [shadeSourceColors[from], shadeSourceColors[to]] = [shadeSourceColors[to], shadeSourceColors[from]];
+  if (current.workspace.members.length === 5) [shadeSourceColors[from], shadeSourceColors[to]] = [shadeSourceColors[to], shadeSourceColors[from]];
   commitWorkspace(swapRoles(current.workspace, from, to));
   track('color_edit', { method: 'swap' });
 }
@@ -265,8 +266,9 @@ function studioSnapshot() {
     productKind,
     careAssignment: { ...careAssignment },
     colorwayBaseline,
-    // Five-color RPC fields above stay role colors; the complete palette rides in editor state.
-    workspace: isCompact(current.workspace) ? { ...current.workspace, members: [...current.workspace.members], roleIndex: [...current.workspace.roleIndex] } : null,
+    // Five-color RPC fields above stay role colors (support included for 2–4);
+    // any palette other than exactly five members rides complete in editor state.
+    workspace: current.workspace.members.length !== 5 ? { ...current.workspace, members: [...current.workspace.members], roleIndex: [...current.workspace.roleIndex] } : null,
     collection: current.collection || null,
   };
 }
@@ -275,8 +277,9 @@ function loadStudioSnapshot(snapshot) {
   if (!snapshot || !Array.isArray(snapshot.colors) || snapshot.colors.length !== 5 || !snapshot.colors.every(color => /^#[0-9a-f]{6}$/i.test(color))) return;
   const colors = snapshot.colors.map(color => color.toUpperCase());
   const source = editionPalettes.find(palette => palette.id === snapshot.sourcePaletteId) || signatureFor(colors[2]);
-  // Old five-color snapshots (no or inconsistent workspace) load with identity mapping.
-  const workspace = sanitizeWorkspace(snapshot.workspace, colors) || workspaceFromColors(colors);
+  // Old five-color snapshots (no or inconsistent workspace) load with identity
+  // mapping. A valid 2–4 workspace always survives, so support is never promoted.
+  const { workspace } = withWorkspace({ colors, workspace: snapshot.workspace });
   current = {
     id: `project-${snapshot.id || Date.now()}`,
     name: snapshot.name || 'Saved project',
