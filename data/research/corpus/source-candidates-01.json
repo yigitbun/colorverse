@@ -1,0 +1,89 @@
+{
+  "manifestVersion": "research-candidate-lightweight-01",
+  "task": "CORPUS-RESEARCH-01A",
+  "producedAt": "2026-09-28",
+  "editorialStatus": "research-candidate",
+  "note": "Lightweight research manifest for a small first source/rights audit. This is NOT the final ColorVerse corpus interchange schema described in docs/color-corpus-integration-assessment.md section E, and no entry here is an approved product record, approved palette, or approved color. Full source detail, rights citations and reasoning live in docs/research/corpus-source-audit-01.md.",
+  "candidates": [],
+  "candidatesEmptyReason": "No primary source reviewed in this pass both (a) supplies authoritative numeric color values and (b) has a clear, appropriate reuse basis for those exact values. See sourcesReviewed[].eligibleForCandidate and docs/research/corpus-source-audit-01.md for the full per-source reasoning. An empty list here is an honest result, not a placeholder to be filled with invented HEX values.",
+  "sourcesReviewed": [
+    {
+      "sourceId": "munsell-renotation-data",
+      "title": "Munsell Renotation Data",
+      "institution": "Munsell Color Science Laboratory, Rochester Institute of Technology",
+      "kind": "academic-methodology",
+      "evidenceUrl": "https://www.rit.edu/science/munsell-color-science-lab-educational-resources",
+      "numericDataAvailable": true,
+      "numericDataSpace": "Munsell hue/value/chroma with CIE xyY (Illuminant C, CIE 1931 2-degree observer)",
+      "rightsStatus": "unresolved",
+      "rightsStatementUrl": null,
+      "eligibleForCandidate": false,
+      "reason": "Hosting page states data files are provided \"as is\" with no explicit reuse license. Numeric xyY renotation values exist but their reuse basis is not established; direct fetch of the data-file host returned HTTP 403 during this audit."
+    },
+    {
+      "sourceId": "nbs-sp440-kelly-judd",
+      "title": "Color: Universal Language and Dictionary of Names (NBS Special Publication 440)",
+      "institution": "U.S. National Bureau of Standards (Kelly & Judd, 1976)",
+      "kind": "academic-methodology",
+      "evidenceUrl": "https://www.nist.gov/publications/color-universal-language-and-dictionary-names",
+      "numericDataAvailable": true,
+      "numericDataSpace": "Munsell notation centroids/ranges for 267 ISCC-NBS color-name blocks (not sRGB/HEX)",
+      "rightsStatus": "verified-public-domain",
+      "rightsStatementUrl": "https://www.nist.gov/open/license",
+      "eligibleForCandidate": false,
+      "reason": "Text and Munsell-notation tables are public domain (17 U.S.C. 105), but the values are Munsell notations, not HEX. Converting to HEX needs a disclosed illuminant/observer/adaptation/primaries pipeline that has not been produced or independently reviewed yet; deferred to a dedicated follow-up task rather than hand-derived here."
+    },
+    {
+      "sourceId": "cie-015-2018-colorimetry",
+      "title": "CIE 015:2018, Colorimetry (4th edition)",
+      "institution": "International Commission on Illumination (CIE)",
+      "kind": "academic-methodology",
+      "evidenceUrl": "https://cie.co.at/publications/colorimetry-4th-edition",
+      "numericDataAvailable": false,
+      "numericDataSpace": null,
+      "rightsStatus": "verified-restricted",
+      "rightsStatementUrl": null,
+      "eligibleForCandidate": false,
+      "reason": "Commercial standard sold via the CIE Webshop and National Committees; not a color list and not freely redistributable. Cited only as methodology background for any future colorimetric conversion."
+    },
+    {
+      "sourceId": "ridgway-1912-color-standards",
+      "title": "Color Standards and Color Nomenclature",
+      "institution": "Robert Ridgway, 1912; digitized by Smithsonian Libraries and Archives",
+      "kind": "historical-reference-collection",
+      "evidenceUrl": "https://library.si.edu/digital-library/book/colorstandardsc00ridg",
+      "numericDataAvailable": false,
+      "numericDataSpace": null,
+      "rightsStatus": "verified-public-domain",
+      "rightsStatementUrl": "https://library.si.edu/digital-library/book/colorstandardsc00ridg",
+      "eligibleForCandidate": false,
+      "reason": "53 printed pigment plates with 1,115 named colors, but no colorimetric measurement data accompanies them. A scan's RGB pixels are not the historical original per the task brief, so no HEX values were extracted."
+    },
+    {
+      "sourceId": "werners-nomenclature-1821",
+      "title": "Werner's Nomenclature of Colours (1821 edition, arranged by Patrick Syme)",
+      "institution": "Smithsonian Libraries and Archives (digitized copy on Internet Archive)",
+      "kind": "historical-reference-collection",
+      "evidenceUrl": "https://archive.org/details/wernersnomencla00wern",
+      "numericDataAvailable": false,
+      "numericDataSpace": null,
+      "rightsStatus": "verified-public-domain",
+      "rightsStatementUrl": "https://archive.org/details/wernersnomencla00wern",
+      "eligibleForCandidate": false,
+      "reason": "Hand-painted watercolor swatches only, no colorimetric measurement data. Modern popular reinterpretations exist elsewhere but are separate secondary works, not this primary 1821 source, and were not used as evidence."
+    },
+    {
+      "sourceId": "wada-1933-color-combinations",
+      "title": "A Dictionary of Color Combinations / Haishoku Sokan (配色総鑑)",
+      "institution": "Sanzo Wada (1883-1967), Hakubisha, 1933-1934",
+      "kind": "historical-reference-collection",
+      "evidenceUrl": "https://ndlsearch.ndl.go.jp/books/R100000039-I1191847",
+      "numericDataAvailable": false,
+      "numericDataSpace": null,
+      "rightsStatus": "verified-restricted",
+      "rightsStatementUrl": null,
+      "eligibleForCandidate": false,
+      "reason": "Still under Japanese copyright: author died 1967, term is life plus 70 years (Copyright Act of Japan Art. 51), protected through end of 2037. No colorimetric data was found regardless. Matches the task brief's explicit rule against bulk Wada ingestion; identified for rights-audit purposes only, not proposed for use."
+    }
+  ]
+}
