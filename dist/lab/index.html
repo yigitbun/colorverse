@@ -16,6 +16,8 @@
   <script type="module" src="/app.js?v=104"></script>
   <script type="module" src="/lab.js?v=4"></script>
   <script type="module" src="/analytics.js?v=6"></script>
+  <link rel="stylesheet" href="/tool-catalog.css?v=1">
+  <script type="module" src="/tool-catalog.js?v=1"></script>
 </head>
 <body data-page="lab">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -81,6 +83,7 @@
     </section>
   </main>
   <noscript><p class="noscript" role="status">Enable JavaScript to use the browser-local Lab tools. Your images are not uploaded.</p></noscript>
+  <section class="tool-catalog section-wrap" data-tool-catalog></section>
   <footer class="footer section-wrap"><div class="footer-top"><a class="wordmark" href="/">ColorVerse</a><p>Color exploration, in context.</p><a class="back-top" href="#main">Back to top ↑</a></div><div class="footer-bottom"><span>© 2026 ColorVerse</span><nav aria-label="Footer navigation"><a href="/">Explore</a><a href="/inspiration/">Inspiration</a><a href="/explore/">Library</a><a href="/extract/">Image to palette</a><a href="/studio/">Studio</a><a href="/community/">Community</a><a href="/lab/">Lab</a></nav></div></footer>
   <dialog class="lab-comment-dialog" id="labCommentDialog" aria-labelledby="labCommentTitle"><form method="dialog" id="labCommentForm"><div class="lab-dialog-head"><div><span class="eyebrow">RoomKit / feedback</span><h2 id="labCommentTitle">What would you change?</h2></div><button class="icon-button" value="cancel" aria-label="Close feedback">×</button></div><label for="labComment">Your note<textarea id="labComment" maxlength="500" placeholder="The moment I would use this is…" required></textarea></label><div class="lab-dialog-foot"><span>Prototype note · stays on this device</span><button class="button primary" value="submit">Save note</button></div></form></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>

@@ -12,6 +12,8 @@
   <link rel="stylesheet" href="/email-entry.css?v=1">
   <script src="/theme-init.js"></script><script type="module" src="/account.js?v=9"></script>
   <script type="module" src="/analytics.js?v=6"></script>
+  <link rel="stylesheet" href="/tool-catalog.css?v=1">
+  <script type="module" src="/tool-catalog.js?v=1"></script>
 </head>
 <body data-page="account" data-auth-state="signed-out">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -62,6 +64,7 @@
   </dialog>
   <dialog class="member-editor" id="studioColorPicker" aria-labelledby="studioPickerTitle"><header><div><span class="eyebrow">Studio working copy</span><h2 id="studioPickerTitle">Choose five colors</h2></div><button id="closeStudioPicker" type="button" class="icon-button" aria-label="Close color selection">×</button></header><p>Choose colors in order: Background, Surface, Primary, Accent, Text. Your full saved palette stays unchanged.</p><div id="studioChoiceColors" class="studio-choice-colors"></div><p id="studioChoiceStatus" role="status"></p><button id="openChosenStudio" class="button primary" type="button" disabled>Open in Studio ↗</button></dialog>
   <dialog class="member-editor member-confirm" id="deletePaletteDialog" aria-labelledby="deleteTitle"><h2 id="deleteTitle">Delete this palette?</h2><p>This removes it from your private collection. Existing Studio projects are not affected.</p><div class="account-toolbar"><button id="cancelDelete" class="small-button" type="button">Keep palette</button><button id="confirmDelete" class="button primary" type="button">Delete palette</button></div><p id="deleteStatus" role="status"></p></dialog>
+  <section class="tool-catalog section-wrap" data-tool-catalog data-tone="quiet"></section>
   <footer class="footer section-wrap"><div class="footer-bottom"><span>ColorVerse · Your colors, kept.</span><nav aria-label="Footer navigation"><button class="account-policy-link" data-account-policy="information" type="button">Account information</button><a href="/privacy/" class="account-policy-link" data-account-policy="privacy">Privacy notice</a></nav></div></footer>
 </body>
 </html>
