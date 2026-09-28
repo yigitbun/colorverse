@@ -15,7 +15,7 @@ import { initCommunity } from './community-feed.js?v=1';
 import { freezeColorway } from './colorway-kit.js?v=3';
 import { mountPhotoColorway, PHOTO_COLORWAY_NOTE } from './photo-colorway.js?v=3';
 import { KATRE_SERUM_PROFILE, SERUM_SOURCE_COLORS } from './katre-serum.js?v=1';
-import { colorAlternatives, quickColorAdjustments, NEUTRAL_CHROMA } from './color-alternatives.js?v=3';
+import { paletteAlternatives, quickColorAdjustments, NEUTRAL_CHROMA } from './color-alternatives.js?v=3';
 import { reportPreview } from './report-preview.js?v=2';
 import { withWorkspace, workspaceFromColors, sanitizeWorkspace, roleColors, roleOfMember, memberLabel, previewColorLabel, isCompact, setMember, assignRole, swapRoles, insertMember, removeMember, EXTRACT_MAX_MEMBERS } from './studio-members.js?v=4';
 import { initAccountNavigation } from './account-client.js?v=4';
@@ -426,8 +426,10 @@ function renderColorLab() {
   $('#previewPlacement').hidden = !isCompact(current.workspace);
   $('#previewSlotChoices').innerHTML = current.colors.map((value, role) => `<button type="button" data-assign-slot="${role}" aria-pressed="${roleOfMember(current.workspace, activeColorIndex) === role}" aria-label="Use ${label} instead of ${previewLabel(role)} in preview" title="Replace ${previewLabel(role)} in preview"><i style="background:${value}" aria-hidden="true"></i><span>${previewLabel(role)}</span></button>`).join('');
   const scope = $('#alternativeScope');
-  if (scope) scope.textContent = `${coordinates.chroma < NEUTRAL_CHROMA ? 'Nearby neutrals' : 'Nearby hues'} · changes ${label} only`;
-  const alternatives = colorAlternatives(color);
+  // Candidates are checked against the other authored members, never the preview-only roles.
+  const alternatives = paletteAlternatives(color, current.workspace.members, activeColorIndex);
+  const checked = current.workspace.members.length > 1 ? ' · checked against the other colors' : '';
+  if (scope) scope.textContent = `${alternatives.length ? coordinates.chroma < NEUTRAL_CHROMA ? 'Nearby neutrals' : 'Nearby hues' : 'No nearby option stays distinct'}${checked} · changes ${label} only`;
   $('#colorAlternativeGrid').innerHTML = alternatives.map(value => `<button type="button" style="--choice:${value};--on:${textOn(value)}" data-use-color="${value}" aria-label="Replace ${label} with ${value}" title="${value} · ${label} only"><code>${value.slice(1)}</code></button>`).join('');
   const activeRole = roleOfMember(current.workspace, activeColorIndex);
   const pairIndex = activeRole === 0 ? 4 : 0;

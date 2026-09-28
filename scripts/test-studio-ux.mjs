@@ -107,7 +107,8 @@ test('Alternatives state their single-color scope and use the neutral-safe gener
   assert.match(studio, /<p id="alternativeScope">Changes the selected color only<\/p>/);
   assert.match(app, /changes \$\{label\} only/);
   assert.match(app, /const label = activeLabel\(\);/);
-  assert.match(app, /const alternatives = colorAlternatives\(color\);/);
+  assert.match(app, /const alternatives = paletteAlternatives\(color, current\.workspace\.members, activeColorIndex\);/);
+  assert.match(app, /checked against the other colors/);
   assert.doesNotMatch(app, /clamp\(coordinates\.chroma \* 1\.04, \.06, \.2\)/);
   assert.match(app, /replacePaletteColor\(activeColorIndex, color, \{ keepShadeSource:/);
 });
