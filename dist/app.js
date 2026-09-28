@@ -6,7 +6,7 @@ import { savePaletteHandoff } from './palette-handoff.js?v=1';
 import { createLibraryEngine } from './library-engine.js?v=1';
 import { paletteNameLibrary } from './palette-name-library.js?v=3';
 import { roles, clamp, contrast, textOn, rgb, toHex, oklab, oklch, paletteFromColor, exportPalette, extractPaletteVariants, oklabDistance } from './color.js?v=2';
-import { createAtlas, atlasWorlds } from './globe.js?v=29';
+import { createAtlas, atlasWorlds } from './globe.js?v=30';
 import { buildShadeFamilies } from './shade-studio.js?v=1';
 import { createColorGlobe, toHsl, fromHsl } from './color-globe.js?v=3';
 import { SUPPORTED_IMAGE_TYPES, validateImageFile } from './image-file.js?v=1';
@@ -578,7 +578,8 @@ function renderMiniEditor() {
 
 function addAtlasSelection(payload) {
   if (!payload) return;
-  const wasEmpty = atlasSelected.length === 0;
+  // The automatic startup seed does not count as the user starting a palette.
+  const wasEmpty = !atlasSelected.some(item => !item.seeded);
   atlasHover = payload;
   const existing = atlasSelected.findIndex(item => item.worldId === payload.worldId && item.index === payload.index);
   if (atlasActiveSlot !== null) {
@@ -591,7 +592,7 @@ function addAtlasSelection(payload) {
     atlasRecentSlot = null;
   } else if (atlasSelected.length >= 5) { toast('Select a palette color to replace it, or clear the palette.'); return; }
   else { atlasRecentSlot = atlasSelected.length; atlasSelected.push(payload); }
-  if (wasEmpty && atlasSelected.length) window.colorverseTrack?.('palette_started', { source: 'globe' });
+  if (wasEmpty && atlasSelected.some(item => !item.seeded)) window.colorverseTrack?.('palette_started', { source: 'globe' });
   atlasPinned = atlasSelected.at(-1) || null;
   setAtlasReadout(atlasPinned, Boolean(atlasPinned));
   renderAtlasSelection();
@@ -1203,8 +1204,16 @@ if (page === 'home') {
       selectAtlasWorld(buttons[nextIndex].dataset.atlasWorld);
     });
     if (atlasWorldSelect) atlasWorldSelect.addEventListener('change', () => selectAtlasWorld(atlasWorldSelect.value));
-    setAtlasReadout(null);
     const syncGlobeSelection = () => globe.setSelection(atlasSelected.filter(item => item.worldId === activeAtlasWorld.id).map(item => item.index));
+    // Open with one actual front-facing cell of the active world selected, silently.
+    if (!atlasSelected.length) {
+      atlasSelected = [{ ...globe.frontCell(), worldId: activeAtlasWorld.id, seeded: true }];
+      atlasPinned = atlasSelected[0];
+      syncGlobeSelection();
+      renderAtlasSelection();
+      renderSelection();
+    }
+    setAtlasReadout(atlasPinned, Boolean(atlasPinned));
     const miniStudioSwatches = $('#heroSwatches');
     if (miniStudioSwatches) miniStudioSwatches.addEventListener('click', event => {
       const button = event.target.closest('[data-mini-slot]');

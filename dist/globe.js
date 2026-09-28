@@ -308,6 +308,16 @@ export function createAtlas(canvas, { onSelect, onHover, onReady, imageFor, inte
       needsDraw = true;
     },
     setMarker(point, hex) { marker = { point, hex }; needsDraw = true; },
+    // The cell facing the viewer now; slow rotation keeps it in view at startup.
+    frontCell() {
+      const cr = Math.cos(rotation), sr = Math.sin(rotation), ct = Math.cos(tilt), st = Math.sin(tilt);
+      let best = 0, bestDepth = -Infinity;
+      cells.forEach(({ center: [x, y, z] }, index) => {
+        const depth = y * st + (z * cr - x * sr) * ct;
+        if (depth > bestDepth) { best = index; bestDepth = depth; }
+      });
+      return payload(best);
+    },
     focusPoint([x, y, z], immediate = false) {
       const angle = -Math.atan2(x, z);
       targetRotation = rotation + Math.atan2(Math.sin(angle - rotation), Math.cos(angle - rotation));
