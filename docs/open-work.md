@@ -12,7 +12,9 @@ Owner'ın en son talimatı Claude'u mühendislik işlerinde yeniden kullanmaktı
 aktarılması ve görünmesi, Claude Opus 5.5 tarafından yerelde teslim edildi ve
 Codex tarafından incelenip entegre edildi. Sonraki mühendislik görevleri yine
 Claude'a dar scope ile verilir; Codex kapsam/inceleme/entegrasyon sahibidir.
-Hazır, başladı ve teslim durumları ayrı kanıtla kaydedilir; aktif worker yok.
+Hazır, başladı ve teslim durumları ayrı kanıtla kaydedilir. 28 Eylül akşamı
+STUDIO-SHORT-12 ve CORPUS-APPLIED-02 ayrı Claude Opus 5.5 oturumlarında başladı;
+birinin model dosyaları, diğerinin yalnız araştırma notu yazma yetkisi var.
 
 ## Aktif yayın hazırlığı — 27–28 Eylül 2026
 
@@ -34,8 +36,12 @@ korur. Tarih hedefi, geçilmemiş kontrolleri tamamlanmış saydırmaz.
 
 | İş | Sahip | Durum / sıradaki çıktı |
 | --- | --- | --- |
-| STUDIO-SHADES-10 — sağda dikey tam genişlikli ton şeritleri | Claude Opus 5.5; Codex inceleme | [Dar görev hazır](tasks/studio-shades-10.md); eski görünüm geri gelir, edit mantığı değişmez. Başlama/teslim kanıtı ayrı kaydedilir. |
-| STUDIO-SCREENS-11 — sakin rapor zemini ve giriş animasyonu | Claude Opus 5.5; Codex inceleme | [Dar görev hazır](tasks/studio-screens-11.md); mevcut örnek veri/yerleşim korunur, palet yalnız bilinçli vurgu olur. Başlama/teslim kanıtı ayrı kaydedilir. |
+| STUDIO-SHADES-10 — sağda dikey tam genişlikli ton şeritleri | Claude Opus 5.5; Codex entegrasyon | [Tamamlandı, yerel](tasks/studio-shades-10.md): Claude değişikliği `2a7898c`, ana dalda `0324c1e`; Codex 36 Studio testi, diff-check ve 4211 görsel kontrolü yaptı. Yayına çıkmadı. |
+| STUDIO-SCREENS-11 — sakin rapor zemini ve giriş animasyonu | Claude Opus 5.5; Codex entegrasyon | [Tamamlandı, yerel](tasks/studio-screens-11.md): Claude `4f4b816`, ana dalda `0f02a18` + CSS/cache entegrasyonu `89eda22`. 198 test ve 4211 tarayıcı kontrolü; rapor üste hizalı, sabit açık canvas ve tek seferlik grafik animasyonu. Yayına çıkmadı. |
+| STUDIO-SHORT-12 — 2–4 gerçek renk, önizleme destek renkleri | Claude Opus 5.5; Codex inceleme | [Model/export görevi](tasks/studio-short-model-12.md) `d02b4a9` tabanından ayrı worktree'de gerçekten başladı; canlı `http://127.0.0.1:4213/`. Hesap→Studio handoff/arayüz ikinci bağımsız dilim; henüz tamamlanmadı. |
+| CORPUS-APPLIED-02 — uygulanmış proje kanıtı | Claude Opus 5.5; Codex inceleme | [Dar araştırma](tasks/corpus-applied-projects-02.md) `42cfd6f` tabanından ayrı worktree'de gerçekten başladı; canlı `http://127.0.0.1:4212/`. 3–5 birincil proje/kullanım hakkı adayı; onaylı corpus veya import değil. |
+| STUDIO-ALTERNATIVES-13 — paletin tamamına göre alternatif | Codex kapsam kararı; Claude sonraki mühendislik | Mevcut kod yalnız seçilen rengin yakın varyantlarını üretir. Sonraki dar iş: diğer gerçek üyelerle tekrar/ilişki/okunurluk kontrolü; onaylı referans corpus oluşmadan onu kullanılmış gibi gösterme. |
+| VOTING-01 — Inspiration için editoryal karşılaştırma | Ürün sahibi kararı; Codex kapsam | Öneri: iki **onaylı ve görsel hakkı açık** uygulamayı karşılaştır; oturumlu kullanıcıya bir değiştirilebilir tercih, ilk etapta kamuya açık skor/yorum yok. Adaylar ve haklar olmadan canlı oylama açma. |
 | HOME-GLOBE-SEED-09 — ana sayfa tek seçili küre rengiyle açılsın | Claude Opus 5.5 teslim; Codex inceleme/entegrasyon/yayın | [Teslim](tasks/home-globe-seed-09.md): `553f72c` + `ed21c97` → main `ed21c97`, public `8c305da`. İzole 4208 açılış/temizle/kayıtlı dünya/Studio handoff geçti; ana checkout 195 PASS. Hosted aday kontrolü ve Cloudflare/custom-domain byte-match PASS; mobil/reduced-motion/owner kabulü açık. |
 | STUDIO-COLORS-08 / 08A — Studio'ya bütün palet renklerini taşı | Claude Opus 5.5 teslim; Codex inceleme/entegrasyon | [Yerel teslim](tasks/studio-colors-08.md): `2e8d179` + `6e3f334` → main `c2b63e1` + `f352b8d`. 8–10 renk iki kompakt sütunda tam görünür; toplam/sürükleme-kaydırma ipucu, collapsed dar şerit, klavye satır seçimi. Legacy home-test yazar düzeltmesi tüm üyeleri/sırayı/haritayı korur; HQ-03 cleanup kararı açık. 4206 gerçek 5/8/10, extra-edit→placement→reload, legacy 10→10 ve 320px PASS; main 193 PASS. Orijinal owner yolu henüz verilmedi; 24 browser/private save NOT RUN, yayın yok. Oturum `1e38f465-63e3-45dd-b455-dc4e03d68b3b`, canlı `http://127.0.0.1:4205/`; worker bekliyor |
 | STUDIO-FOCUS-07 — sonuç odaklı Studio ve görünür düzenleme | Codex tek yazar | [Yerel teslim](tasks/studio-focus-07.md): renkli yeni başlangıç, Apply paneli yok, solda 184/64px rail ve seçme, sağda görünür tonlar/tek tıklık ayarlar/açık Globe. Üyeler/atamalar/baseline korunur; >5 üye için explicit sağ yerleştirme. 111 static / 189 PASS; 4203 5/10 renk, select-only/shade/collapse/comparison/Globe/reload ve 320px kontrolü; owner UX kabulü/yayın yok, Claude kullanılmadı |
