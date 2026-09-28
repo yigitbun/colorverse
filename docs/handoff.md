@@ -12,8 +12,11 @@ güncel yönlendirme sonraki görüşmeyi kaydeder.
   ayrı worktree'de `553f72c` + `ed21c97` olarak teslim edildi, Codex inceleyip
   yerel main'e aldı. Aktif/kayıtlı dünyadaki gerçek ön yüz hücresi Mini Studio'da
   `1 / 5` görünür; Clear boş bırakır, Studio'ya aktarım korunur. 4208 izole
-  browser kanıtı ve 194 PASS / 1 skip var. Mobil/hosted/owner kabulü ve yayın
-  henüz yok; Claude'un canlı oturumu `http://127.0.0.1:4207/` tamamlandı.
+  browser kanıtı var. Main `8c305da` 2026-09-28'de Cloudflare Pages'e
+  gönderildi; 111 static / 195 PASS / 0 FAIL, audit 0, canlı aday kontrolü ve
+  hem Pages origin hem public domainde ana sayfa/app/globe/Studio byte-match
+  PASS. Mobil/reduced-motion/owner kabulü ve gerçek inbox/private save hâlâ
+  açık; Claude'un canlı oturumu `http://127.0.0.1:4207/` tamamlandı.
 - Owner'ın son talimatı Claude'u yeniden tüm mühendislik işlerinde kullanmak;
   eski kapasite rezervasyonu aşağıda tarihsel kalır. İlk öncelik >5 palet renginin
   Studio'da kaybolması: [STUDIO-COLORS-08 / 08A](tasks/studio-colors-08.md) dar

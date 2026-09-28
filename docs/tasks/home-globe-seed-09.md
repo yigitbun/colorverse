@@ -4,7 +4,8 @@ Owner/writer: Claude Code, model `claude-opus-5-5`. Codex coordinates, reviews,
 and integrates. Prepared from clean main `a88e435`; implementation base is the
 assignment commit containing this brief. Branch `codex/claude-home-globe-seed`,
 separate worktree `.local/worktrees/claude-home-globe-seed`. Status: delivered,
-reviewed, and integrated locally at `ed21c97`; no push or deployment. Claude
+reviewed, integrated at `ed21c97`, and publicly released in main `8c305da`
+on 2026-09-28. Claude
 session `02417483-960b-40a8-9a93-8b9b6e1c260f`, visible at
 `http://127.0.0.1:4207/`.
 
@@ -61,5 +62,8 @@ Codex's isolated local browser at port 4208 confirmed: default `1 / 5` and
 Mini Studio matching HEX; Clear remains `0 / 5`; clicking the front-facing
 seeded cell immediately after open deselects it; saved Botanical world reloads
 with its own selected HEX; Continue in Studio carries that exact first HEX.
-This did not use the owner's drafts. Mobile, reduced-motion, hosted route and
-real-user acceptance were not run. No public release is implied.
+This did not use the owner's drafts. Mobile, reduced-motion, and real-user
+acceptance were not run. After the main push, the hosted release-candidate check
+passed, and home/app/globe/Studio bytes matched local content at both the
+Cloudflare Pages origin and the public domain. This is not a real-inbox or
+authenticated-save test.
