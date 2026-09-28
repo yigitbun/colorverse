@@ -1,10 +1,19 @@
 # STUDIO-VISUAL-01 — purpose-designed product master
 
-Status: new visual candidate, not a live replacement or approved corpus record.
+Status: v1's generic package rejected by the owner; v3 is the new visual
+direction candidate, not a live replacement or approved corpus record.
 Codex owns art direction and the generated candidate. Claude owns separately
 assigned renderer implementation after asset review; no renderer task started.
 
 ## Design direction
+
+Owner revision: the first bottle looks like a generic empty drugstore
+container. Aim for a distinct premium French-boutique skincare character,
+without copying an existing brand or claiming French manufacture/origin.
+The revised design uses a broad flattened-oval glass bottle with substantial
+clear base, a lower micro-fluted cap, a slender colored collar and a smaller
+precisely typeset label. Keep the same five Citrus Muse example colors, so
+the improvement comes from shape, proportions, materials and hierarchy.
 
 Begin with one hero product, not five differently colored copies. The same
 product may gain a secondary identical copy later only if it clarifies the
@@ -102,6 +111,46 @@ Workspace outputs (built-in imagegen, no CLI fallback):
 The alpha-cleanup attempt remains at the built-in generated-images location;
 it did not resolve the edge defect and was not selected as the workspace master.
 Original outputs are retained. Existing source Katre photo is unchanged.
+
+## Owner-requested premium redesign — v2 / selected v3
+
+Built-in imagegen edits only; no CLI/API fallback or manual bitmap editing.
+v2 redesigned the geometry and label. Visual inspection found a pebbly,
+plastic-like body and overly dominant closure/collar; it was not selected.
+v3 is the selected design-review output:
+`docs/assets/katre-product-design-proof-v3.png` (1254 × 1254, opaque).
+It has smoother glass highlights and clear weighted base, lower cap,
+narrower ochre collar, intact five-color mapping and readable KATRE / SERUM /
+50 ml text. Those words describe a fictional packaging concept, not product
+efficacy, certification or geographical provenance. No new palette record.
+
+Owner approval of this revised form is pending. It is a finished illustrative
+photo only: no transparent master, editable surface layers or live renderer
+replacement has been created from it. Materials and perspective need to be
+preserved in later surface-mask work; do not flat-tint transparent glass or
+promise pixel-exact/physical color reproduction. Existing assets are retained.
+
+### Exact submitted prompt — v2 geometry redesign
+
+Use case: precise-object-edit.
+Asset type: a revised ColorVerse Studio skincare packaging art-direction proof, not a final interactive renderer asset.
+Input image: the existing KATRE five-color product proof is an EDIT TARGET. Preserve only its exact five-color design palette, KATRE brand identity, single-product composition and quiet independent warm-neutral studio setting. Completely redesign the actual container geometry and packaging; the old large plastic cap, tall rounded rectangle and huge generic sticker are explicitly NOT invariants.
+Primary request: replace the generic empty drugstore-style container with an original, impeccably art-directed high-end French boutique skincare package, photographed with genuine luxury beauty-editorial material realism. Do not copy any existing brand's logo or exact signature packaging.
+Subject / industrial design: ONE compact 50 ml serum bottle made from thick satin-frosted tinted glass. A distinctive broad flattened-oval section, softly sculpted sloping shoulders, subtle precisely defined flat front facet, narrow neck, and a convincingly heavy glass base. Body width approximately 70% of body height: substantial and architectural, not an elongated plastic tube, soap dispenser, flask, perfume bottle or stock amber dropper. The cap is a LOW refined circular/oval machined-aluminum overcap, approximately 15% of the total package height, deliberately narrower than the widest glass shoulder, with a fine vertical micro-fluting around its edge and a precise lower seam. No visible dropper bulb or dispenser pump.
+Design / palette: preserve the five existing Citrus Muse colors as recognizable designed surface colors, acknowledging real photographic lighting. Coral #E9947B on the satin-frosted glass body with believable glass depth at the edges and shoulders; soft lavender #BBA2D1 on the low satin-finished metal cap; pale sage #C8D8A7 on a compact exquisitely aligned uncoated-paper front label, roughly half the front width and half the body height, leaving ample beautiful glass visible; ochre #EAC843 as a very slender neck collar and one small restrained graphic rule on the label; very dark green #253B25 as the printed typography. All five belong to the product, never only to the backdrop. No extra brand palette, gold foil, marble, gems or decorative luxury cliches.
+Label / typography: an actual finished brand composition with precise hierarchy, considered margins and convincing small ink printing. Brand text EXACTLY "KATRE" in a refined modern high-contrast serif, not the large widely spaced generic sans-serif of the old design. Below it, smaller quiet clean sans-serif EXACTLY "SERUM"; at the bottom EXACTLY "50 ml". No other letters, numbers, botanical or clinical claims, provenance claims or symbols. No logo from any existing brand. Text centered, sharp, dark green and readable. Label edges crisp and physically flush, not inflated, ragged or embossed.
+Photography / composition: exceptionally photorealistic French skincare campaign product photography, 85 mm studio lens look. One full product only, upright, slight 8-degree three-quarter view to reveal the flattened oval form and heavy glass base while keeping the label readable. Product occupies approximately 66% of the square frame height, generous clean negative space. Opaque quiet warm-neutral seamless backdrop #F1F0EA and a subtle physically correct contact shadow. Large diffuse neutral softbox with controlled narrow side highlights that reveal glass rather than generic pebbly plastic. Refined smooth materials, no metallic glitter, noise, fake rough pores, toy CGI or blown highlights. Full cap/base visible, clean silhouette, no halo or color spill, no rocks, leaves, flowers, pedestals, boxes, extra bottles, props, watermark, swatch blocks, title or comparison layout.
+Constraints: a single finished product photograph, not a collage or specification sheet; palette order and values are unchanged, and no new corpus palette is being generated. Do not preserve the old generic bottle silhouette. Output the whole image opaque.
+
+### Exact submitted prompt — v3 material/closure refinement
+
+Use case: precise-object-edit.
+Input image: the latest KATRE SERUM broad flattened-oval coral glass bottle is the edit target.
+Primary request: one targeted PREMIUM MATERIAL AND CLOSURE REFINEMENT pass. Preserve the new broad glass bottle silhouette, front label dimensions and exact layout/text, all five existing applied palette colors, camera, quiet warm-neutral studio backdrop, composition and lighting direction. Do not revert to the old tall generic plastic package.
+Change only finishing and closure proportions: remove the pervasive rough orange-peel/pebbly grain from the coral bottle and replace it with exquisite smooth satin-lacquered thick glass, with continuous subtle controlled vertical studio reflections and convincing translucent optical depth at the shoulder, side edges and heavy base. The heavy glass base must look polished and optically coherent, not bubbly, noisy or gelatinous. It must read as expensive photographed GLASS, not molded plastic or an AI clay render.
+Reduce the lavender cap height by about one third while preserving its existing width and top silhouette. Refine the cap's coarse vertical ridges into very fine, shallow and precisely machined micro-fluting in satin-coated aluminum, not a plastic screw lid. Reduce the ochre neck collar to a slim precisely fitted 2–3 mm jewelry-like colored detail, not a broad yellow stripe. Keep ochre #EAC843 recognizably on that narrow collar and on the fine label rule; no metallic gold color added.
+The pale sage paper label should have a subtle finely milled matte paper texture, not coarse sponge fibers. Keep its aligned edges and exact dark-green typography "KATRE", "SERUM", "50 ml" unchanged, with no invented text or claims. Retain coral #E9947B body, lavender #BBA2D1 cap, sage #C8D8A7 label, ochre #EAC843 collar/rule, dark-green #253B25 print; photographic reflections are okay, no repainting into a new palette.
+Aim for convincingly real, quietly exceptional French boutique cosmetics product photography, not decorative luxury theatrics. Full product visible; independent opaque #F1F0EA backdrop and subtle contact shadow retained. No added props, packaging, alternate product, comparison layout, swatches, halo, color spill, metallic glitter, heavy film grain or watermark. This is still an illustrative design candidate, not a physical color proof.
 
 ## Exact submitted prompt — finished design proof
 

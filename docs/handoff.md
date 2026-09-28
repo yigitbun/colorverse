@@ -7,6 +7,16 @@ güncel yönlendirme sonraki görüşmeyi kaydeder.
 
 ## Güncel yönlendirme — 2026-09-28
 
+- Son görsel geri bildirimi: owner v1 ürün formunu standart boş DM tüpü gibi
+  buldu, daha nitelikli Fransız kozmetik ambalajı karakteri istedi. Built-in
+  imagegen ile yeni form ve bir material/closure refinement yapıldı;
+  [v3 aday](assets/katre-product-design-proof-v3.png) yassı-oval cam, kalın taban,
+  alçak kapak, küçük serif etiket ve ince boyun halkası kullanır. Aynı beş
+  Citrus Muse rengi korunur; gerçek marka kopyası veya coğrafi üretim iddiası
+  yok. [Promptlar ve değerlendirme](tasks/studio-visual-01.md) kaydedildi.
+  Owner revised form onayı bekler; sadece opak fotoğraf, uygulamaya alınmadı.
+  Yeni renderer/Claude görevi, corpus kaydı, hosted işlem veya yayın yok.
+
 - Son uygulama turu **yerel**: UX-04 checkpoint `21c10e7`; Claude'un üç
   küçük mühendislik teslimi main'e incelenerek alındı: UX-05A `2e9352c`,
   tray-05B `697594c`, role-use-05C `83aa555`. Sağdaki tekrar ton şeridi yok;
