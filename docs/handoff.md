@@ -7,6 +7,12 @@ güncel yönlendirme sonraki görüşmeyi kaydeder.
 
 ## Güncel yönlendirme — 2026-09-28
 
+- İlk somut öncelik dış ekipten gelecek Color Corpus entegrasyonudur.
+  `CORPUS-INTEGRATION-01` üç read-only Claude alt ajanıyla incelendi;
+  [A–G raporu](color-corpus-integration-assessment.md) Codex incelemesiyle hazır.
+  Corpus üretimi/editoryal yönetim dış ekipte kalır. Henüz kayıt içe alınmadı,
+  palet/görsel üretilmedi veya uygulama/DB değiştirilmedi. Kullanıcıya rapor
+  sunulduktan sonra DUR: implementasyon için yeni onay gerekir.
 - Kullanıcı yoğun çalışıp en geç **28 Eylül 2026 (Europe/Berlin)** kendi testini
   yapmak ve yayın koşulları kapanınca çıkmak istiyor. Haftalara yayılan plan
   yerine kısa yayın hazırlığı geçerli. Kalan birkaç ürün işi henüz sıralanmadı.
