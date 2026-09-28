@@ -487,6 +487,31 @@ function renderColorLab() {
     return `<button type="button" class="contrast-choice" data-use-color="${value}" title="${value} against ${pair}" aria-label="Use ${value}, contrast ${ratio} to 1 against ${roles[pairIndex]}"><span style="background:${activeRole === 0 ? value : pair};color:${activeRole === 0 ? pair : value}" aria-hidden="true">Aa</span><code>${ratio}:1</code></button>`;
   }).join('');
   renderColorTray();
+  renderColorUseHint();
+}
+
+// Only the Skincare photo has annotated surfaces to report on; other product
+// kinds and contexts show no product-application claim at all.
+function renderColorUseHint() {
+  const hint = $('#selectedColorUse');
+  if (!hint) return;
+  if (context !== 'landing' || productKind !== 'skincare') {
+    hint.hidden = true;
+    hint.textContent = '';
+    return;
+  }
+  const role = roleOfMember(current.workspace, activeColorIndex);
+  const label = activeLabel();
+  const text = role < 0
+    ? `${label} isn't one of the five preview colors, so the photo doesn't use it. Give it a role above to apply it.`
+    : (() => {
+      const surfaces = PHOTO_SURFACE_CONTROLS.filter(([part]) => careAssignment[part] === role).map(([, title]) => title);
+      return surfaces.length
+        ? `Colors ${surfaces.join(' & ')} in the photo. Background and printed lettering stay fixed.`
+        : `Not applied to the photo. Choose ${label} for Tube, Bottle, Jar or Caps above.`;
+    })();
+  hint.hidden = false;
+  hint.textContent = text;
 }
 
 const libraryEngine = createLibraryEngine(editionPalettes, { approvedIds: approvedPaletteIds, aliases: Object.fromEntries(Object.entries(paletteNameLibrary).map(([id, record]) => [id, record.aliases])) });
@@ -816,8 +841,8 @@ function setupTabs(selector, callback) {
   });
 }
 
-setupTabs('[data-context]', button => { context = button.dataset.context; renderProductPicker(); renderContextCaption(); renderMockup(); window.dispatchEvent(new CustomEvent('colorverse:studiochange')); track('context_preview', { context }); });
-setupTabs('[data-product-kind]', button => { productKind = button.dataset.productKind; renderProductPicker(); renderContextCaption(); renderMockup(); window.dispatchEvent(new CustomEvent('colorverse:studiochange')); track('product_preview', { product: productKind }); });
+setupTabs('[data-context]', button => { context = button.dataset.context; renderProductPicker(); renderContextCaption(); renderMockup(); renderColorUseHint(); window.dispatchEvent(new CustomEvent('colorverse:studiochange')); track('context_preview', { context }); });
+setupTabs('[data-product-kind]', button => { productKind = button.dataset.productKind; renderProductPicker(); renderContextCaption(); renderMockup(); renderColorUseHint(); window.dispatchEvent(new CustomEvent('colorverse:studiochange')); track('product_preview', { product: productKind }); });
 $('#mockup')?.addEventListener('change', event => {
   const select = event.target.closest('[data-care-part]');
   if (!select || !Object.hasOwn(careAssignment, select.dataset.carePart)) return;
@@ -826,6 +851,7 @@ $('#mockup')?.addEventListener('change', event => {
   careAssignment[select.dataset.carePart] = index;
   persistPalette(current);
   renderMockup();
+  renderColorUseHint();
   window.dispatchEvent(new CustomEvent('colorverse:studiochange'));
   $('#mockup')?.querySelector(`[data-care-part="${select.dataset.carePart}"]`)?.focus({ preventScroll: true });
 });

@@ -138,6 +138,26 @@ test('shades are edited only inline; the right panel keeps selected-color tools'
   assert.doesNotMatch(app, /\$\('#colorLab'\)\?\.addEventListener\('click', event => \{\n  const shade/);
 });
 
+test('Selected color states where it is used on the Skincare photo, and only there', () => {
+  const panel = studio.slice(studio.indexOf('<aside class="color-lab"'), studio.indexOf('</aside>', studio.indexOf('<aside class="color-lab"')));
+  assert.match(panel, /<span id="selectedColorUse" hidden><\/span>/);
+  const hint = functionBody('renderColorUseHint');
+  // Hidden outside Products → Skincare, so no stale photo claim survives a context or product switch.
+  assert.match(hint, /if \(context !== 'landing' \|\| productKind !== 'skincare'\) \{\n    hint\.hidden = true;\n    hint\.textContent = '';\n    return;\n  \}/);
+  // An unassigned extra member (role < 0) is not one of the five colors the photo can use.
+  assert.match(hint, /const role = roleOfMember\(current\.workspace, activeColorIndex\);/);
+  assert.match(hint, /role < 0\s*\n\s*\? `\$\{label\} isn't one of the five preview colors, so the photo doesn't use it\. Give it a role above to apply it\.`/);
+  // Assigned members are checked against the live careAssignment map, not a fixed guess.
+  assert.match(hint, /const surfaces = PHOTO_SURFACE_CONTROLS\.filter\(\(\[part\]\) => careAssignment\[part\] === role\)\.map\(\(\[, title\]\) => title\);/);
+  assert.match(hint, /Colors \$\{surfaces\.join\(' & '\)\} in the photo\. Background and printed lettering stay fixed\./);
+  assert.match(hint, /Not applied to the photo\. Choose \$\{label\} for Tube, Bottle, Jar or Caps above\./);
+  // Updated on member/color selection, and on context, product-kind and care-assignment changes.
+  assert.match(functionBody('renderColorLab'), /renderColorUseHint\(\);/);
+  assert.match(app, /setupTabs\('\[data-context\]', button => \{ context = button\.dataset\.context;.*renderColorUseHint\(\);/);
+  assert.match(app, /setupTabs\('\[data-product-kind\]', button => \{ productKind = button\.dataset\.productKind;.*renderColorUseHint\(\);/);
+  assert.match(app, /careAssignment\[select\.dataset\.carePart\] = index;\n  persistPalette\(current\);\n  renderMockup\(\);\n  renderColorUseHint\(\);/);
+});
+
 test('Studio assets are cache-busted', () => {
   assert.match(studio, /\/app\.js\?v=98/);
   assert.match(studio, /\/studio-editor\.css\?v=11/);
