@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { colorAlternatives, colorCoordinates, paletteAlternatives, quickColorAdjustments, INDISTINGUISHABLE, NEUTRAL_CHROMA } from '../dist/color-alternatives.js';
-import { contrast, oklabDistance } from '../dist/color.js';
+import { contrast, oklab, oklabDistance, extractPaletteVariants } from '../dist/color.js';
 
 const neutrals = ['#F7F6F2', '#DFE0DC', '#A9AAA7', '#808080', '#6E7374', '#252B2F', '#E8E1D5', '#8A927C', '#FFFFFF', '#000000'];
 const colors = ['#E85D75', '#2F6FDE', '#B68B70', '#F2C14E', '#3D7A5A'];
@@ -108,4 +108,115 @@ test('palette-aware alternatives drop near-duplicates and fall back honestly', (
   for (const value of paletteAlternatives('#808080', ['#808080', '#838383'], 0)) assert.ok(oklabDistance(value, '#838383') >= INDISTINGUISHABLE);
   // Realistic palettes still get suggestions for their main colors.
   for (const index of [0, 2, 3]) assert.ok(paletteAlternatives(palettes.five[index], palettes.five, index).length >= 1, `five-color member ${index}`);
+});
+
+// Deterministic synthetic image pixels (RGBA) for the three image readings.
+function image(width, height, colorAt) {
+  const pixels = new Uint8ClampedArray(width * height * 4);
+  let seed = 7;
+  const jitter = amount => { seed = (seed * 1103515245 + 12345) % 2147483648; return Math.round((seed / 2147483648 - .5) * 2 * amount); };
+  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+    const [hex, amount = 0, alpha = 255] = colorAt(x, y), shift = jitter(amount);
+    pixels.set([...hex.match(/\w\w/g).map(v => parseInt(v, 16) + shift + jitter(amount / 2)), alpha], (y * width + x) * 4);
+  }
+  return pixels;
+}
+// A pale sales dashboard: a large, slightly noisy near-white/grey page with
+// navy headings, blue and light-blue charts, and small green/coral/rose/purple bars.
+const dashboardAccents = ['#1C3A5E', '#3E71AE', '#BBD0EA', '#4D8B6B', '#E9956B', '#C45E6E', '#B28BC4'];
+const dashboard = image(180, 120, (x, y) => {
+  if (y < 12 && x > 20 && x < 90) return ['#1C3A5E', 3];
+  if (y > 30 && y < 70 && x > 20 && x < 110 && x % 9 < 5) return y > 44 ? ['#BBD0EA', 3] : ['#3E71AE', 3];
+  if (y > 30 && y < 70 && x > 125 && x < 160) return (x + y) % 3 ? ['#3E71AE', 3] : ['#1C3A5E', 3];
+  if (y > 82 && y < 88 && x > 30 && x < 90) return ['#4D8B6B', 3];
+  if (y > 90 && y < 96 && x > 30 && x < 80) return ['#E9956B', 3];
+  if (y > 98 && y < 102 && x > 30 && x < 70) return ['#C45E6E', 3];
+  if (y > 104 && y < 107 && x > 30 && x < 60) return ['#B28BC4', 3];
+  if (y > 110 && x > 120) return ['#8A9099', 4];
+  if (x < 18) return ['#F1F3F6', 6];
+  if (y % 40 === 25 || x % 60 === 55) return ['#E2E6EB', 6];
+  return ['#FAFBFC', 7];
+});
+const chroma = hex => Math.hypot(...oklab(hex).slice(1));
+const nearestSource = hex => Math.min(...dashboardAccents.map(source => oklabDistance(hex, source)));
+
+test('image readings are valid, unique, deterministic and labeled by origin', () => {
+  const result = extractPaletteVariants(dashboard);
+  assert.deepEqual(extractPaletteVariants(dashboard), result);
+  assert.ok(result.sampled >= 5 && result.sampled <= 8);
+  assert.deepEqual(result.variants.map(variant => variant.key), ['observed', 'focused', 'applied']);
+  for (const variant of result.variants) {
+    assert.equal(variant.colors.length, 5);
+    assert.equal(new Set(variant.colors).size, 5, `${variant.key} has duplicate colors`);
+    for (const value of variant.colors) assert.match(value, /^#[0-9A-F]{6}$/);
+    assert.equal(variant.origins.length, 5);
+    assert.ok(variant.name && variant.detail && variant.description);
+  }
+  const [observed, focused, applied] = result.variants.map(variant => variant.colors);
+  for (const [a, b] of [[observed, focused], [focused, applied], [observed, applied]]) assert.ok(a.filter(value => !b.includes(value)).length >= 2, `${a} vs ${b}`);
+});
+
+test('Observed keeps colored regions of a pale dashboard instead of five near-neutrals', () => {
+  const { colors, description } = extractPaletteVariants(dashboard).variants[0];
+  assert.ok(colors.filter(value => chroma(value) < .04).length <= 2, `${colors} has too many neutrals`);
+  assert.ok(colors.some(value => chroma(value) < .04 && oklab(value)[0] > .95), 'the dominant pale page is still observed');
+  assert.ok(colors.filter(value => nearestSource(value) < .05).length >= 3, `${colors} misses the large chart colors`);
+  assert.match(description, /neutral area condensed/);
+  // A colorful scene with a small grey detail does not spend a slot on it.
+  const scene = image(120, 90, (x, y) => [y < 40 ? '#6FA8DC' : y < 70 ? (x < 60 ? '#4F8A3C' : '#8FB85A') : x === 5 && y < 80 ? '#7A7A7A' : '#D9B77E', 6]);
+  const photo = extractPaletteVariants(scene).variants[0];
+  assert.ok(photo.colors.every(value => chroma(value) >= .04), `${photo.colors} shows a tiny neutral`);
+  assert.doesNotMatch(photo.description, /condensed/);
+});
+
+test('Focused shows distinct sampled accents; Applied is a labeled working system', () => {
+  const [, focused, applied] = extractPaletteVariants(dashboard).variants;
+  assert.ok(focused.origins.every(origin => origin === 'sampled'), 'no adjusted tone poses as a sample');
+  assert.ok(focused.colors.every(value => chroma(value) >= .04 && nearestSource(value) < .05), `${focused.colors} are source accents`);
+  for (const accent of ['#4D8B6B', '#E9956B']) assert.ok(focused.colors.some(value => oklabDistance(value, accent) < .05), `Focused misses ${accent}`);
+  const [background, surface, primary, accent, text] = applied.colors;
+  assert.ok(oklab(background)[0] > .93 && chroma(background) < .03, 'quiet background');
+  assert.ok(oklab(surface)[0] > .82 && chroma(surface) < .06, 'quiet surface');
+  assert.ok(contrast(text, background) >= 7 && contrast(text, surface) >= 4.5, 'readable ink');
+  for (const value of [primary, accent]) assert.ok(chroma(value) >= .04 && nearestSource(value) < .05, `${value} is a source accent`);
+  assert.ok(oklabDistance(primary, accent) > .15);
+  assert.match(applied.description, /^A derived working system/);
+  const roleNames = ['background', 'surface', 'primary', 'accent', 'text'];
+  applied.origins.forEach((origin, index) => {
+    assert.match(applied.description, new RegExp(`${origin === 'sampled' ? 'Sampled' : 'Derived'}: [a-z, ]*${roleNames[index]}`));
+  });
+});
+
+test('a monochrome image stays neutral in every reading', () => {
+  const grey = image(120, 90, x => [['#F4F4F4', '#D0D0D0', '#9A9A9A', '#5E5E5E', '#1E1E1E'][Math.floor(x / 24)], 5]);
+  const { variants } = extractPaletteVariants(grey);
+  for (const variant of variants) {
+    for (const value of variant.colors) assert.ok(chroma(value) < .012, `${variant.key} invents a hue: ${value}`);
+    assert.equal(new Set(variant.colors).size, 5);
+  }
+  assert.match(variants[1].description, /no accent is invented/);
+  assert.ok(contrast(variants[2].colors[4], variants[2].colors[0]) >= 7);
+  // Two tones only: support tones are neutral and openly called derived.
+  for (const variant of extractPaletteVariants(image(40, 40, x => [x < 30 ? '#FFFFFF' : '#000000'])).variants) {
+    for (const value of variant.colors) assert.ok(chroma(value) < .012, `${variant.key} invents a hue: ${value}`);
+    assert.equal(new Set(variant.colors).size, 5);
+    assert.equal(variant.origins.filter(origin => origin === 'derived').length, 3);
+    assert.match(variant.description, variant.key === 'applied' ? /Derived: / : /3 supporting tones are derived/);
+  }
+});
+
+test('transparent pixels are ignored and a fully transparent image is refused', () => {
+  const cutout = image(60, 60, (x, y) => x < 30 ? ['#E0303A', 0, 0] : [y < 30 ? '#6A6A6A' : '#C8C8C8', 3]);
+  for (const variant of extractPaletteVariants(cutout).variants) for (const value of variant.colors) assert.ok(chroma(value) < .012, `${variant.key} shows hidden red ${value}`);
+  assert.throws(() => extractPaletteVariants(image(20, 20, () => ['#E0303A', 0, 0])), /no visible pixels/);
+});
+
+test('extraction stays fast on a noisy full-size sample', () => {
+  const hex = value => (value % 256).toString(16).padStart(2, '0');
+  const noise = image(180, 180, (x, y) => [`#${hex(x * 131 + y * 71)}${hex(x * 37 + y * 193)}${hex(x * y)}`, 20]);
+  const start = performance.now();
+  const result = extractPaletteVariants(noise);
+  const elapsed = performance.now() - start;
+  assert.ok(elapsed < 1500, `took ${elapsed}ms`);
+  for (const variant of result.variants) assert.equal(new Set(variant.colors).size, 5);
 });

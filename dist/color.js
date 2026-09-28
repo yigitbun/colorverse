@@ -104,9 +104,11 @@ const chromaOf = color => { const [, a, b] = oklab(color); return Math.hypot(a, 
 function arrangeRoles(source, primaryHint = null) {
   const colors = [...new Set(source.map(color => color.toUpperCase()))];
   const seed = primaryHint || colors[0] || '#6F7780';
-  const generated = paletteFromColor(seed);
+  // A neutral seed gets neutral support tones so no hue is invented.
+  const neutralSeed = chromaOf(seed) < NEUTRAL_LIMIT;
+  const generated = neutralSeed ? [.97, .88, seed, .62, .22].map(l => typeof l === 'string' ? l : oklch(l, 0, 0)) : paletteFromColor(seed);
   for (const tone of [generated[0], generated[4], generated[1], generated[3], generated[2]]) if (colors.length < 5 && !colors.includes(tone)) colors.push(tone);
-  while (colors.length < 5) colors.push(oklch(.2 + colors.length * .14, .035, hue(seed)));
+  while (colors.length < 5) colors.push(oklch(.2 + colors.length * .14, neutralSeed ? 0 : .035, hue(seed)));
   const pool = colors.slice(0, 8).sort((a, b) => luminance(b) - luminance(a));
   const background = pool.shift(), text = pool.pop();
   let primaryIndex = primaryHint ? pool.indexOf(primaryHint.toUpperCase()) : -1;
@@ -118,76 +120,164 @@ function arrangeRoles(source, primaryHint = null) {
   return [background, surface, primary, accent, text];
 }
 
-// Weighted clustering produces three deliberate readings. Image data never leaves the browser.
-export function extractPaletteVariants(pixels) {
-  const bins = new Map();
-  for (let i = 0; i < pixels.length; i += 4) {
-    if (pixels[i + 3] < 128) continue;
-    const key = (pixels[i] >> 3) * 1024 + (pixels[i + 1] >> 3) * 32 + (pixels[i + 2] >> 3);
-    const p = bins.get(key) || { n: 0, sum: [0, 0, 0] };
-    p.n++; for (let j = 0; j < 3; j++) p.sum[j] += pixels[i + j]; bins.set(key, p);
-  }
-  const entries = [...bins.values()].map(p => ({ n: p.n, c: p.sum.map(v => v / p.n) })).sort((a, b) => b.n - a.n);
-  if (!entries.length) throw new Error('This image has no visible pixels. Try a different image.');
-  const distance = (a, b) => a.reduce((sum, v, i) => sum + (v - b[i]) ** 2, 0);
-  let centers = [entries[0].c];
-  while (centers.length < Math.min(8, entries.length)) {
+// Oklab chroma below this reads as neutral (white, grey, black, or JPEG noise on them).
+const NEUTRAL_LIMIT = .04;
+// Colored pixels must cover at least this share of the visible image to count as present.
+const CHROMATIC_PRESENCE = .01;
+const hueOf = color => { const [, a, b] = oklab(color); return (Math.atan2(b, a) * 180 / Math.PI + 360) % 360; };
+
+// Weighted k-means in Oklab over pre-binned pixels; centers are RGB means of their members.
+function clusterBins(entries, k) {
+  if (!entries.length || k < 1) return [];
+  const distance = (a, b) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2;
+  let centers = [entries[0]];
+  while (centers.length < Math.min(k, entries.length)) {
     const best = entries.reduce((best, p) => {
-      const score = Math.min(...centers.map(c => distance(c, p.c))) * p.n ** .45;
-      return score > best.score ? { score, c: p.c } : best;
-    }, { score: -1, c: entries[0].c });
-    centers.push(best.c);
+      const score = Math.min(...centers.map(c => distance(c.lab, p.lab))) * p.n ** .45;
+      return score > best.score ? { score, p } : best;
+    }, { score: -1, p: null });
+    if (!best.p || best.score <= 0) break;
+    centers.push(best.p);
   }
+  centers = centers.map(center => ({ c: center.c, lab: center.lab }));
   let groups = [];
   for (let pass = 0; pass < 14; pass++) {
     groups = centers.map(() => ({ n: 0, sum: [0, 0, 0] }));
     for (const p of entries) {
-      const index = centers.reduce((best, c, i) => distance(c, p.c) < distance(centers[best], p.c) ? i : best, 0);
+      let index = 0, closest = Infinity;
+      centers.forEach((center, i) => { const d = distance(center.lab, p.lab); if (d < closest) { closest = d; index = i; } });
       const g = groups[index]; g.n += p.n; p.c.forEach((v, i) => g.sum[i] += v * p.n);
     }
-    centers = groups.map((g, i) => g.n ? g.sum.map(v => v / g.n) : centers[i]);
+    centers = groups.map((g, i) => g.n ? { c: g.sum.map(v => v / g.n), lab: oklab(g.sum.map(v => v / g.n)) } : centers[i]);
   }
-  const merged = new Map();
-  centers.forEach((center, index) => {
-    const hex = toHex(center), count = groups[index]?.n || 1;
-    merged.set(hex, (merged.get(hex) || 0) + count);
-  });
-  const candidates = [...merged].map(([hex, n]) => ({ hex, n, chroma: chromaOf(hex), lightness: oklab(hex)[0] })).sort((a, b) => b.n - a.n);
-  const sampled = candidates.length;
-  const observed = arrangeRoles(candidates.slice(0, 5).map(item => item.hex));
-  const maxCount = candidates[0]?.n || 1;
-  const focal = candidates.reduce((best, item) => {
-    const midtone = .55 + Math.min(item.lightness, 1 - item.lightness) * 1.2;
-    const score = (item.chroma + .025) * midtone * (item.n / maxCount) ** .16;
-    return score > best.score ? { item, score } : best;
-  }, { item: candidates[0], score: -1 }).item;
-  const focused = [focal];
-  while (focused.length < Math.min(5, candidates.length)) {
-    const next = candidates.filter(item => !focused.includes(item)).reduce((best, item) => {
-      const separation = Math.min(...focused.map(chosen => oklabDistance(item.hex, chosen.hex)));
-      const score = separation * (.72 + item.chroma) * (.35 + (item.n / maxCount) ** .25);
+  return centers.map((center, i) => ({ hex: toHex(center.c), n: groups[i].n })).filter(item => item.n > 0);
+}
+
+// Greedy pick that trades coverage (weight) against perceptual separation from what is already chosen.
+function pickDistinct(pool, count, weight, chosen = []) {
+  const picked = [...chosen];
+  while (picked.length < count) {
+    const next = pool.filter(item => !picked.includes(item)).reduce((best, item) => {
+      const separation = picked.length ? Math.min(...picked.map(other => oklabDistance(item.hex, other.hex))) : 1;
+      const score = weight(item) * Math.min(1, separation / .12) ** 2;
       return score > best.score ? { item, score } : best;
     }, { item: null, score: -1 }).item;
     if (!next) break;
-    focused.push(next);
+    picked.push(next);
   }
-  const [, focalA, focalB] = oklab(focal.hex);
-  const focalHue = (Math.atan2(focalB, focalA) * 180 / Math.PI + 360) % 360;
-  const focusedTone = oklch(clamp(focal.lightness, .38, .72), clamp(focal.chroma * 1.16, .075, .21), focalHue);
-  const focusedColors = arrangeRoles([focusedTone, ...focused.map(item => item.hex)], focusedTone);
-  const applied = paletteFromColor(focal.hex);
-  const accentPool = candidates.filter(item => item.hex !== focal.hex && item.lightness > .25 && item.lightness < .84);
-  const naturalAccent = (accentPool.length ? accentPool : candidates.filter(item => item.hex !== focal.hex)).reduce((best, item) => {
-    const score = oklabDistance(focal.hex, item.hex) * (.6 + item.chroma);
-    return score > best.score ? { item, score } : best;
-  }, { item: null, score: -1 }).item;
-  if (naturalAccent && naturalAccent.hex !== applied[3]) applied[3] = naturalAccent.hex;
+  return picked;
+}
+
+// Returns a HEX not yet used, nudging lightness of a derived tone if it collides.
+function uniqueTone(lightness, chroma, hueValue, used) {
+  for (let step = 0; step < 12; step++) {
+    const tone = oklch(clamp(lightness + (step % 2 ? 1 : -1) * Math.ceil(step / 2) * .02, .05, .99), chroma, hueValue);
+    if (!used.includes(tone)) return tone;
+  }
+  return oklch(lightness, chroma, (hueValue + 180) % 360);
+}
+
+// Rearranges a reading into role order and records which members were sampled.
+function reading(source, sampledHexes, primaryHint) {
+  const colors = arrangeRoles(source, primaryHint);
+  const origins = colors.map(color => sampledHexes.has(color) ? 'sampled' : 'derived');
+  return { colors, origins, derived: origins.filter(origin => origin === 'derived').length };
+}
+
+const derivedNote = count => count ? ` ${count} supporting tone${count === 1 ? ' is' : 's are'} derived because the image has too few distinct colors.` : '';
+
+// Clustering produces three deliberate readings. Image data never leaves the browser.
+// Observed and Focused contain sampled cluster colors; only too-simple images add
+// derived support tones. Applied is an openly derived working system.
+export function extractPaletteVariants(pixels) {
+  const bins = new Map();
+  let visible = 0;
+  for (let i = 0; i < pixels.length; i += 4) {
+    if (pixels[i + 3] < 128) continue;
+    visible++;
+    const key = (pixels[i] >> 3) * 1024 + (pixels[i + 1] >> 3) * 32 + (pixels[i + 2] >> 3);
+    const p = bins.get(key) || { n: 0, sum: [0, 0, 0] };
+    p.n++; for (let j = 0; j < 3; j++) p.sum[j] += pixels[i + j]; bins.set(key, p);
+  }
+  if (!visible) throw new Error('This image has no visible pixels. Try a different image.');
+  const entries = [...bins.values()].map(p => {
+    const c = p.sum.map(v => v / p.n), lab = oklab(c);
+    return { n: p.n, c, lab, chroma: Math.hypot(lab[1], lab[2]) };
+  }).sort((a, b) => b.n - a.n);
+
+  // Neutral and colored pixels are clustered separately so a large pale
+  // background cannot absorb all eight clusters with near-identical greys.
+  const colored = entries.filter(p => p.chroma >= NEUTRAL_LIMIT);
+  const coloredShare = colored.reduce((sum, p) => sum + p.n, 0) / visible;
+  const hasColor = coloredShare >= CHROMATIC_PRESENCE;
+  const neutral = hasColor ? entries.filter(p => p.chroma < NEUTRAL_LIMIT) : entries;
+  const neutralShare = hasColor ? 1 - coloredShare : 1;
+  const neutralK = !neutral.length ? 0 : hasColor ? clamp(Math.round(8 * neutralShare), 1, 2) : 8;
+  const clusters = [...clusterBins(neutral, neutralK), ...(hasColor ? clusterBins(colored, 8 - neutralK) : [])];
+  const merged = [];
+  for (const cluster of clusters.sort((a, b) => b.n - a.n)) {
+    const twin = merged.find(item => item.hex === cluster.hex || oklabDistance(item.hex, cluster.hex) < .02);
+    if (twin) twin.n += cluster.n; else merged.push({ ...cluster });
+  }
+  const candidates = merged.map(item => ({ ...item, chroma: chromaOf(item.hex), lightness: oklab(item.hex)[0] }));
+  const sampled = candidates.length;
+  const sampledHexes = new Set(candidates.map(item => item.hex));
+  const maxCount = candidates[0].n;
+  const accents = candidates.filter(item => item.chroma >= NEUTRAL_LIMIT);
+  const neutrals = candidates.filter(item => item.chroma < NEUTRAL_LIMIT);
+
+  // Observed: area first, but when color is present only the two largest
+  // neutrals (typically page and ink) compete, so other slots show colored regions.
+  const neutralSlots = accents.length ? Math.max(2, 5 - accents.length) : 5;
+  const observedPool = [...accents, ...pickDistinct(neutrals, Math.min(neutralSlots, neutrals.length), item => item.n)];
+  const observedAll = pickDistinct(candidates, 5, item => item.n, pickDistinct(observedPool, Math.min(5, observedPool.length), item => item.n));
+  const observed = reading(observedAll.map(item => item.hex), sampledHexes);
+  const condensed = hasColor && neutralShare >= .5;
+
+  // Focused: the most saturated, mid-light, reasonably present region leads;
+  // other distinct accents follow before neutrals fill in.
+  const emphasis = item => {
+    const midtone = .55 + Math.min(item.lightness, 1 - item.lightness) * 1.2;
+    return (item.chroma + .025) * midtone * (item.n / maxCount) ** .16;
+  };
+  const focal = (accents.length ? accents : candidates).reduce((best, item) => emphasis(item) > emphasis(best) ? item : best);
+  const accentWeight = item => (item.chroma + .02) * (.3 + (item.n / maxCount) ** .25);
+  const focusedPicks = pickDistinct(accents, Math.min(5, accents.length), accentWeight, [focal]);
+  const focusedAll = pickDistinct(candidates, 5, item => (.08 + item.chroma) * (item.n / maxCount) ** .2, focusedPicks);
+  const focused = reading(focusedAll.map(item => item.hex), sampledHexes, focal.hex);
+
+  // Applied: a quiet surface pair, a brand-like primary (the largest usable
+  // accent), a contrasting source accent, and ink that reads on the background.
+  const brandPool = accents.filter(item => item.lightness >= .35 && item.lightness <= .8);
+  const primaryItem = (brandPool.length ? brandPool : accents).reduce((best, item) => !best || item.n * item.chroma ** .5 > best.n * best.chroma ** .5 ? item : best, null)
+    || neutrals.reduce((best, item) => !best || Math.abs(item.lightness - .5) < Math.abs(best.lightness - .5) ? item : best, null);
+  const primary = primaryItem.hex;
+  const tintHue = hueOf(primary), tint = accents.length ? Math.min(primaryItem.chroma, .15) : 0;
+  const used = [primary];
+  const lightest = candidates.reduce((best, item) => item.lightness > best.lightness ? item : best);
+  const background = lightest.lightness >= .94 && lightest.chroma < .03 && lightest.hex !== primary ? lightest.hex : uniqueTone(.975, tint * .08, tintHue, used);
+  used.push(background);
+  const surfaceItem = candidates.find(item => item.lightness >= .84 && item.lightness < oklab(background)[0] - .015 && item.chroma < .03 &&!used.includes(item.hex));
+  const surface = surfaceItem ? surfaceItem.hex : uniqueTone(.92, tint * .22, tintHue, used);
+  used.push(surface);
+  const accentItem = accents.filter(item => !used.includes(item.hex) && item.lightness > .3 && item.lightness < .88)
+    .reduce((best, item) => !best || oklabDistance(primary, item.hex) * (.6 + item.chroma) > oklabDistance(primary, best.hex) * (.6 + best.chroma) ? item : best, null)
+    || (!accents.length && neutrals.filter(item => !used.includes(item.hex) && item.lightness > .3 && item.lightness < .85 && oklabDistance(primary, item.hex) > .08)[0]);
+  const accent = accentItem ? accentItem.hex : uniqueTone(.68, accents.length ? clamp(tint * .9, .07, .16) : 0, tintHue + 32, used);
+  used.push(accent);
+  const inkItem = candidates.filter(item => !used.includes(item.hex) && contrast(item.hex, background) >= 7).reduce((best, item) => !best || item.n > best.n ? item : best, null);
+  const text = inkItem ? inkItem.hex : uniqueTone(.2, Math.min(.03, tint * .25), tintHue, used);
+  const appliedColors = [background, surface, primary, accent, text];
+  const appliedOrigins = appliedColors.map(color => sampledHexes.has(color) ? 'sampled' : 'derived');
+  const describeOrigins = origin => roles.filter((_, i) => appliedOrigins[i] === origin).map(role => role.toLowerCase()).join(', ');
+  const appliedNote = [['Sampled', describeOrigins('sampled')], ['Derived',describeOrigins('derived')]].filter(([, list]) => list).map(([label, list]) => `${label}: ${list}`).join('; ');
+
   return {
     sampled,
     variants: [
-      { key: 'observed', name: 'Observed', detail: 'Dominant tones', description: 'The colors that occupy the most visual space.', colors: observed },
-      { key: 'focused', name: 'Focused', detail: 'Visual emphasis', description: 'Distinctive colors weighted toward the eye’s likely focus.', colors: focusedColors },
-      { key: 'applied', name: 'Applied', detail: 'Design-ready', description: 'A functional system with surfaces, accents, and readable text.', colors: applied },
+      { key: 'observed', name: 'Observed', detail: 'Dominant tones', description: `The colors that occupy the most visual space${condensed ? ', with the large neutral area condensed to its main tones so colored regions stay visible' : ''}.${derivedNote(observed.derived)}`, colors: observed.colors, origins: observed.origins },
+      { key: 'focused', name: 'Focused', detail: 'Visual emphasis', description: `${accents.length ? 'Distinct source accents, led by the likely focal color' : 'The most distinct tones in a neutral image; no accent is invented'}.${derivedNote(focused.derived)}`, colors: focused.colors, origins: focused.origins },
+      { key: 'applied', name: 'Applied', detail: 'Design-ready', description: `A derived working system with quiet surfaces, readable ink${accents.length ? ' and source accents' : ', kept neutral like the image'}. ${appliedNote}.`, colors: appliedColors, origins: appliedOrigins },
     ],
   };
 }
