@@ -1089,7 +1089,7 @@ $('#colorLab')?.addEventListener('click', event => {
   }
 });
 $('#addColorToTray')?.addEventListener('click', () => {
-  const color = current.colors[activeColorIndex].toUpperCase();
+  const color = activeColor().toUpperCase();
   if (!colorTray.includes(color)) {
     colorTray.unshift(color);
     colorTray = colorTray.slice(0, 18);

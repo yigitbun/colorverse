@@ -157,6 +157,21 @@ test('Studio shows larger palettes as compact member cells with explicit role se
   assert.match(globe, /palette = Array\.isArray\(source\.members\) \? \[\.\.\.source\.members\] : source\.colors\.slice\(0, 5\);/);
 });
 
+test('adding to the color tray uses the selected member, not the five-slot preview-role array', () => {
+  const eight = ten.slice(0, 8);
+  const workspace = workspaceFromColors(eight, [7, 0, 3, 5, 1]);
+  assert.equal(workspace.members.length, 8);
+  assert.equal(roleColors(workspace).length, 5);
+  // Sixth and last members sit past the five preview-role slots, so the
+  // preview-role array (`current.colors`) has no entry for them.
+  assert.equal(workspace.members[5], eight[5]);
+  assert.equal(roleColors(workspace)[5], undefined);
+  assert.equal(workspace.members[7], eight[7]);
+  assert.equal(roleColors(workspace)[7], undefined);
+  assert.match(app, /\$\('#addColorToTray'\)\?\.addEventListener\('click', \(\) => \{\n  const color = activeColor\(\)\.toUpperCase\(\);/);
+  assert.doesNotMatch(app, /current\.colors\[activeColorIndex\]\.toUpperCase\(\)/);
+});
+
 test('Extract inserts between rows up to ten, keeps points, and hands the full palette to Studio', () => {
   assert.match(app, /data-extract-insert="\$\{index \+ 1\}" aria-label="Insert a color between samples \$\{sample\} and \$\{sample \+ 1\}"/);
   assert.match(app, /insertMember\(workspace, position, color, EXTRACT_MAX_MEMBERS\), \(\) => pickerPositions\.splice\(position, 0, point\)/);

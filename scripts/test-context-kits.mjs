@@ -60,7 +60,7 @@ test('the material study compares one selected role across five named surfaces',
   for (const name of ['Mineral paint', 'Woven textile', 'Uncoated paper', 'Matte polymer', 'Brushed metal']) {
     assert.match(app, new RegExp(name));
   }
-  assert.match(app, /current\.colors\[activeColorIndex\]/);
+  assert.match(app, /panel\.style\.setProperty\('--p-material', activeColor\(\)\)/);
   assert.match(app, /Visual comparison only\.<\/b> Check physical samples before production\./);
   assert.match(styles, /\.material-plaster/);
   assert.match(styles, /\.material-textile/);
