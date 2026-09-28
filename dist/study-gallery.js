@@ -54,7 +54,10 @@ export function createStudyShelfIndex(studies = homeStudies) {
 export function readCurrentColors(storage) {
   try {
     const stored = JSON.parse(storage?.getItem('colorverse-current-palette') || 'null');
-    if (stored && Array.isArray(stored.colors) && stored.colors.length >= 5 && stored.colors.every(color => hex.test(color))) return stored.colors.slice(0, 5);
+    if (stored && Array.isArray(stored.colors) && stored.colors.length === 5 && stored.colors.every(color => hex.test(color))) return stored.colors;
+    const workspace = stored?.workspace;
+    if (workspace?.v === 1 && Array.isArray(workspace.members) && workspace.members.length >= 5 && workspace.members.length <= 24 && workspace.members.every(color => hex.test(color))
+      && Array.isArray(workspace.roleIndex) && workspace.roleIndex.length === 5 && new Set(workspace.roleIndex).size === 5 && workspace.roleIndex.every(index => Number.isInteger(index) && index >= 0 && index < workspace.members.length)) return workspace.roleIndex.map(index => workspace.members[index]);
   } catch {}
   return [];
 }

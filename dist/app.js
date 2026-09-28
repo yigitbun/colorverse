@@ -5,18 +5,19 @@ import { suggestPaletteName } from './palette-names.js?v=1';
 import { savePaletteHandoff } from './palette-handoff.js?v=1';
 import { createLibraryEngine } from './library-engine.js?v=1';
 import { paletteNameLibrary } from './palette-name-library.js?v=3';
-import { roles, clamp, contrast, textOn, rgb, toHex, oklab, oklch, paletteFromColor, exportPalette, extractPaletteVariants, oklabDistance } from './color.js';
+import { roles, clamp, contrast, textOn, rgb, toHex, oklab, oklch, paletteFromColor, exportPalette, extractPaletteVariants, oklabDistance } from './color.js?v=2';
 import { createAtlas, atlasWorlds } from './globe.js?v=29';
 import { buildShadeFamilies } from './shade-studio.js?v=1';
 import { createColorGlobe, toHsl, fromHsl } from './color-globe.js?v=3';
 import { SUPPORTED_IMAGE_TYPES, validateImageFile } from './image-file.js?v=1';
 import { imagePoint, sampleImageColor } from './image-sampling.js?v=1';
 import { initCommunity } from './community-feed.js?v=1';
-import { freezeColorway, downloadColorway } from './colorway-kit.js?v=2';
+import { freezeColorway } from './colorway-kit.js?v=2';
+import { mountPhotoColorway, PHOTO_COLORWAY_NOTE } from './photo-colorway.js?v=1';
 import { colorAlternatives, NEUTRAL_CHROMA } from './color-alternatives.js?v=1';
 import { reportPreview } from './report-preview.js?v=1';
-import { withWorkspace, workspaceFromColors, sanitizeWorkspace, roleColors, roleOfMember, memberLabel, isCompact, setMember, assignRole, swapRoles, insertMember, removeMember, COMPACT_MEMBERS, EXTRACT_MAX_MEMBERS } from './studio-members.js?v=1';
-import { initAccountNavigation } from './account-client.js?v=3';
+import { withWorkspace, workspaceFromColors, sanitizeWorkspace, roleColors, roleOfMember, memberLabel, isCompact, setMember, assignRole, swapRoles, insertMember, removeMember, COMPACT_MEMBERS, EXTRACT_MAX_MEMBERS } from './studio-members.js?v=2';
+import { initAccountNavigation } from './account-client.js?v=4';
 import { DRAFT_KEY, STUDIO_HANDOFF_KEY, readDraft, sanitizeDraft } from './member-palette.js?v=2';
 
 const $ = selector => document.querySelector(selector);
@@ -660,14 +661,15 @@ function renderMockup() {
     object: { label: 'Object / Material study', title: 'Everyday object', detail: 'A useful object with a considered surface.', specs: 'Ceramic · dry glaze · tactile form' },
   }[productKind] || { label: 'Footwear / Field study', title: 'Field 01', detail: 'One silhouette. Three directions.', specs: 'Mesh · suede · modular rubber' };
   const careOptions = selected => current.colors.map((color, index) => `<option value="${index}"${index === selected ? ' selected' : ''}>${roles[index]} · ${color}</option>`).join('');
-  const careStage = (colors, assignment, title) => `<div class="care-colorway"><span class="care-colorway-label">${title}</span><div class="care-stage" style="--care-backdrop:${colors[assignment.backdrop]};--care-bottle:${colors[assignment.bottle]};--care-cap:${colors[assignment.cap]};--care-label:${colors[assignment.label]};--care-carton:${colors[assignment.carton]};--care-carton-ink:${textOn(colors[assignment.carton])};--care-label-ink:${textOn(colors[assignment.label])}" role="img" aria-label="${title}: body ${colors[assignment.bottle]}, cap ${colors[assignment.cap]}, label ${colors[assignment.label]}, carton ${colors[assignment.carton]}, backdrop ${colors[assignment.backdrop]}"><div class="care-shadow"></div><div class="care-carton"><span>KATRE</span><strong>Daily<br>Balance</strong><small>SKINCARE · 100 ML</small></div><div class="care-bottle"><div class="care-bottle-cap"></div><div class="care-bottle-neck"></div><div class="care-bottle-body"><div class="care-bottle-label"><span>KATRE</span><strong>Daily<br>Balance</strong><small>SKINCARE · 100 ML</small><i></i></div></div></div></div></div>`;
-  const carePreview = `<div class="mockup context-kit care-preview-kit${colorwayBaseline ? ' is-comparing' : ''}" style="--care-backdrop:${current.colors[careAssignment.backdrop]};--care-bottle:${current.colors[careAssignment.bottle]};--care-cap:${current.colors[careAssignment.cap]};--care-label:${current.colors[careAssignment.label]};--care-label-ink:${textOn(current.colors[careAssignment.label])}">
-    <header><div><span class="kit-kicker">Skincare concept</span><h4>Katre</h4></div><span class="product-preview-meta">Live color application</span></header>
-    <div class="colorway-toolbar"><button type="button" data-colorway="lock">${colorwayBaseline ? 'Replace baseline' : 'Lock baseline'}</button>${colorwayBaseline ? '<button type="button" data-colorway="restore">Use baseline colors</button><button type="button" data-colorway="clear">Clear comparison</button>' : ''}<button type="button" data-colorway="export">Export PNG ↗</button></div>
+  // The supplied Katre photograph: the mounted renderer lives in [data-photo-host]
+  // and survives re-renders. Only its four annotated surfaces are offered.
+  const carePreview = `<div class="mockup context-kit care-preview-kit photo-preview-kit${colorwayBaseline ? ' is-comparing' : ''}">
+    <header><div><span class="kit-kicker">Skincare concept · photo</span><h4>Katre</h4></div><span class="product-preview-meta">Live color application</span></header>
+    <div class="colorway-toolbar"><button type="button" data-colorway="lock">${colorwayBaseline ? 'Replace baseline' : 'Lock baseline'}</button>${colorwayBaseline ? '<button type="button" data-colorway="restore">Use baseline colors</button><button type="button" data-colorway="clear">Clear comparison</button>' : ''}<button type="button" data-colorway="retry" hidden>Reload photo</button><button type="button" data-colorway="export" disabled>Export PNG ↗</button></div>
     <div class="care-preview-body">
-      <div class="care-colorways${colorwayBaseline ? ' is-comparing' : ''}">${colorwayBaseline ? careStage(colorwayBaseline.colors, colorwayBaseline.assignment, 'Baseline · locked') : ''}${careStage(current.colors, careAssignment, 'Current colorway')}</div>
-      <div class="care-map"><span class="kit-kicker">Apply palette colors</span>${[['backdrop', 'Backdrop'], ['bottle', 'Bottle'], ['cap', 'Cap'], ['label', 'Label'], ['carton', 'Carton']].map(([part, title]) => `<label>${title}<select data-care-part="${part}" aria-label="${title} color">${careOptions(careAssignment[part])}</select></label>`).join('')}</div>
-    </div><footer><span>Body / cap / label / carton / backdrop</span><span>Katre is a design concept · no photo recolored</span></footer></div>`;
+      <div class="care-photo-host" data-photo-host></div>
+      <div class="care-map"><span class="kit-kicker">Apply palette colors</span>${PHOTO_SURFACE_CONTROLS.map(([part, title]) => `<label>${title}<select data-care-part="${part}" aria-label="${title} color">${careOptions(careAssignment[part])}</select></label>`).join('')}</div>
+    </div><footer><span>Tube / bottle / jar / caps</span><span>Katre is a design concept · approximate digital preview</span></footer></div>`;
   const productPreview = productKind === 'skincare' ? carePreview : `<div class="mockup context-kit product-preview-kit"><header><div><span class="kit-kicker">${escape(productConfig.label)}</span><h4>${escape(productConfig.title)}</h4></div><span class="product-preview-meta">ColorVerse / product direction</span></header><div class="product-preview-stage"><div class="product-preview-image visual-pending"><span>Reference image pending</span></div><aside><strong>${escape(productConfig.detail)}</strong><p>${escape(productConfig.specs)}</p><div class="product-preview-swatches" aria-label="Applied product colors">${current.colors.slice(0, 5).map((color, index) => `<i style="--swatch:${color}" title="${roles[index]} ${color}"></i>`).join('')}</div><small>Palette colors shown at left.</small></aside></div><footer><span>Product study</span><span>Colour / material direction</span><span>Original ColorVerse concept</span></footer></div>`;
   const layouts = {
     landing: productPreview,
@@ -688,6 +690,82 @@ function renderMockup() {
     </div>`,
   };
   panel.innerHTML = layouts[context] || layouts.landing;
+  syncPhotoPreview();
+}
+
+// Existing careAssignment fields map to the photographed surfaces, so saved
+// snapshots and locked baselines keep working: label → tube, bottle → bottle,
+// carton → jar, cap → caps. `backdrop` stays as legacy data only.
+const PHOTO_SURFACE_CONTROLS = [['label', 'Tube'], ['bottle', 'Bottle'], ['carton', 'Jar'], ['cap', 'Caps']];
+const photoColorwayFor = (colors, assignment) => ({ colors: colors.slice(0, 5), assignment: { tube: assignment.label, bottle: assignment.bottle, jar: assignment.carton, cap: assignment.cap } });
+let photoPreview = null;
+
+function destroyPhotoPreview() {
+  photoPreview?.destroy();
+  photoPreview = null;
+}
+
+function syncPhotoControls() {
+  const state = photoPreview?.state;
+  const exportButton = $('#mockup [data-colorway="export"]');
+  const retry = $('#mockup [data-colorway="retry"]');
+  if (exportButton && !exportButton.dataset.busy) {
+    exportButton.disabled = state !== 'ready';
+    exportButton.title = state === 'ready' ? 'Export the visible photo preview' : state === 'error' ? 'The photo could not be loaded' : 'Loading the photo…';
+  }
+  if (retry) retry.hidden = state !== 'error';
+}
+
+// One mounted renderer per visit: palette edits only update it (no new decode);
+// leaving the skincare view destroys it.
+function syncPhotoPreview(previewColors = current.colors) {
+  const host = $('#mockup [data-photo-host]');
+  if (!host) { destroyPhotoPreview(); return; }
+  const colorway = photoColorwayFor(previewColors, careAssignment);
+  const baseline = colorwayBaseline ? photoColorwayFor(colorwayBaseline.colors, colorwayBaseline.assignment) : null;
+  if (!photoPreview) {
+    const mounted = mountPhotoColorway(host, { colorway, baseline });
+    photoPreview = mounted;
+    mounted.ready.then(() => { if (photoPreview === mounted) syncPhotoControls(); });
+  } else {
+    if (photoPreview.element.parentNode !== host) host.append(photoPreview.element);
+    photoPreview.update(colorway);
+    photoPreview.setBaseline(baseline);
+  }
+  syncPhotoControls();
+}
+
+// Exports exactly the visible photo stages (current, or baseline + current).
+async function exportPhotoPreview(name) {
+  const preview = photoPreview;
+  if (preview?.state !== 'ready') throw new Error('The photo preview is not ready.');
+  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  if (preview !== photoPreview || preview.state !== 'ready') throw new Error('The photo preview changed.');
+  const stages = [...preview.element.querySelectorAll('.photo-colorway-stage:not([hidden])')]
+    .map(stage => ({ canvas: stage.querySelector('canvas'), label: stage.querySelector('.photo-colorway-tag')?.textContent || '' }))
+    .filter(stage => stage.canvas?.width);
+  if (!stages.length) throw new Error('Nothing to export.');
+  const pad = 56, gap = 32, top = 110, bottom = 96, height = stages[0].canvas.height;
+  const canvas = document.createElement('canvas');
+  canvas.width = pad * 2 + stages.reduce((sum, stage) => sum + stage.canvas.width, 0) + gap * (stages.length - 1);
+  canvas.height = top + height + bottom;
+  const context = canvas.getContext('2d');
+  context.fillStyle = '#FAFAF8'; context.fillRect(0, 0, canvas.width, canvas.height);
+  context.fillStyle = '#17171B'; context.font = '32px sans-serif'; context.fillText(String(name || 'Katre colorway').slice(0, 80), pad, 64);
+  let x = pad;
+  for (const stage of stages) {
+    context.font = '20px monospace'; context.fillText(stage.label.toUpperCase(), x, top - 16);
+    context.drawImage(stage.canvas, x, top);
+    x += stage.canvas.width + gap;
+  }
+  context.font = '20px sans-serif'; context.fillStyle = '#55555C';
+  context.fillText(`${PHOTO_COLORWAY_NOTE}. Katre is a design concept.`, pad, top + height + 56);
+  const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+  canvas.width = 0; canvas.height = 0;
+  if (!blob) throw new Error('Could not export this colorway.');
+  const url = URL.createObjectURL(blob), link = document.createElement('a');
+  link.href = url; link.download = 'katre-photo-colorway.png'; document.body.append(link); link.click(); link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function renderExport() {
@@ -761,10 +839,17 @@ $('#mockup')?.addEventListener('click', async event => {
   if (!button) return;
   const action = button.dataset.colorway;
   if (action === 'export') {
+    if (button.disabled) return;
     button.disabled = true;
-    try { await downloadColorway({ colors: current.colors, assignment: careAssignment }, current.name); toast('Colorway PNG exported.'); }
+    button.dataset.busy = 'true';
+    try { await exportPhotoPreview(current.name); toast('Photo PNG ready · download requested.'); }
     catch { toast('Could not export the image. Your palette has not changed.'); }
-    finally { button.disabled = false; }
+    finally { delete button.dataset.busy; syncPhotoControls(); }
+    return;
+  }
+  if (action === 'retry') {
+    destroyPhotoPreview();
+    syncPhotoPreview();
     return;
   }
   if (action === 'lock') colorwayBaseline = freezeColorway({ colors: current.colors, assignment: careAssignment });
@@ -814,6 +899,7 @@ const colorGlobe = createColorGlobe({
     panel.style.setProperty('--on-primary', textOn(colors[2]));
     panel.style.setProperty('--on-accent', textOn(colors[3]));
     if (index === activeColorIndex) panel.style.setProperty('--p-material', color);
+    if (role >= 0) photoPreview?.update(photoColorwayFor(colors, careAssignment));
   },
   onApply(index, color) { const label = memberLabel(current.workspace, index); replacePaletteColor(index, color); track('color_edit', { method: 'globe' }); toast(`${label} updated to ${color}.`); },
   onClose(index) {
@@ -1737,7 +1823,7 @@ if (page === 'studio') {
     try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); location.assign('/account/'); }
     catch { toast('Allow browser storage to keep this palette while signing in.'); }
   });
-  import('./project-store.js?v=27')
+  import('./project-store.js?v=28')
     .then(({ initProjectWorkspace }) => initProjectWorkspace(window.colorverseStudio))
     .catch(() => { const label = $('#projectSyncLabel'); if (label) label.textContent = 'Local draft'; });
 }

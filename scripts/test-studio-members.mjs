@@ -24,6 +24,9 @@ test('five colors use identity mapping; 6–24 colors are preserved without trun
   assert.equal(full.members.length, 24);
   assert.deepEqual(roleColors(full), [many[3], many[0], many[23], many[7], many[12]]);
   assert.equal(workspaceFromColors([...many, '#000000']), null, 'more than 24 is rejected, not cut');
+  assert.equal(withWorkspace({ id: 'oversize', colors: [...many, '#000000'] }), null, 'a 25-color palette is rejected, not silently truncated');
+  assert.equal(withWorkspace({ id: 'short', colors: five.slice(0, 4) }), null);
+  assert.equal(withWorkspace({ id: 'max', colors: many }).workspace.members.length, 24);
   assert.equal(workspaceFromColors(five.slice(0, 4)), null, 'fewer than five is not padded with invented colors');
   for (const bad of [[0, 0, 1, 2, 3], [0, 1, 2, 3], [0, 1, 2, 3, 10], [0, 1, 2, 3, 1.5]]) assert.equal(workspaceFromColors(ten, bad), null);
 });
@@ -170,6 +173,6 @@ test('Extract inserts between rows up to ten, keeps points, and hands the full p
   assert.match(app, /const workspace = workspaceFromColors\(extracted\.colors, extracted\.roleIndex\);/);
   assert.match(app, /colors: roleColors\(workspace\), workspace \}\)\)/);
   assert.doesNotMatch(extractHtml, /Five draggable/);
-  assert.match(extractHtml, /\/app\.js\?v=95/);
+  assert.match(extractHtml, /\/app\.js\?v=96/);
   assert.match(extractStyles, /\.extract-page \.extracted-swatches \.extract-insert\{position:absolute;/);
 });

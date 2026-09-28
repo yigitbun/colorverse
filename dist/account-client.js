@@ -1,5 +1,5 @@
 import { accountConfig } from './account-config.js';
-import { decorateAccountNavigation, updateAccountNavigation } from './account-navigation.js?v=2';
+import { decorateAccountNavigation, updateAccountNavigation } from './account-navigation.js?v=3';
 
 let pendingClient;
 export function getAccountClient() {

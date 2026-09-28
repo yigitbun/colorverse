@@ -137,7 +137,7 @@ test('Katre annotations stay on product surfaces and never tint the whole photog
 
 test('module stays local: imports only color helpers and makes no remote calls', async () => {
   const code = await readFile(new URL('../dist/photo-colorway.js', import.meta.url), 'utf8');
-  assert.deepEqual([...code.matchAll(/^import .* from '([^']+)';$/gm)].map(match => match[1]), ['./color.js']);
+  assert.deepEqual([...code.matchAll(/^import .* from '([^']+)';$/gm)].map(match => match[1]), ['./color.js?v=2']);
   assert.doesNotMatch(code, /https?:\/\/|fetch\(|XMLHttpRequest|import\(/);
 });
 

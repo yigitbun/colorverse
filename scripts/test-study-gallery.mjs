@@ -18,8 +18,8 @@ const cardIds = html => [...html.matchAll(/data-study-id="([^"]+)"/g)].map(match
 test('Inspiration replaces empty placeholders with the supplied AI study gallery', () => {
   assert.doesNotMatch(inspiration, /CV \/ SS|DRIFT \/ F01|ROOMKIT \/ 01|Image awaiting curation/);
   assert.match(inspiration, /data-study-gallery="inspiration"/);
-  assert.match(inspiration, /<script type="module" src="\/study-gallery\.js\?v=1"><\/script>/);
-  assert.match(inspiration, /<script type="module" src="\/app\.js\?v=93"><\/script>/);
+  assert.match(inspiration, /<script type="module" src="\/study-gallery\.js\?v=2"><\/script>/);
+  assert.match(inspiration, /<script type="module" src="\/app\.js\?v=96"><\/script>/);
   assert.match(inspiration, /href="\/inspiration\.css\?v=6"/);
   assert.match(inspiration, /AI-generated concepts\.<\/strong>[^<]*fictional[^<]*provisional[^<]*not manufacturer specifications or approved Library palettes/);
   assert.match(inspiration, /<noscript>[\s\S]*Enable JavaScript[\s\S]*<\/noscript>/);
@@ -112,7 +112,7 @@ test('Library markup keeps the concept shelf separate from the approved rail', (
   assert.match(shelf, /Supplied studies · AI concepts/);
   assert.match(shelf, /Provisional AI-generated concepts[^<]*Not approved Library palettes/);
   assert.doesNotMatch(shelf, /id="paletteRail"|palette-library-grid|collectionIndex/);
-  assert.match(explore, /<script type="module" src="\/study-gallery\.js\?v=1"><\/script>/);
+  assert.match(explore, /<script type="module" src="\/study-gallery\.js\?v=2"><\/script>/);
   assert.match(explore, /href="\/palette-library\.css\?v=5"/);
   assert.match(explore, /No approved palettes yet\./);
 });

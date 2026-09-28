@@ -1,4 +1,4 @@
-import { getAccountClient } from './account-client.js?v=3';
+import { getAccountClient } from './account-client.js?v=4';
 import { initEmailCodeFlow } from './email-code-flow.js?v=3';
 const ACTIVE_PROJECT_KEY = 'colorverse-active-project';
 

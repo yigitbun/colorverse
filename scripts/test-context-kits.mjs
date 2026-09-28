@@ -31,13 +31,13 @@ test('Product preview offers directions without retired images', () => {
   assert.doesNotMatch(app, /\/assets\/(?:editions|palette-library)\//);
 });
 
-test('Skincare preview maps palette roles to separate product surfaces', () => {
-  for (const part of ['backdrop', 'bottle', 'cap', 'label']) assert.match(app, new RegExp(`careAssignment\\.${part}`));
-  assert.match(app, /care-bottle-cap/);
-  assert.match(app, /care-bottle-body/);
-  assert.match(styles, /\.care-stage\{/);
-  assert.match(styles, /\.care-bottle-cap\{/);
-  assert.match(styles, /\.care-bottle-body\{/);
+test('Skincare uses the supplied photo with four truthful product surfaces', () => {
+  assert.match(app, /mountPhotoColorway/);
+  assert.match(app, /\['label', 'Tube'\], \['bottle', 'Bottle'\], \['carton', 'Jar'\], \['cap', 'Caps'\]/);
+  assert.match(app, /tube: assignment\.label, bottle: assignment\.bottle, jar: assignment\.carton, cap: assignment\.cap/);
+  assert.match(app, /data-photo-host/);
+  assert.doesNotMatch(app, /class="care-bottle"|const careStage/);
+  assert.match(studio, /photo-colorway\.css/);
 });
 
 test('older report projects keep their original preview', () => {
@@ -88,18 +88,18 @@ test('the footwear Edition keeps its independent brand identity inside Studio', 
   assert.match(styles, /\.edition-footwear-scene/);
 });
 
-test('Inspiration presents the footwear Edition as a compact palette-first study', () => {
-  assert.match(inspiration, /Image awaiting curation/);
-  assert.match(inspiration, /class="study-card"><div class="study-palette" aria-label="Field 01 palette"/);
-  assert.match(inspiration, /href="\/editions\/drift-field-01\/"/);
-  assert.match(inspiration, /href="\/studio\/\?p=drift-field-01#studio"/);
-  assert.doesNotMatch(inspiration, /<img|capsule-colorway/);
+test('Inspiration exposes supplied AI studies rather than placeholder editions', () => {
+  assert.match(inspiration, /data-study-gallery="inspiration"/);
+  assert.match(inspiration, /AI-generated concepts/);
+  assert.match(inspiration, /not manufacturer specifications or approved Library palettes/);
+  assert.match(inspiration, /study-gallery\.js/);
+  assert.doesNotMatch(inspiration, /Image awaiting curation|CV \/ SS|DRIFT \/ F01/);
 });
 
 test('Inspiration presents RoomKit as an in-house experiment with a Lab path', () => {
-  assert.match(inspiration, /Image awaiting curation/);
-  assert.match(inspiration, /class="study-palette" aria-label="RoomKit example direction"/);
-  assert.match(inspiration, /Try RoomKit in the Lab/);
+  assert.match(inspiration, /class="study-tool-link" href="\/lab\/#roomKitTitle"/);
+  assert.match(inspiration, /<strong>RoomKit<\/strong>/);
+  assert.doesNotMatch(inspiration, /ROOMKIT \/ 01|RoomKit example direction/);
   assert.match(inspiration, /private upload/);
 });
 

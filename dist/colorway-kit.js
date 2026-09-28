@@ -1,4 +1,4 @@
-import { textOn } from './color.js';
+import { textOn } from './color.js?v=2';
 const parts = { backdrop: 0, bottle: 2, cap: 4, label: 1, carton: 1 };
 export function sanitizeColorway(value) {
   if (!value || !Array.isArray(value.colors) || value.colors.length !== 5 || !value.colors.every(color => /^#[0-9a-f]{6}$/i.test(color))) return null;

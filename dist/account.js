@@ -1,9 +1,9 @@
-import { getAccountClient, initAccountNavigation, accountReturnURL } from './account-client.js?v=3';
+import { getAccountClient, initAccountNavigation, accountReturnURL } from './account-client.js?v=4';
 import { initEmailCodeFlow } from './email-code-flow.js?v=3';
 import { emailAccessMessage } from './email-access.js?v=3';
 import { MIN_COLORS, MAX_COLORS, DRAFT_KEY, STUDIO_HANDOFF_KEY, normalizeHex, readDraft, sanitizeDraft, studioColors } from './member-palette.js?v=2';
 import { palettes } from './palettes.js?v=28';
-import { textOn } from './color.js';
+import { textOn } from './color.js?v=2';
 import { suggestPaletteName } from './palette-names.js?v=1';
 
 const $ = selector => document.querySelector(selector);

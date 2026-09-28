@@ -1,4 +1,4 @@
-import { oklab, oklch } from './color.js';
+import { oklab, oklch } from './color.js?v=2';
 
 // Nearby alternatives for one selected color. They keep its lightness and
 // chroma, so a warm grey stays a grey instead of jumping to a saturated hue.

@@ -1,4 +1,4 @@
-import { clamp, oklab, oklch, roles, textOn } from './color.js';
+import { clamp, oklab, oklch, roles, textOn } from './color.js?v=2';
 
 const coordinates = hex => {
   const [lightness, a, b] = oklab(hex);

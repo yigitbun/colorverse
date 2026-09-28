@@ -1,4 +1,4 @@
-import { oklabDistance } from './color.js';
+import { oklabDistance } from './color.js?v=2';
 
 export const useGroups = Object.freeze({
   digital: ['software', 'data', 'technology', 'gaming', 'digital', 'interface', 'screen'],

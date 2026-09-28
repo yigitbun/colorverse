@@ -71,11 +71,12 @@ test('shade strip motion respects reduced motion', () => {
 
 test('visible Studio skincare branding reads Katre; stable IDs remain', () => {
   assert.doesNotMatch(app, /CV \/ (?:CARE|Care|SS)/);
-  assert.equal(app.match(/<span>KATRE<\/span>/g)?.length, 7);
+  assert.equal(app.match(/<span>KATRE<\/span>/g)?.length, 5);
   assert.match(app, /<h4>Katre<\/h4>/);
   assert.match(app, /Katre is a design concept/);
   assert.match(app, /current\.id === 'skincare-system-01'/);
-  assert.match(app, /import \{ freezeColorway, downloadColorway \} from '\.\/colorway-kit\.js\?v=2'/);
+  assert.match(app, /import \{ freezeColorway \} from '\.\/colorway-kit\.js\?v=2'/);
+  assert.match(app, /exportPhotoPreview\(current\.name\)/);
 });
 
 test('Screens shows a native report with illustrative, internally consistent data', () => {
@@ -117,7 +118,7 @@ test('Alternatives state their single-color scope and use the neutral-safe gener
 });
 
 test('Studio assets are cache-busted', () => {
-  assert.match(studio, /\/app\.js\?v=95/);
+  assert.match(studio, /\/app\.js\?v=96/);
   assert.match(studio, /\/studio-editor\.css\?v=9/);
   assert.match(studio, /\/report-preview\.css\?v=2/);
   assert.match(app, /'\.\/color-alternatives\.js\?v=1'/);

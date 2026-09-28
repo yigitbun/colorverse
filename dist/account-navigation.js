@@ -4,7 +4,7 @@ const studio = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" wi
 export function decorateAccountNavigation(actions) {
   if (!document.querySelector('link[data-header-controls]')) {
     const stylesheet = document.createElement('link');
-    stylesheet.rel = 'stylesheet'; stylesheet.href = '/header-controls.css?v=1';
+    stylesheet.rel = 'stylesheet'; stylesheet.href = '/header-controls.css?v=2';
     stylesheet.dataset.headerControls = ''; document.head.append(stylesheet);
   }
   const studioLink = [...actions.querySelectorAll('a')].find(link => new URL(link.href).pathname === '/studio/');

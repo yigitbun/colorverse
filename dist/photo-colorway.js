@@ -1,4 +1,4 @@
-import { clamp, oklab } from './color.js';
+import { clamp, oklab } from './color.js?v=2';
 
 // Live colorway preview on the supplied Katre body-care photograph.
 // Only hand-annotated packaging surfaces are recolored; every other pixel,

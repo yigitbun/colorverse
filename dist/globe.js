@@ -1,5 +1,5 @@
 import { createHexSphere, dot, norm, mix } from './geometry.js';
-import { oklch, oklab, rgb, toHex, clamp } from './color.js';
+import { oklch, oklab, rgb, toHex, clamp } from './color.js?v=2';
 
 export const atlasWorlds = [
   {

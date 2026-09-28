@@ -59,7 +59,7 @@ if (candidate) {
   assert.match(privacyHtml, /remove this private workspace data/);
   assert.match(studioHtml, /studio-editor\.css/);
   assert.match(studioHtml, /context-kits\.css/);
-  assert.match(studioHtml, /data-context="landing"[^>]*>Objects/);
+  assert.match(studioHtml, /data-context="landing"[^>]*>Products/);
   assert.match(studioHtml, /data-context="interface"[^>]*>Screens/);
   assert.match(studioHtml, /data-context="social"[^>]*>Campaigns/);
   assert.doesNotMatch(studioHtml, /data-context="(?:shop|material)"/);

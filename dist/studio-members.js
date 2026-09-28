@@ -1,4 +1,4 @@
-import { roles } from './color.js';
+import { roles } from './color.js?v=2';
 
 // A Studio workspace keeps every palette member in order, plus five distinct
 // member indices for the preview roles (Background, Surface, Primary, Accent,
@@ -51,11 +51,12 @@ export const memberLabel = (workspace, index) => {
   return role >= 0 ? roles[role] : `Color ${index + 1}`;
 };
 
-// Normalise any palette entering Studio: 5–24 colors survive; five role colors derive from the mapping.
+// Normalise any palette entering Studio: 5–24 colors survive; five role colors
+// derive from the mapping. Anything outside that range is rejected (null), never cut.
 export function withWorkspace(palette) {
   const colors = Array.isArray(palette?.colors) ? palette.colors : [];
   const workspace = sanitizeWorkspace(palette?.workspace, colors.length === 5 ? colors : null)
-    || workspaceFromColors(colors.slice(0, MAX_MEMBERS));
+    || workspaceFromColors(colors);
   if (!workspace) return null;
   return { ...palette, colors: roleColors(workspace), workspace };
 }
