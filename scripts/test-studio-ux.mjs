@@ -120,7 +120,22 @@ test('right-side shades are always visible and keep their source while applying 
   assert.match(functionBody('renderColorLab'), /selectedShadeValues\(activeColorIndex\)/);
   assert.match(app, /keepShadeSource: choice\.hasAttribute\('data-color-shade'\)/);
   assert.match(app, /quickColorAdjustments\(color\)/);
-  assert.match(studioStyles, /\.color-shade-grid\{display:grid;grid-template-columns:repeat\(7,minmax\(0,1fr\)\)/);
+});
+
+test('right-side shades are a vertical stack of full-width strips, not a chip grid', () => {
+  assert.match(studio, /id="colorShadeGrid" class="color-shade-grid" role="group" aria-label="Shades for selected color, light to deep"/);
+  assert.match(functionBody('selectedShadeValues'), /sort\(\(a, b\) => colorCoordinates\(b\)\.lightness - colorCoordinates\(a\)\.lightness\)/);
+  assert.match(studioStyles, /\.color-shade-grid\{display:flex;flex-direction:column;width:100%;min-width:0/);
+  assert.match(studioStyles, /\.color-shade-grid button\{[^}]*width:100%;min-width:0;height:14px/);
+  assert.doesNotMatch(studioStyles, /\.color-shade-grid\{[^}]*grid-template-columns/);
+  assert.match(studioStyles, /\.color-shade-grid button:hover,\.color-shade-grid button:focus-visible\{[^}]*box-shadow:0 0 0 2px var\(--ink\)/);
+  assert.match(studioStyles, /\.color-shade-grid button\[aria-pressed="true"\]\{[^}]*box-shadow:inset 0 0 0 2px var\(--on\)/);
+  assert.match(studioStyles, /\.color-shade-grid button::after\{content:attr\(title\)/);
+  const touch = studioStyles.slice(studioStyles.indexOf('@media(pointer:coarse)'));
+  assert.match(touch, /\.color-shade-grid\{max-height:354px;[^}]*overflow-y:auto;overflow-x:hidden/);
+  assert.match(touch, /\.color-shade-grid button\{height:28px\}/);
+  // No return of the inline role editor or a second shade path.
+  assert.doesNotMatch(studioStyles, /vertical-shades|shade-overlay|inline-shade/);
 });
 
 test('Selected color tells the truth about actual usage; no product assignment panel remains', () => {
