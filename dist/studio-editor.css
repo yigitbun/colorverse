@@ -25,6 +25,18 @@
 .palette-member:hover{background:var(--surface-2)}
 .palette-member.is-selected{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 5%,var(--surface))}
 .palette-member.is-unassigned>i{outline:1px dashed var(--muted);outline-offset:2px}
+/* 6–24 colors: visible count, two compact columns (8–10 fit unscrolled), fade + cue when more remain. */
+.palette-count{display:flex;align-items:baseline;gap:0;margin:10px 0 -8px;font-size:10px;line-height:1.3;color:var(--muted)}
+.palette-count[hidden]{display:none}
+.palette-count b{color:var(--ink);font-weight:700;margin-right:3px}
+.palette-count small{font-size:9px}
+.palette-inspector .palette-roles.is-compact-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+.palette-roles.is-compact-grid .palette-member{flex-direction:column;align-items:stretch;gap:3px;min-height:44px;padding:4px}
+.palette-roles.is-compact-grid .palette-member>i{width:100%;height:22px}
+.palette-roles.is-compact-grid .palette-member-label{font-size:10px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.palette-roles.is-compact-grid .palette-member code{font-size:8px;line-height:1.3}
+.palette-inspector .palette-roles.has-more-down{-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 26px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 26px),transparent)}
+.palette-inspector .palette-roles.has-more-across{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 26px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 26px),transparent)}
 .palette-inspector .full-button{grid-column:auto;grid-row:auto;width:100%;min-height:34px;font-size:10px;margin-top:6px;padding:7px 5px;gap:7px}
 .palette-inspector .full-button svg{width:13px;height:13px}
 .is-palette-collapsed .palette-inspector{padding-inline:7px}
@@ -33,6 +45,13 @@
 .is-palette-collapsed .palette-rail-toggle svg{transform:rotate(180deg)}
 .is-palette-collapsed .palette-member{justify-content:center;padding:4px;gap:0}
 .is-palette-collapsed .palette-member>i{width:32px;height:36px}
+/* Collapsed stays one skinny swatch-only column; the count keeps only its number. */
+.is-palette-collapsed .palette-inspector .palette-roles.is-compact-grid{grid-template-columns:minmax(0,1fr)}
+.is-palette-collapsed .palette-roles.is-compact-grid .palette-member{flex-direction:row;align-items:center;justify-content:center;min-height:44px}
+.is-palette-collapsed .palette-roles.is-compact-grid .palette-member>i{width:32px;height:32px}
+.is-palette-collapsed .palette-count{justify-content:center;margin:8px 0 -8px}
+.is-palette-collapsed .palette-count span,.is-palette-collapsed .palette-count small{display:none}
+.is-palette-collapsed .palette-count b{margin:0}
 /* Both side panels start on the same baseline; the result gets the remaining width. */
 #colorLab{display:block;min-width:0;padding:16px;border-left:1px solid var(--line);background:var(--surface)}
 .shade-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:28px}

@@ -13,6 +13,7 @@ import { initCommunity } from '../community-feed.js?v=1';
 import { freezeColorway, downloadColorway } from '../colorway-kit.js?v=1';
 import { initAccountNavigation } from '../account-client.js?v=3';
 import { DRAFT_KEY, STUDIO_HANDOFF_KEY, readDraft, sanitizeDraft } from '../member-palette.js';
+import { sanitizeWorkspace, swapRoles, syncRoleColors } from '../studio-members.js?v=4';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -108,8 +109,11 @@ function applyWorldAtmosphere(world) {
 }
 applyWorldAtmosphere(savedAtlasWorld);
 
+// This page edits only five colors; a full Studio palette beside them keeps its other members.
 function persistPalette(palette) {
-  const saved = page === 'studio' ? { ...palette, careAssignment: { ...careAssignment }, colorwayBaseline } : palette;
+  const synced = syncRoleColors(palette);
+  if (palette === current) current = synced;
+  const saved = page === 'studio' ? { ...synced, careAssignment: { ...careAssignment }, colorwayBaseline } : synced;
   try { sessionStorage.setItem('colorverse-current-palette', JSON.stringify(saved)); } catch {}
 }
 
@@ -158,6 +162,7 @@ function setPaletteURL() {
 }
 
 function renderSelection(updateURL = false) {
+  current = syncRoleColors(current);
   const name = $('#paletteName');
   const description = $('#paletteDescription');
   const heroSwatches = $('#heroSwatches');
@@ -216,7 +221,9 @@ function swapPaletteColors(from, to) {
   if (from === to || from < 0 || to < 0 || from > 4 || to > 4) return;
   const colors = [...current.colors];
   [colors[from], colors[to]] = [colors[to], colors[from]];
-  current = { ...current, id: current.id.startsWith('custom-') ? current.id : `custom-${current.id}`, colors };
+  // A larger palette swaps which members fill the roles, keeping member order (as Studio does).
+  const workspace = sanitizeWorkspace(current.workspace);
+  current = { ...current, id: current.id.startsWith('custom-') ? current.id : `custom-${current.id}`, colors, ...(workspace?.members.length > 5 ? { workspace: swapRoles(workspace, from, to) } : {}) };
   [shadeSourceColors[from], shadeSourceColors[to]] = [shadeSourceColors[to], shadeSourceColors[from]];
   persistPalette(current);
   renderSelection(true);

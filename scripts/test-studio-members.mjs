@@ -3,14 +3,15 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import {
   workspaceFromColors, sanitizeWorkspace, withWorkspace, roleColors, roleOfMember, memberLabel, previewColorLabel, isCompact,
-  setMember, assignRole, swapRoles, insertMember, removeMember, previewMapping, EXTRACT_MAX_MEMBERS,
+  setMember, assignRole, swapRoles, insertMember, removeMember, previewMapping, syncRoleColors, EXTRACT_MAX_MEMBERS,
 } from '../dist/studio-members.js';
 import { exportPalette } from '../dist/color.js';
 import { sanitizeDraft, readDraft } from '../dist/member-palette.js';
 
 const read = path => readFile(new URL(`../dist/${path}`, import.meta.url), 'utf8');
-const [app, store, account, extractHtml, studioStyles, extractStyles, globe] = await Promise.all([
+const [app, store, account, extractHtml, studioStyles, extractStyles, globe, legacy, legacyHtml, studioHtml] = await Promise.all([
   read('app.js'), read('project-store.js'), read('account.js'), read('extract/index.html'), read('studio-editor.css'), read('extract-workspace.css'), read('color-globe.js'),
+  read('home-test/app.js'), read('home-test/index.html'), read('studio/index.html'),
 ]);
 const five = ['#F7F6F2', '#DFE0DC', '#A9AAA7', '#6E7374', '#252B2F'];
 const ten = [...five, '#E85D75', '#2F6FDE', '#B68B70', '#F2C14E', '#3D7A5A'];
@@ -179,13 +180,78 @@ test('8, 10 and 24 members survive handoff, reload, edits, export and project st
 });
 
 test('a five-color derivative written beside a stale workspace is not resurrected', () => {
-  // A writer that edits `colors` but carries the old workspace (as the legacy
-  // /home-test/ copy does) is rejected; Studio does not invent a merge.
+  // A writer that edits `colors` but carries the old workspace (as /home-test/
+  // did before syncRoleColors) is rejected; Studio does not invent a merge.
   const workspace = workspaceFromColors(ten, [5, 1, 2, 3, 9]);
   const edited = roleColors(workspace).map((color, role) => role === 0 ? '#010203' : color);
   assert.deepEqual(withWorkspace({ id: 'x', colors: edited, workspace }).workspace, workspaceFromColors(edited));
   // Five-member snapshots stay on the historic identity mapping.
   assert.deepEqual(withWorkspace({ id: 'old', colors: five }).workspace, { v: 1, members: five, roleIndex: [0, 1, 2, 3, 4] });
+});
+
+test('legacy five-slot edits update the matching full workspace, keeping extras, order and role map', () => {
+  for (const [members, roleIndex] of [[ten.slice(0, 8), [7, 0, 3, 5, 1]], [ten, [5, 1, 2, 3, 9]], [many, [23, 0, 12, 5, 17]]]) {
+    const workspace = workspaceFromColors(members, roleIndex);
+    const stored = JSON.parse(JSON.stringify({ id: 'your-image-balanced', name: 'Wide', colors: roleColors(workspace), workspace }));
+    // /home-test/ Mini Studio "Apply color" on slot 2, then a reference fills slots 3–4.
+    const applied = syncRoleColors({ ...stored, id: 'custom-mini-studio', colors: stored.colors.map((color, role) => role === 2 ? '#0A0B0C' : color) });
+    const suggested = syncRoleColors({ ...applied, colors: applied.colors.map((color, role) => role === 3 ? '#111213' : role === 4 ? '#141516' : color) });
+    assert.deepEqual(suggested.workspace.roleIndex, roleIndex, 'role map unchanged');
+    assert.equal(suggested.workspace.members.length, members.length);
+    const expected = members.map((color, index) => ({ [roleIndex[2]]: '#0A0B0C', [roleIndex[3]]: '#111213', [roleIndex[4]]: '#141516' })[index] || color);
+    assert.deepEqual(suggested.workspace.members, expected, 'only the edited role members change; extras and order stay');
+    // Legacy swap trades roles, not member order, exactly as Studio does.
+    const swapped = syncRoleColors({ ...suggested, colors: [suggested.colors[4], ...suggested.colors.slice(1, 4), suggested.colors[0]], workspace: swapRoles(suggested.workspace, 0, 4) });
+    assert.deepEqual(swapped.workspace.members, expected);
+    assert.deepEqual(swapped.workspace.roleIndex, [roleIndex[4], ...roleIndex.slice(1, 4), roleIndex[0]]);
+    // Open Studio: the persisted palette passes Studio's unchanged validation and reloads whole.
+    const reloaded = withWorkspace(JSON.parse(JSON.stringify(swapped)));
+    assert.deepEqual(reloaded.workspace, swapped.workspace);
+    assert.deepEqual(sanitizeWorkspace(swapped.workspace, swapped.colors), swapped.workspace);
+    assert.deepEqual(JSON.parse(exportPalette(reloaded, 'json')).members, expected);
+    // Studio can still edit an unassigned member and place it explicitly.
+    const extra = expected.findIndex((_, index) => roleOfMember(reloaded.workspace, index) < 0);
+    const placed = assignRole(setMember(reloaded.workspace, extra, '#ABCDEF'), 1, extra);
+    assert.equal(roleColors(placed)[1], '#ABCDEF');
+    assert.equal(placed.members.length, members.length);
+  }
+  // Five-color and new explicit choices pass through untouched; invalid data is not resurrected.
+  const small = withWorkspace({ id: 'small', colors: five });
+  const edited = { ...small, colors: ['#010203', ...five.slice(1)] };
+  assert.equal(syncRoleColors(edited), edited);
+  const library = { id: 'warm-cafe', colors: five };
+  assert.equal(syncRoleColors(library), library);
+  const broken = { id: 'x', colors: five, workspace: { v: 1, members: ten, roleIndex: [0, 0, 1, 2, 3] } };
+  assert.equal(syncRoleColors(broken), broken);
+  assert.deepEqual(withWorkspace(broken).workspace.members, five, 'Studio validation unchanged');
+  assert.match(legacy, /import \{ sanitizeWorkspace, swapRoles, syncRoleColors \} from '\.\.\/studio-members\.js\?v=4';/);
+  assert.match(legacy, /function persistPalette\(palette\) \{\n  const synced = syncRoleColors\(palette\);\n  if \(palette === current\) current = synced;/);
+  assert.match(legacy, /function renderSelection\(updateURL = false\) \{\n  current = syncRoleColors\(current\);/);
+  assert.match(legacy, /workspace: swapRoles\(workspace, from, to\)/);
+  assert.match(legacyHtml, /\/home-test\/app\.js\?v=83/);
+  assert.match(app, /from '\.\/studio-members\.js\?v=4'/);
+});
+
+test('larger palettes get a compact two-column rail with a count and overflow cue; collapsed stays swatch-only', () => {
+  assert.match(studioHtml, /<p class="palette-count" id="paletteCount" hidden><\/p>\n\s*<div class="palette-roles" id="paletteRoles" role="group"><\/div>/);
+  assert.match(app, /container\.classList\.toggle\('is-compact-grid', workspace\.members\.length > 5\)/);
+  assert.match(app, /count\.hidden = workspace\.members\.length <= 5;/);
+  assert.match(app, /container\.classList\.toggle\('has-more-down', down && !across && !atEnd\)/);
+  assert.match(app, /' · scroll for all'/);
+  assert.match(app, /\$\('#paletteRoles'\)\?\.addEventListener\('scroll', updatePaletteOverflow/);
+  assert.match(app, /ArrowUp: Math\.max\(0, index - columns\)/);
+  assert.match(app, /ArrowDown: Math\.min\(last, index \+ columns\)/);
+  assert.match(studioStyles, /\.palette-inspector \.palette-roles\.is-compact-grid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(studioStyles, /\.palette-roles\.is-compact-grid \.palette-member\{flex-direction:column;align-items:stretch;gap:3px;min-height:44px;padding:4px\}/);
+  assert.match(studioStyles, /\.palette-inspector \.palette-roles\.has-more-down\{/);
+  assert.match(studioStyles, /\.is-palette-collapsed \.palette-inspector \.palette-roles\.is-compact-grid\{grid-template-columns:minmax\(0,1fr\)\}/);
+  assert.match(studioStyles, /\.is-palette-collapsed \.palette-count span,\.is-palette-collapsed \.palette-count small\{display:none\}/);
+  // Narrow screens keep the contained horizontal strip (no page overflow) with its own cue.
+  assert.match(studioStyles, /\.palette-inspector \.palette-roles,\.palette-inspector \.palette-roles\.is-scrolling\{display:flex;gap:5px;max-height:none;overflow-x:auto/);
+  assert.match(app, /' · swipe for all'/);
+  // Height budget at a 720px viewport (rail max 360px): 5 rows of compact members fit.
+  const member = 4 * 2 + 2 + 22 + 3 + 10 * 1.25 + 8 * 1.3;
+  assert.ok(5 * member + 4 * 4 <= 360, `ten members need ${5 * member + 16}px`);
 });
 
 test('project, prototype and template paths save and restore the complete workspace', () => {
@@ -250,6 +316,6 @@ test('Extract inserts between rows up to ten, keeps points, and hands the full p
   assert.match(app, /const workspace = workspaceFromColors\(extracted\.colors, extracted\.roleIndex\);/);
   assert.match(app, /colors: roleColors\(workspace\), workspace \}\)\)/);
   assert.doesNotMatch(extractHtml, /Five draggable/);
-  assert.match(extractHtml, /\/app\.js\?v=103/);
+  assert.match(extractHtml, /\/app\.js\?v=104/);
   assert.match(extractStyles, /\.extract-page \.extracted-swatches \.extract-insert\{position:absolute;/);
 });

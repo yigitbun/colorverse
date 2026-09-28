@@ -61,6 +61,18 @@ export function withWorkspace(palette) {
   return { ...palette, colors: roleColors(workspace), workspace };
 }
 
+// For writers that only edit the five preview colors (the legacy /home-test/
+// page): write each edited role color back into the member that fills it, so
+// extra members, member order and the role map survive. Palettes without a
+// valid larger workspace are returned unchanged; Studio's validation is not relaxed.
+export function syncRoleColors(palette) {
+  const workspace = sanitizeWorkspace(palette?.workspace);
+  const colors = palette?.colors;
+  if (!workspace || !isCompact(workspace) || !Array.isArray(colors) || colors.length !== 5 || !colors.every(isHex)) return palette;
+  const next = workspace.roleIndex.reduce((draft, member, role) => setMember(draft, member, colors[role]), workspace);
+  return { ...palette, colors: roleColors(next), workspace: next };
+}
+
 export function setMember(workspace, index, color) {
   if (!isHex(color) || index < 0 || index >= workspace.members.length) return workspace;
   const members = [...workspace.members];

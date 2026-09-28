@@ -17,7 +17,7 @@ import { mountPhotoColorway, PHOTO_COLORWAY_NOTE } from './photo-colorway.js?v=3
 import { KATRE_SERUM_PROFILE, SERUM_SOURCE_COLORS } from './katre-serum.js?v=1';
 import { colorAlternatives, quickColorAdjustments, NEUTRAL_CHROMA } from './color-alternatives.js?v=3';
 import { reportPreview } from './report-preview.js?v=1';
-import { withWorkspace, workspaceFromColors, sanitizeWorkspace, roleColors, roleOfMember, memberLabel, previewColorLabel, isCompact, setMember, assignRole, swapRoles, insertMember, removeMember, EXTRACT_MAX_MEMBERS } from './studio-members.js?v=3';
+import { withWorkspace, workspaceFromColors, sanitizeWorkspace, roleColors, roleOfMember, memberLabel, previewColorLabel, isCompact, setMember, assignRole, swapRoles, insertMember, removeMember, EXTRACT_MAX_MEMBERS } from './studio-members.js?v=4';
 import { initAccountNavigation } from './account-client.js?v=4';
 import { DRAFT_KEY, STUDIO_HANDOFF_KEY, readDraft, sanitizeDraft } from './member-palette.js?v=2';
 
@@ -366,12 +366,32 @@ function renderPaletteRoles() {
   const container = $('#paletteRoles');
   if (!container) return;
   const { workspace } = current;
+  // Larger palettes use a compact two-column rail with a visible count, so 8–10 colors fit without scrolling.
   container.classList.toggle('is-scrolling', workspace.members.length > 5);
+  container.classList.toggle('is-compact-grid', workspace.members.length > 5);
   container.setAttribute('aria-label', `${workspace.members.length} palette colors. Select a color to edit it on the right.`);
   container.innerHTML = workspace.members.map((color, index) => {
     const label = memberLabel(workspace, index), assigned = roleOfMember(workspace, index) >= 0;
     return `<button class="palette-member${activeColorIndex === index ? ' is-selected' : ''}${assigned ? '' : ' is-unassigned'}" type="button" data-select-member="${index}" style="--swatch:${color};--on:${textOn(color)}" aria-pressed="${activeColorIndex === index}" aria-label="Select ${label}, ${color}${assigned ? '' : ', not in preview'}" title="${label} · ${color}${assigned ? '' : ' · not in preview'}"><i aria-hidden="true"></i><span class="palette-member-label">${label}<code>${color}</code></span></button>`;
   }).join('');
+  const count = $('#paletteCount');
+  if (count) {
+    count.hidden = workspace.members.length <= 5;
+    count.innerHTML = `<b>${workspace.members.length}</b><span> colors</span><small></small>`;
+  }
+  updatePaletteOverflow();
+}
+
+// A contained rail that still hides colors says so and fades toward them.
+function updatePaletteOverflow() {
+  const container = $('#paletteRoles');
+  if (!container) return;
+  const across = container.scrollWidth > container.clientWidth + 1, down = container.scrollHeight > container.clientHeight + 1;
+  const atEnd = across ? container.scrollLeft + container.clientWidth >= container.scrollWidth - 2 : container.scrollTop + container.clientHeight >= container.scrollHeight - 2;
+  container.classList.toggle('has-more-down', down && !across && !atEnd);
+  container.classList.toggle('has-more-across', across && !atEnd);
+  const cue = $('#paletteCount small');
+  if (cue) cue.textContent = across || down ? (across ? ' · swipe for all' : ' · scroll for all') : '';
 }
 
 function renderColorTray() {
@@ -860,13 +880,19 @@ if (paletteRoles) {
     renderColorLab();
     // Material preview follows the selected member; no palette mutation/event.
     renderMockup();
-    paletteRoles.querySelector(`[data-select-member="${activeColorIndex}"]`)?.focus({ preventScroll: true });
+    const selected = paletteRoles.querySelector(`[data-select-member="${activeColorIndex}"]`);
+    selected?.focus({ preventScroll: true });
+    // Keyboard selection in a scrolled rail keeps the chosen color in view.
+    selected?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
   });
   paletteRoles.addEventListener('keydown', event => {
     const button = event.target.closest('[data-select-member]');
     if (!button) return;
     const index = Number(button.dataset.selectMember), last = current.workspace.members.length - 1;
-    const next = { ArrowUp: Math.max(0, index - 1), ArrowLeft: Math.max(0, index - 1), ArrowDown: Math.min(last, index + 1), ArrowRight: Math.min(last, index + 1), Home: 0, End: last }[event.key];
+    // Up/Down move by a row in the two-column rail.
+    const style = getComputedStyle(paletteRoles);
+    const columns = style.display === 'grid' ? style.gridTemplateColumns.split(' ').filter(Boolean).length : 1;
+    const next = { ArrowUp: Math.max(0, index - columns), ArrowLeft: Math.max(0, index - 1), ArrowDown: Math.min(last, index + columns), ArrowRight: Math.min(last, index + 1), Home: 0, End: last }[event.key];
     if (next === undefined) return;
     event.preventDefault();
     const target = paletteRoles.querySelector(`[data-select-member="${next}"]`);
@@ -879,7 +905,10 @@ $('#togglePaletteRail')?.addEventListener('click', event => {
   button.setAttribute('aria-expanded', String(!collapsed));
   button.setAttribute('aria-label', collapsed ? 'Expand palette' : 'Collapse palette');
   button.title = collapsed ? 'Expand palette' : 'Collapse palette';
+  updatePaletteOverflow();
 });
+$('#paletteRoles')?.addEventListener('scroll', updatePaletteOverflow, { passive: true });
+if (page === 'studio') window.addEventListener('resize', updatePaletteOverflow);
 $('#openSelectedGlobe')?.addEventListener('click', () => colorGlobe.open(activeColorIndex));
 
 $('#colorLab')?.addEventListener('click', event => {
