@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   workspaceFromColors, sanitizeWorkspace, withWorkspace, roleColors, roleOfMember, memberLabel, previewColorLabel, isCompact,
   setMember, assignRole, swapRoles, insertMember, removeMember, previewMapping, syncRoleColors, EXTRACT_MAX_MEMBERS,
+  SUPPORT_ROLE, SUPPORT_COLORS, isShort, isSupportRole, defaultRoleIndex,
 } from '../dist/studio-members.js';
 import { exportPalette } from '../dist/color.js';
 import { sanitizeDraft, readDraft } from '../dist/member-palette.js';
@@ -26,10 +27,156 @@ test('five colors use identity mapping; 6–24 colors are preserved without trun
   assert.deepEqual(roleColors(full), [many[3], many[0], many[23], many[7], many[12]]);
   assert.equal(workspaceFromColors([...many, '#000000']), null, 'more than 24 is rejected, not cut');
   assert.equal(withWorkspace({ id: 'oversize', colors: [...many, '#000000'] }), null, 'a 25-color palette is rejected, not silently truncated');
-  assert.equal(withWorkspace({ id: 'short', colors: five.slice(0, 4) }), null);
+  assert.equal(withWorkspace({ id: 'single', colors: five.slice(0, 1) }), null, 'one color is below the two-color minimum');
   assert.equal(withWorkspace({ id: 'max', colors: many }).workspace.members.length, 24);
-  assert.equal(workspaceFromColors(five.slice(0, 4)), null, 'fewer than five is not padded with invented colors');
+  assert.deepEqual(workspaceFromColors(five.slice(0, 4)).members, five.slice(0, 4), 'fewer than five is not padded with invented members');
   for (const bad of [[0, 0, 1, 2, 3], [0, 1, 2, 3], [0, 1, 2, 3, 10], [0, 1, 2, 3, 1.5]]) assert.equal(workspaceFromColors(ten, bad), null);
+});
+
+const S = SUPPORT_ROLE;
+const shortCases = [[five.slice(2, 4), [S, S, 0, 1, S]], [ten.slice(5, 8), [S, 2, 0, 1, S]], [ten.slice(5, 9), [3, 2, 0, 1, S]]];
+const supportCount = workspace => workspace.roleIndex.filter(index => index === S).length;
+
+test('2–4 colors keep exactly their members; open preview roles hold preview-only support', () => {
+  for (const [members, roleIndex] of shortCases) {
+    const workspace = workspaceFromColors(members);
+    assert.deepEqual(workspace, { v: 1, members, roleIndex }, `${members.length} members map deterministically`);
+    assert.deepEqual(defaultRoleIndex(members.length), roleIndex);
+    assert.equal(isShort(workspace), true);
+    assert.equal(isCompact(workspace), false);
+    assert.equal(workspace.members.length, members.length, 'support is never counted as a member');
+    assert.equal(supportCount(workspace), 5 - members.length);
+    const colors = roleColors(workspace);
+    assert.equal(colors.length, 5, 'renderers still receive five role colors');
+    colors.forEach((color, role) => assert.equal(color, isSupportRole(workspace, role) ? SUPPORT_COLORS[role] : members[roleIndex[role]]));
+    assert.deepEqual(roleIndex.map((_, role) => previewColorLabel(workspace, role)), roleIndex.map(index => index === S ? 'Preview support' : `Color ${index + 1}`));
+  }
+  // Two colors: first is Primary, second Accent; neutrals fill Background, Surface and Text.
+  const two = workspaceFromColors(['#aa3322', '#2255cc']);
+  assert.deepEqual(roleColors(two), [SUPPORT_COLORS[0], SUPPORT_COLORS[1], '#AA3322', '#2255CC', SUPPORT_COLORS[4]]);
+  assert.ok(SUPPORT_COLORS.every(color => /^#([0-9A-F]{2})\1\1$/.test(color)), 'support colors are fixed neutral greys');
+  assert.ok(Object.isFrozen(SUPPORT_COLORS));
+  // Explicit valid mappings are accepted; corrupt, duplicate, out-of-range or hidden-member mappings are not.
+  const three = ten.slice(5, 8);
+  assert.deepEqual(workspaceFromColors(three, [2, S, S, 0, 1]).roleIndex, [2, S, S, 0, 1]);
+  for (const bad of [null, [S, S, 0, 1], [S, S, 0, 0, 1], [S, S, 0, 1, 3], [S, S, 0, 1.5, 2], [S, S, S, 0, 1], ['x', S, 0, 1, 2],
+    [0, 1, 2, S, S, S], [S, S, '0', 1, 2], [-1, S, 0, 1, 2]]) assert.equal(workspaceFromColors(three, bad), null, JSON.stringify(bad));
+  assert.equal(workspaceFromColors(five, [S, 1, 2, 3, 4]), null, 'five or more members never use support');
+  assert.equal(workspaceFromColors(ten, [S, 1, 2, 3, 4]), null);
+  assert.equal(workspaceFromColors(['#111111']), null);
+  assert.equal(workspaceFromColors(['#111111', 'red']), null);
+});
+
+test('2–4 color workspaces survive JSON, rehydration and stale role colors without promoting support', () => {
+  for (const [members] of shortCases) {
+    const workspace = workspaceFromColors(members, [...defaultRoleIndex(members.length)].reverse());
+    const stored = JSON.parse(JSON.stringify({ id: 'short', name: 'Short', colors: roleColors(workspace), workspace }));
+    assert.deepEqual(sanitizeWorkspace(stored.workspace, stored.colors), workspace);
+    assert.equal(sanitizeWorkspace(stored.workspace, five), null, 'inconsistent with saved role colors');
+    assert.equal(sanitizeWorkspace({ ...stored.workspace, v: 2 }), null);
+    const restored = withWorkspace(stored);
+    assert.deepEqual(restored.workspace, workspace);
+    assert.deepEqual(withWorkspace(JSON.parse(JSON.stringify(restored))).workspace, workspace, 'second reload');
+    // Colors stored without the workspace are the members themselves.
+    assert.deepEqual(withWorkspace({ id: 'plain', colors: members }).workspace, workspaceFromColors(members));
+    // A stale five-color array beside a valid short workspace never becomes five members.
+    const authored = workspace.roleIndex.findIndex(index => index !== S);
+    const stale = stored.colors.map((color, role) => role === authored ? '#010203' : isSupportRole(workspace, role) ? '#FEDCBA' : color);
+    const merged = withWorkspace({ ...stored, colors: stale });
+    assert.equal(merged.workspace.members.length, members.length);
+    assert.equal(merged.workspace.members[workspace.roleIndex[authored]], '#010203');
+    assert.deepEqual(merged.workspace.roleIndex, workspace.roleIndex);
+    assert.ok(!merged.workspace.members.includes('#FEDCBA'), 'support-slot writes are not promoted to members');
+    assert.deepEqual(merged.colors, roleColors(merged.workspace));
+  }
+  // A corrupt short workspace falls back to the five saved colors, as before.
+  const corrupt = { id: 'x', colors: five, workspace: { v: 1, members: five.slice(0, 3), roleIndex: [S, S, 0, 0, 1] } };
+  assert.deepEqual(withWorkspace(corrupt).workspace, workspaceFromColors(five));
+});
+
+test('editing, assignment, insertion and legacy role writes keep the 2–4 member count', () => {
+  const members = ten.slice(5, 8);
+  let workspace = workspaceFromColors(members);
+  workspace = setMember(workspace, 1, '#123456');
+  assert.deepEqual(workspace.members, [members[0], '#123456', members[2]]);
+  assert.equal(roleColors(workspace)[3], '#123456');
+  assert.equal(setMember(workspace, 3, '#000000'), workspace, 'no member beyond the authored count');
+  // Assigning a member to a support role trades places with the support marker.
+  const moved = assignRole(workspace, 0, 0);
+  assert.deepEqual(moved.roleIndex, [0, 2, S, 1, S]);
+  assert.equal(moved.members.length, 3);
+  assert.equal(assignRole(workspace, 0, S), workspace, 'support is not a member');
+  assert.equal(assignRole(workspace, 0, 3), workspace);
+  const swapped = swapRoles(workspace, 1, 4);
+  assert.deepEqual(swapped.roleIndex, [S, S, 0, 1, 2]);
+  assert.deepEqual(swapped.members, workspace.members);
+  // Removal never shrinks an authored palette; insertion fills the next open role.
+  assert.equal(removeMember(workspace, 0), null);
+  const four = insertMember(workspace, 1, '#ABCDEF');
+  assert.deepEqual(four.members, [members[0], '#ABCDEF', '#123456', members[2]]);
+  assert.deepEqual(four.roleIndex, [1, 3, 0, 2, S], 'roles keep their members; the new color takes Background');
+  const fiveMembers = insertMember(four, 4, '#FEDCBA');
+  assert.deepEqual(fiveMembers.roleIndex, [0, 1, 2, 3, 4], 'five members return to the historic model');
+  assert.deepEqual(fiveMembers.members, [...roleColors(four).slice(0, 4), '#FEDCBA']);
+  assert.ok(!fiveMembers.members.includes(SUPPORT_COLORS[4]));
+  assert.equal(insertMember(workspaceFromColors(members), 0, '#111111', 3), null, 'insert respects its maximum');
+  // Legacy five-slot writers: role edits reach authored members; support stays fixed; rearrangements move roles.
+  const stored = { id: 'short', colors: roleColors(workspace), workspace };
+  const edited = syncRoleColors({ ...stored, colors: stored.colors.map((color, role) => role === 2 ? '#0A0B0C' : role === 0 ? '#EEEEEE' : color) });
+  assert.deepEqual(edited.workspace.members, ['#0A0B0C', '#123456', members[2]]);
+  assert.deepEqual(edited.colors, roleColors(edited.workspace));
+  assert.equal(edited.colors[0], SUPPORT_COLORS[0]);
+  const legacySwap = syncRoleColors({ ...stored, colors: [stored.colors[2], ...stored.colors.slice(1, 2), stored.colors[0], ...stored.colors.slice(3)] });
+  assert.deepEqual(legacySwap.workspace.members, workspace.members, 'a swap never writes support into a member');
+  assert.deepEqual(legacySwap.workspace.roleIndex, [0, 2, S, 1, S]);
+  assert.deepEqual(syncRoleColors(stored).workspace, workspace);
+});
+
+test('2–4 color exports list only authored members and name support roles without supplying them', () => {
+  for (const [members] of shortCases) {
+    const workspace = workspaceFromColors(members);
+    const palette = withWorkspace({ id: 'Short One', name: 'Short', colors: members });
+    const support = ['background', 'surface', 'primary', 'accent', 'text'].filter((_, role) => isSupportRole(workspace, role));
+    const hex = exportPalette(palette, 'hex').split('\n');
+    assert.deepEqual(hex.map(line => line.split('\t')[0]), members, 'raw HEX lists authored members only');
+    const json = JSON.parse(exportPalette(palette, 'json'));
+    assert.deepEqual(json.members, members);
+    assert.deepEqual(json.previewRoles, previewMapping(workspace));
+    assert.deepEqual(Object.keys(json.previewRoles).filter(role => json.previewRoles[role] === S), support);
+    assert.deepEqual(Object.keys(json.colors), Object.keys(json.previewRoles).filter(role => json.previewRoles[role] !== S));
+    assert.ok(Object.values(json.colors).every(color => members.includes(color)));
+    assert.deepEqual(Object.keys(json.previewSupport), support);
+    for (const format of ['css', 'scss', 'tailwind']) {
+      const code = exportPalette(palette, format);
+      assert.match(code, new RegExp(`${members.length} colors; preview-only support \\(not included\\): ${support.join(', ')}`));
+      assert.ok(SUPPORT_COLORS.every(color => !code.includes(color)), `${format} does not export support colors`);
+      assert.doesNotMatch(code, /undefined|NaN/);
+    }
+  }
+  const two = withWorkspace({ id: 'duo', name: 'Duo', colors: ['#AA3322', '#2255CC'] });
+  assert.equal(exportPalette(two, 'hex'), '#AA3322\tPrimary\n#2255CC\tAccent');
+  assert.equal(exportPalette(two, 'css'), '/* Duo — 2 colors; preview-only support (not included): background, surface, text */\n:root {\n  --duo-primary: #AA3322;\n  --duo-accent: #2255CC;\n}');
+});
+
+test('five and 6–24 color workspaces and exports are unchanged by short-palette support', () => {
+  for (const members of [five, ten, many]) {
+    const workspace = workspaceFromColors(members);
+    assert.deepEqual(workspace.roleIndex, [0, 1, 2, 3, 4]);
+    assert.equal(isShort(workspace), false);
+    assert.equal(supportCount(workspace), 0);
+    assert.deepEqual(roleColors(workspace), members.slice(0, 5));
+  }
+  const small = withWorkspace({ id: 'small', name: 'Small', colors: five });
+  assert.equal(exportPalette(small, 'css'), `/* Small */\n:root {\n${five.map((color, role) => `  --small-${['background', 'surface', 'primary', 'accent', 'text'][role]}: ${color};`).join('\n')}\n}`);
+  // Legacy palettes without a workspace export as before.
+  assert.equal(exportPalette({ id: 'legacy', name: 'Legacy', colors: five }, 'hex'), five.join('\n'));
+  const workspace = workspaceFromColors(ten, [5, 1, 2, 3, 9]);
+  const large = { id: 'large', name: 'Large', colors: roleColors(workspace), workspace };
+  assert.equal(exportPalette(large, 'scss'), `// Large — five preview roles of 10 colors\n$large-background: ${ten[5]};\n$large-surface: ${ten[1]};\n$large-primary: ${ten[2]};\n$large-accent: ${ten[3]};\n$large-text: ${ten[9]};`);
+  assert.equal(JSON.parse(exportPalette(large, 'json')).previewSupport, undefined);
+  const wide = workspaceFromColors(many, [23, 0, 12, 5, 17]);
+  assert.deepEqual(previewMapping(wide), { background: 24, surface: 1, primary: 13, accent: 6, text: 18 });
+  assert.equal(exportPalette({ id: 'wide', name: 'Wide', colors: roleColors(wide), workspace: wide }, 'hex').split('\n').length, 24);
 });
 
 test('stored workspaces are versioned, bounded and must agree with their role colors', () => {

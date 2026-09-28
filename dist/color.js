@@ -73,14 +73,27 @@ export function paletteFromColor(hex) {
     oklch(.22, Math.min(.035, c * .22), h),
   ];
 }
+// Preview-only support for 2–4 color palettes: a role without an authored
+// member holds SUPPORT_ROLE and renders with a fixed quiet neutral. Support
+// colors are never palette members and are never exported as authored colors.
+export const SUPPORT_ROLE = 'support';
+export const SUPPORT_COLORS = Object.freeze(['#F5F5F5', '#E5E5E5', '#737373', '#A3A3A3', '#1F1F1F']);
+
 export function exportPalette(palette, format) {
   const id = palette.id.replace(/[^a-z0-9-]/gi, '-').toLowerCase();
-  const map = Object.fromEntries(roles.map((r, i) => [r.toLowerCase(), palette.colors[i]]).filter(([, value]) => value));
-  // Larger Studio palettes keep every member; role formats say they hold the five preview roles.
-  const members = palette.workspace?.members?.length > 5 ? palette.workspace.members : null;
-  const roleNote = members ? ` — five preview roles of ${members.length} colors` : '';
+  const count = palette.workspace?.members?.length;
+  const short = count >= 2 && count < 5 && Array.isArray(palette.workspace.roleIndex);
+  const isSupport = role => short && palette.workspace.roleIndex[role] === SUPPORT_ROLE;
+  const map = Object.fromEntries(roles.map((r, i) => [r.toLowerCase(), palette.colors[i]]).filter(([, value], i) => value && !isSupport(i)));
+  // Larger and 2–4 color Studio palettes keep every member; role formats say
+  // which preview roles they hold. Support roles are named, never given as colors.
+  const members = count > 5 || short ? palette.workspace.members : null;
+  const support = roles.filter((_, i) => isSupport(i)).map(r => r.toLowerCase());
+  const roleNote = short ? ` — ${count} colors; preview-only support (not included): ${support.join(', ') || 'none'}`
+    : members ? ` — five preview roles of ${members.length} colors` : '';
   const roleFor = index => roles[palette.workspace.roleIndex.indexOf(index)];
-  if (format === 'json') return JSON.stringify(members ? { name: palette.name, colors: map, members, previewRoles: Object.fromEntries(roles.map((r, i) => [r.toLowerCase(), palette.workspace.roleIndex[i] + 1])) } : { name: palette.name, colors: map }, null, 2);
+  const previewRoles = () => Object.fromEntries(roles.map((r, i) => [r.toLowerCase(), isSupport(i) ? SUPPORT_ROLE : palette.workspace.roleIndex[i] + 1]));
+  if (format === 'json') return JSON.stringify(members ? { name: palette.name, colors: map, members, previewRoles: previewRoles(), ...(short ? { previewSupport: Object.fromEntries(support.map(r => [r, SUPPORT_COLORS[roles.findIndex(role => role.toLowerCase() === r)]])) } : {}) } : { name: palette.name, colors: map }, null, 2);
   if (format === 'scss') return `// ${palette.name}${roleNote}\n` + Object.entries(map).map(([k, v]) => `$${id}-${k}: ${v};`).join('\n');
   if (format === 'tailwind') return `// Add to theme.extend.colors${roleNote}\nexport default {\n  theme: {\n    extend: {\n      colors: {\n        '${id}': ${JSON.stringify(map, null, 2).replace(/\n/g, '\n        ')}\n      }\n    }\n  }\n};`;
   if (format === 'hex') return members ? members.map((color, index) => roleFor(index) ? `${color}\t${roleFor(index)}` : color).join('\n') : palette.colors.join('\n');
