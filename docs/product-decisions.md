@@ -6,6 +6,14 @@ This block takes precedence over superseded decisions below. The dated entries
 are an audit trail, not instructions to reimplement every earlier experiment.
 Start a new session with [the handoff](handoff.md) and [open work](open-work.md).
 
+- Studio FOCUS-07: the owner explicitly reverses the inline-shades direction.
+  A slim collapsible palette rail selects members only; always-visible shades,
+  one-click lighter/darker/softer/richer and explicit Globe live on the right.
+  Remove Apply palette colors from the product, keeping saved assignments and
+  baselines internally. Extra members retain explicit right-side placement.
+  A fresh Studio draft starts with existing colorful serum source colors;
+  requested/resumable palettes and the homepage default remain unchanged.
+  Local implementation complete; owner visual acceptance still pending.
 - Studio/Extract separate palette identity from application: neutral Color 1…N
   display names, with actual product surfaces on the right. This narrow local
   implementation follows the owner's request to continue ordinary work after
@@ -31,10 +39,8 @@ Start a new session with [the handoff](handoff.md) and [open work](open-work.md)
   The same five colors appear on label/body/cap/accent/print; the scene backdrop
   and clear glass base stay separate. Preserve saved assignment indices and
   original palette HEX/order; this is not corpus editorial approval.
-- Studio UX-05A: the owner approved moving the actionable UX recommendations
-  to Claude. Remove the duplicated right-side vertical shades strip, retaining
-  the left inline accordion, nearby selected-color alternatives, contrast and
-  color tray. This supersedes the older instruction to retain both shade paths.
+- Studio UX-05A's earlier left-inline-shades preference is superseded by
+  FOCUS-07 above. Retain selected-color alternatives, contrast and the color tray.
 
 - Delivery direction: the owner wants an intensive release preparation with
   personal testing by 2026-09-28 (Europe/Berlin), not a multi-week prerequisite.
@@ -65,14 +71,16 @@ Start a new session with [the handoff](handoff.md) and [open work](open-work.md)
 - New unnamed drafts get editable short ASCII suggestions. Stable database IDs
   and existing member names, including non-ASCII names, stay untouched.
 - Studio keeps five preview roles separately from all 5–24 palette members;
-  compact member cells support explicit role assignment. Extract adds samples
+  the slim rail preserves all members, with explicit right-side placement for
+  larger palettes. Extract adds samples
   between existing points up to ten; numbered fields refer to image sample
   points. Member palettes still support 2–24 colors; do not pad smaller palettes.
 - Studio uses Products/Screens/Campaigns. Skincare/Footwear/Object controls sit
   as small centered horizontal choices above the middle preview, not in a
-  reserved sidebar. Katre now uses the approved v3 serum with Label, Body,
-  Accent and Cap controls; Print follows the fifth preview slot (showing its
-  actual member number). The original photograph and its renderer remain for
+  reserved sidebar. Katre now uses the approved v3 serum: Label, Body,
+  Accent and Cap retain saved mappings, without the removed assignment panel;
+  Print follows the fifth preview slot. The selected-color usage hint tells the
+  actual surface. The original photograph and its renderer remain for
   compatibility, not as the current Skincare visual. Frozen comparison and
   photo PNG export remain; no
   physical manufacturing-color guarantee. Screens is a native illustrative

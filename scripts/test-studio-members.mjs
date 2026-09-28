@@ -157,19 +157,16 @@ test('project, prototype and template paths save and restore the complete worksp
   assert.match(store, /select\('id,name,palette_id,colors,source_metadata,created_at,collections\(name\)'\)/);
 });
 
-test('Studio shows larger palettes as compact member cells with explicit role selects', () => {
-  assert.match(app, /container\.classList\.toggle\('is-compact', compact\)/);
-  assert.match(app, /container\.classList\.toggle\('is-scrolling', workspace\.members\.length > COMPACT_MEMBERS\)/);
-  assert.match(app, /<select class="member-role" data-member-role="\$\{index\}" aria-label="Preview slot for \$\{label\}"/);
-  assert.match(app, /data-role-color="\$\{index\}"[^>]*aria-label="Change \$\{label\} in Color Globe/);
-  assert.match(app, /aria-label="Show shades for \$\{label\}"/);
-  assert.match(app, /\$\{label\} · Slot \$\{position \+ 1\}/);
-  assert.match(app, /assignPreviewRole\(member, role\)/);
+test('Studio keeps every member in the slim rail with explicit right-side preview assignment', () => {
+  assert.match(app, /container\.classList\.toggle\('is-scrolling', workspace\.members\.length > 5\)/);
+  assert.match(app, /workspace\.members\.map\(\(color, index\)/);
+  assert.match(app, /data-select-member="\$\{index\}"/);
+  assert.match(app, /data-assign-slot="\$\{role\}"/);
+  assert.match(app, /assignPreviewRole\(activeColorIndex, role\)/);
   assert.match(app, /copy\(members\.join\(', '\), `All \$\{members\.length\} colors copied\.`\)/);
   assert.doesNotMatch(app, /All five colors copied/);
-  assert.match(studioStyles, /\.palette-inspector \.palette-roles\.is-compact\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
-  assert.match(studioStyles, /\.palette-inspector \.palette-roles\.is-scrolling\{max-height:286px;overflow-y:auto/);
-  assert.match(studioStyles, /\.member-cell\{position:relative;/);
+  assert.match(studioStyles, /\.palette-inspector \.palette-roles\.is-scrolling\{max-height:min\(450px,calc\(100svh - 360px\)\);overflow-y:auto/);
+  assert.match(studioStyles, /\.palette-member\{display:flex;/);
   // The Globe edits a member and only previews roles that member fills.
   assert.match(app, /if \(role >= 0\) colors\[role\] = color;/);
   assert.match(globe, /palette = Array\.isArray\(source\.members\) \? \[\.\.\.source\.members\] : source\.colors\.slice\(0, 5\);/);
@@ -206,6 +203,6 @@ test('Extract inserts between rows up to ten, keeps points, and hands the full p
   assert.match(app, /const workspace = workspaceFromColors\(extracted\.colors, extracted\.roleIndex\);/);
   assert.match(app, /colors: roleColors\(workspace\), workspace \}\)\)/);
   assert.doesNotMatch(extractHtml, /Five draggable/);
-  assert.match(extractHtml, /\/app\.js\?v=101/);
+  assert.match(extractHtml, /\/app\.js\?v=103/);
   assert.match(extractStyles, /\.extract-page \.extracted-swatches \.extract-insert\{position:absolute;/);
 });

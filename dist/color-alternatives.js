@@ -4,6 +4,25 @@ import { oklab, oklch } from './color.js?v=2';
 // chroma, so a warm grey stays a grey instead of jumping to a saturated hue.
 export const NEUTRAL_CHROMA = .035;
 
+// Small, explicit edits of one color, not palette recommendations. A neutral
+// stays neutral; "Richer" is unavailable when there is no meaningful hue.
+export function quickColorAdjustments(hex) {
+  if (!/^#[0-9a-f]{6}$/i.test(hex)) return [];
+  const source = hex.toUpperCase();
+  const { lightness, chroma, hue } = colorCoordinates(source);
+  const neutral = chroma < .003;
+  const steps = [
+    ['lighter', 'Lighter', Math.min(1, lightness + .06), chroma],
+    ['darker', 'Darker', Math.max(0, lightness - .06), chroma],
+    ['softer', 'Softer', lightness, chroma * .72],
+    ['richer', 'Richer', lightness, Math.min(.34, chroma * 1.2)],
+  ];
+  return steps.map(([id, label, nextLightness, nextChroma]) => {
+    const color = oklch(nextLightness, nextChroma, hue).toUpperCase();
+    return { id, label, color, disabled: color === source || (neutral && (id === 'softer' || id === 'richer')) };
+  });
+}
+
 export function colorCoordinates(hex) {
   const [lightness, a, b] = oklab(hex);
   return { lightness, chroma: Math.hypot(a, b), hue: (Math.atan2(b, a) * 180 / Math.PI + 360) % 360 };

@@ -12,16 +12,16 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/styles.css?v=25">
   <link rel="stylesheet" href="/design-system.css?v=29">
-  <link rel="stylesheet" href="/studio-editor.css?v=13">
+  <link rel="stylesheet" href="/studio-editor.css?v=16">
   <link rel="stylesheet" href="/project-store.css?v=8">
   <link rel="stylesheet" href="/email-entry.css?v=1">
   <link rel="stylesheet" href="/color-globe.css?v=1">
   <link rel="stylesheet" href="/context-kits.css?v=11">
   <link rel="stylesheet" href="/report-preview.css?v=2">
-  <link rel="stylesheet" href="/photo-colorway.css?v=4">
+  <link rel="stylesheet" href="/photo-colorway.css?v=6">
   <link rel="stylesheet" href="/privacy.css?v=2">
   <link rel="stylesheet" href="/header-controls.css?v=2" data-header-controls>
-  <script type="module" src="/app.js?v=101"></script>
+  <script type="module" src="/app.js?v=103"></script>
   <script type="module" src="/analytics.js?v=6"></script>
 </head>
 <body>
@@ -35,12 +35,11 @@
     <section class="studio studio-page section-wrap" id="studio" aria-labelledby="studioTitle">
       <div class="studio-compact-head reveal"><div><span class="eyebrow">Tool / Palette</span><h1 id="studioTitle">Palette Studio</h1></div><div class="project-bar"><span class="project-sync" id="projectSyncLabel">Local draft</span><button class="small-button" id="openProjects" type="button">Projects</button><button class="button primary" id="saveProject" type="button">Save project</button></div></div>
       <div class="studio-workspace reveal">
-        <aside class="palette-inspector">
-          <div class="inspector-top"><span class="eyebrow">Your palette</span><span class="palette-order-hint">Tap swatch</span></div>
+        <aside class="palette-inspector" aria-label="Your palette">
+          <div class="inspector-top"><span class="eyebrow">Your palette</span><button id="togglePaletteRail" class="palette-rail-toggle" type="button" aria-expanded="true" aria-controls="paletteRoles" aria-label="Collapse palette" title="Collapse palette"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button></div>
           <h3 id="paletteName">Sunset Pop</h3><p id="paletteDescription">Hot pinks and golden oranges.</p>
           <div class="palette-roles" id="paletteRoles"></div>
           <p class="sr-only" id="paletteOrderStatus" aria-live="polite"></p>
-          <div class="contrast-note"><span>Aa</span><div><strong id="contrastRatio"></strong><small id="contrastVerdict">Color 5 on Color 1</small></div></div>
           <button class="button full-button" id="copyPalette">Copy palette <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="12" rx="2"/><path d="M15 8V4H4v12h4"/></svg></button>
           <button class="button full-button" id="savePersonalPalette" type="button">Save palette</button>
         </aside>
@@ -50,9 +49,13 @@
           <div class="context-caption"><span id="contextCaptionLabel">Skincare product preview</span></div>
         </div>
         <aside class="color-lab" id="colorLab" aria-labelledby="colorLabTitle">
-          <header class="shade-panel-head"><h3 id="colorLabTitle">Selected color</h3><span id="selectedColorLabel">Background</span></header>
-          <p class="shade-panel-intro"><i id="selectedColorSwatch" aria-hidden="true"></i><code id="selectedColorHex"></code><span>Shades open beside the color on the left.</span><span id="selectedColorUse" hidden></span></p>
+          <header class="shade-panel-head"><h3 id="colorLabTitle">Edit color</h3><span id="selectedColorLabel">Color 1</span></header>
+          <p class="shade-panel-intro"><i id="selectedColorSwatch" aria-hidden="true"></i><code id="selectedColorHex"></code><span id="selectedColorUse" hidden></span></p>
+          <button id="openSelectedGlobe" class="button color-globe-open" type="button" aria-haspopup="dialog" aria-controls="colorGlobe">Color Globe ↗</button>
           <div class="shade-panel-body">
+            <section class="shade-options" aria-labelledby="shadeOptionsTitle"><div class="tool-section-head"><h4 id="shadeOptionsTitle">Shades</h4><span>Click to apply</span></div><div id="colorShadeGrid" class="color-shade-grid" role="group" aria-label="Shades for selected color, light to deep"></div></section>
+            <div id="colorQuickActions" class="color-quick-actions" role="group" aria-label="One-click color adjustments"></div>
+            <section id="previewPlacement" class="preview-placement" hidden aria-labelledby="previewPlacementTitle"><h4 id="previewPlacementTitle">Use in preview</h4><p>Replace one of these five preview colors.</p><div id="previewSlotChoices"></div></section>
             <div class="shade-companions">
               <section class="shade-alternatives" aria-labelledby="alternativeTitle"><h4 id="alternativeTitle">Alternatives</h4><p id="alternativeScope">Changes the selected color only</p><div class="color-choice-grid alternative-grid" id="colorAlternativeGrid"></div></section>
               <section class="shade-contrast" aria-labelledby="contrastTitle"><h4 id="contrastTitle">Contrast</h4><p id="colorContrastPair"></p><div id="colorContrastGrid"></div></section>

@@ -7,6 +7,24 @@ güncel yönlendirme sonraki görüşmeyi kaydeder.
 
 ## Güncel yönlendirme — 2026-09-28
 
+- Owner yeni Studio UX yönünü açıkça istedi; [STUDIO-FOCUS-07](tasks/studio-focus-07.md)
+  yerelde tamamlandı. Bu karar UX-05A'nın solda inline shade tercihini değiştirir:
+  sol yalnız renk seçimi, sağda görünür tonlar ve tek tıklık ayarlar. Yeni Studio
+  draftı mevcut renkli Citrus Muse ile başlar; eski kayıt/URL paletleri korunur.
+  Apply palette colors paneli kaldırıldı; saved careAssignment/baseline/Print
+  ve export sözleşmesi korunur. Solda 184→64px collapse şeridi; mobil yatay,
+  büyük listede iç scroll. Sağda 21 ton, Lighter/Darker/Softer/Richer, açık Globe,
+  isimli swap; >5 üye için explicit Use in preview. Eski inline/drag-grip ve
+  küçük swap düğmeleri yerine bu seçili-renk akışı geçerlidir. App v103/Studio
+  CSS v16/photo CSS v6; 111 static / 189 PASS. 4203 gerçek 5/10 renk,
+  select-only/collapse/shade/Globe-cancel/comparison/swap/restore ve
+  unassigned-edit→placement→reload, 320px taşmasız yol kontrol edildi;
+  console temiz. Son preview `http://127.0.0.1:4203/studio/?p=custom-concept-piera`,
+  özgün beş renk/karşılaştırmasız/daraltılmış şerit. Owner 4202 draftı işletilmedi.
+  Yeni UX'nin owner kabulü henüz yok; Claude/başka ajan/hosted işlem/push/yayın yok.
+- Bütün backlog bitmiş değildir. Campaigns kararı, corpus uygulama onayı,
+  gerçek inbox/private save ve cihaz PNG gibi açık kapılar korunur; bu tur
+  yalnız sahibin yukarıdaki somut Studio isteklerini kapatır.
 - En son owner talimatı: normal işleri sürdür, Claude kapasitesini başka iş
   için ayır; şimdilik yeni görev verme. Bu turda Claude/başka ajan hiç
   çağrılmadı. Alttaki yoğun delegasyon talimatları tarihsel; bu kaynak tercihi

@@ -19,7 +19,7 @@ test('Inspiration replaces empty placeholders with the supplied AI study gallery
   assert.doesNotMatch(inspiration, /CV \/ SS|DRIFT \/ F01|ROOMKIT \/ 01|Image awaiting curation/);
   assert.match(inspiration, /data-study-gallery="inspiration"/);
   assert.match(inspiration, /<script type="module" src="\/study-gallery\.js\?v=2"><\/script>/);
-  assert.match(inspiration, /<script type="module" src="\/app\.js\?v=101"><\/script>/);
+  assert.match(inspiration, /<script type="module" src="\/app\.js\?v=103"><\/script>/);
   assert.match(inspiration, /href="\/inspiration\.css\?v=6"/);
   assert.match(inspiration, /AI-generated concepts\.<\/strong>[^<]*fictional[^<]*provisional[^<]*not manufacturer specifications or approved Library palettes/);
   assert.match(inspiration, /<noscript>[\s\S]*Enable JavaScript[\s\S]*<\/noscript>/);

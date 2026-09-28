@@ -19,7 +19,7 @@ test('product directions are centered above the preview without a reserved sideb
   assert.equal([...stage[1].matchAll(/aria-controls="mockup"/g)].length, 3);
   assert.match(studio, /id="productContextPicker" role="tablist" aria-label="Product direction" aria-orientation="horizontal"/);
   // Not in "Your palette", not between the tabs and the stage, and never rebuilt by renderMockup.
-  const inspector = studio.slice(studio.indexOf('<aside class="palette-inspector">'), studio.indexOf('</aside>'));
+  const inspector = studio.slice(studio.indexOf('<aside class="palette-inspector"'), studio.indexOf('</aside>'));
   assert.doesNotMatch(inspector, /productContextPicker/);
   assert.doesNotMatch(studio, /<\/div>\s*<div class="product-context-picker"/);
   assert.doesNotMatch(app, /data-product-kind="/);
@@ -27,46 +27,41 @@ test('product directions are centered above the preview without a reserved sideb
   assert.match(functionBody('renderSelection'), /renderProductPicker\(\);/);
   assert.match(studioStyles, /\.mockup-stage\.has-product-rail\{display:grid;grid-template-columns:minmax\(0,1fr\)/);
   assert.match(studioStyles, /\.product-context-picker\{display:flex;flex-direction:row;justify-content:center/);
-  assert.match(studioStyles, /\.product-context-picker\{flex-direction:row;flex-wrap:wrap/);
   assert.doesNotMatch(studioStyles, /\.product-context-picker\{[^}]*border-bottom/);
   assert.match(app, /vertical && event\.key === 'ArrowDown'/);
   assert.match(app, /vertical && event\.key === 'ArrowUp'/);
 });
 
-test('role rows are larger, the whole row toggles shades, and controls stay on top', () => {
-  assert.match(studioStyles, /\.palette-inspector \.role-swatch\{grid-template-columns:12px 38px minmax\(0,1fr\) 30px;[^}]*min-height:58px/);
-  assert.match(studioStyles, /\.palette-inspector \.role-select::before\{content:"";position:absolute;inset:0/);
-  assert.match(studioStyles, /\.palette-inspector \.role-grip,\.palette-inspector \.role-action\{position:relative;z-index:1\}/);
-  assert.match(studioStyles, /\.palette-inspector \.role-color-control\{position:relative;z-index:1;/);
-  assert.match(studioStyles, /\.palette-inspector \.role-grip\{[^}]*cursor:grab/);
-  assert.match(app, /aria-expanded="\$\{open\}"/);
+test('palette members select without editing; shades and Globe are explicit right tools', () => {
+  const palette = functionBody('renderPaletteRoles');
+  assert.match(palette, /workspace\.members\.map/);
+  assert.match(palette, /data-select-member="\$\{index\}"/);
+  assert.match(palette, /aria-pressed="\$\{activeColorIndex === index\}"/);
+  assert.doesNotMatch(app, /shadeOverlay|InlineShade|openShadeIndex|data-inline-role-shade/);
+  const selection = app.slice(app.indexOf("paletteRoles.addEventListener('click'"), app.indexOf("paletteRoles.addEventListener('keydown'"));
+  assert.match(selection, /activeColorIndex = Number/);
+  assert.match(selection, /renderColorLab\(\)/);
+  assert.doesNotMatch(selection, /replacePaletteColor|commitWorkspace|persistPalette|studiochange|colorGlobe\.open/);
+  assert.match(studio, /id="openSelectedGlobe"[^>]*aria-controls="colorGlobe"/);
+  assert.match(app, /colorGlobe\.open\(activeColorIndex\)/);
 });
 
-test('the inline shade strip fills its row without a dead frame', () => {
-  assert.match(studioStyles, /\.role-shade-overlay\{position:absolute;inset:-1px;[^}]*padding:0;/);
-  assert.match(studioStyles, /\.inline-shade-strip\{display:flex;width:100%;height:100%;gap:0\}/);
-  assert.match(studioStyles, /\.inline-shade-strip button\{[^}]*height:100%/);
-  assert.doesNotMatch(studioStyles, /\.inline-shade-strip\{[^}]*height:28px/);
-  assert.match(app, /role="listbox"/);
-  assert.match(app, /tabindex="\$\{value === focusShade \? 0 : -1\}"/);
+test('palette collapse changes presentation only, with accessible expand state', () => {
+  assert.match(studio, /id="togglePaletteRail"[^>]*aria-expanded="true"/);
+  const collapse = app.slice(app.indexOf("$('#togglePaletteRail')?.addEventListener"), app.indexOf("$('#openSelectedGlobe')?.addEventListener"));
+  assert.match(collapse, /classList\.toggle\('is-palette-collapsed'\)/);
+  assert.match(collapse, /setAttribute\('aria-expanded', String\(!collapsed\)\)/);
+  assert.doesNotMatch(collapse, /persistPalette|studiochange|current =|replacePaletteColor/);
+  assert.match(studioStyles, /grid-template-columns:184px minmax\(0,1fr\) 280px/);
+  assert.match(studioStyles, /grid-template-columns:64px minmax\(0,1fr\) 280px/);
+  assert.match(studioStyles, /\.is-palette-collapsed \.palette-member-label/);
 });
 
-test('an open strip closes on outside click or Escape without changing colors', () => {
-  const dismiss = functionBody('dismissInlineShade');
-  assert.match(dismiss, /renderPaletteRoles\(\)/);
-  assert.doesNotMatch(dismiss, /renderSelection|replacePaletteColor|studiochange/);
-  assert.match(dismiss, /if \(restoreFocus\) \$\('#paletteRoles'\)\?\.querySelector\(`\[data-role-select="\$\{index\}"\]`\)\?\.focus/);
-  assert.match(app, /document\.addEventListener\('click', event => \{\n    if \(openShadeIndex === null \|\| event\.target\.closest\?\.\('#paletteRoles \[data-role-index\]'\)\) return;\n    dismissInlineShade\(\);\n  \}, true\);/);
-  assert.match(app, /event\.key !== 'Escape' \|\| openShadeIndex === null \|\| event\.defaultPrevented \|\| document\.querySelector\('dialog\[open\]'\)/);
-  // Opening and toggling closed only re-render the active role, not a project change.
-  const activeRole = functionBody('renderActiveRole');
-  assert.doesNotMatch(activeRole, /renderSelection|studiochange/);
-  assert.match(app, /closeInlineShade\(index, \(\) => \{ renderActiveRole\(\);/);
-});
-
-test('shade strip motion respects reduced motion', () => {
-  assert.match(functionBody('closeInlineShade'), /if \(!overlay \|\| reduceMotion\.matches\)/);
-  assert.match(studioStyles, /@media\(prefers-reduced-motion:reduce\)\{\.role-shade-overlay,\.role-shade-overlay\.is-closing\{animation:none\}\}/);
+test('a fresh Studio starts with the existing colorful serum palette, never overwrites a resumable draft', () => {
+  assert.match(app, /colors: page === 'studio' \? \[\.\.\.SERUM_SOURCE_COLORS\] : \['#F7F6F2'/);
+  assert.match(app, /requestedPalette \|\| \(resumablePalette/);
+  assert.match(app, /resumablePalette : workingDraft/);
+  assert.match(app, /current = withWorkspace\(current\) \|\| withWorkspace\(workingDraft\)/);
 });
 
 test('visible Studio skincare branding reads Katre; stable IDs remain', () => {
@@ -114,73 +109,49 @@ test('Alternatives state their single-color scope and use the neutral-safe gener
   assert.match(app, /const label = activeLabel\(\);/);
   assert.match(app, /const alternatives = colorAlternatives\(color\);/);
   assert.doesNotMatch(app, /clamp\(coordinates\.chroma \* 1\.04, \.06, \.2\)/);
-  assert.match(app, /replacePaletteColor\(activeColorIndex, color\);/);
+  assert.match(app, /replacePaletteColor\(activeColorIndex, color, \{ keepShadeSource:/);
 });
 
-test('shades are edited only inline; the right panel keeps selected-color tools', () => {
+test('right-side shades are always visible and keep their source while applying a shade', () => {
   const panel = studio.slice(studio.indexOf('<aside class="color-lab"'), studio.indexOf('</aside>', studio.indexOf('<aside class="color-lab"')));
-  // The duplicated vertical Light-to-deep strip and its hooks are gone everywhere.
-  for (const removed of [/colorShadeGrid/, /vertical-shades?/, /shadeCurrentHex/, /shadeOptionCount/, /Light to deep/, /Choose a shade to apply it/]) {
-    assert.doesNotMatch(panel, removed);
-    assert.doesNotMatch(app, removed);
-  }
-  assert.doesNotMatch(studioStyles, /\.vertical-shades|\.shade-endpoint/);
-  assert.match(panel, /<h3 id="colorLabTitle">Selected color<\/h3><span id="selectedColorLabel">/);
-  assert.match(panel, /Shades open beside the color on the left\./);
-  // Alternatives, contrast and tray remain in the panel.
-  for (const id of ['colorAlternativeGrid', 'colorContrastGrid', 'addColorToTray', 'colorTray']) assert.match(panel, new RegExp(`id="${id}"`));
-  // No empty second column where the strip used to be.
-  assert.match(studioStyles, /\.shade-panel-body\{display:block\}/);
-  assert.doesNotMatch(studioStyles, /\.shade-panel-body\{[^}]*grid-template-columns/);
-  // The inline strip is the one shade path, with its own keyboard handling.
-  assert.match(app, /data-inline-role-shade="\$\{index\}"/);
-  assert.match(app, /const tone = event\.target\.closest\('\[data-inline-role-shade\]'\);/);
-  assert.doesNotMatch(app, /\$\('#colorLab'\)\?\.addEventListener\('click', event => \{\n  const shade/);
+  for (const id of ['colorShadeGrid', 'colorQuickActions', 'colorAlternativeGrid', 'colorContrastGrid', 'addColorToTray', 'colorTray']) assert.match(panel, new RegExp(`id="${id}"`));
+  assert.match(panel, /<h4 id="shadeOptionsTitle">Shades<\/h4>/);
+  assert.doesNotMatch(panel, /Shades open beside|Show shades/);
+  assert.match(functionBody('renderColorLab'), /selectedShadeValues\(activeColorIndex\)/);
+  assert.match(app, /keepShadeSource: choice\.hasAttribute\('data-color-shade'\)/);
+  assert.match(app, /quickColorAdjustments\(color\)/);
+  assert.match(studioStyles, /\.color-shade-grid\{display:grid;grid-template-columns:repeat\(7,minmax\(0,1fr\)\)/);
 });
 
-test('Selected color states where it is used on the Skincare photo, and only there', () => {
-  const panel = studio.slice(studio.indexOf('<aside class="color-lab"'), studio.indexOf('</aside>', studio.indexOf('<aside class="color-lab"')));
-  assert.match(panel, /<span id="selectedColorUse" hidden><\/span>/);
+test('Selected color tells the truth about actual usage; no product assignment panel remains', () => {
   const hint = functionBody('renderColorUseHint');
-  // Hidden outside Products → Skincare, so no stale photo claim survives a context or product switch.
-  assert.match(hint, /if \(context !== 'landing' \|\| productKind !== 'skincare'\) \{\n    hint\.hidden = true;\n    hint\.textContent = '';\n    return;\n  \}/);
-  // An unassigned extra member (role < 0) is not one of the five colors the photo can use.
-  assert.match(hint, /const role = roleOfMember\(current\.workspace, activeColorIndex\);/);
-  assert.match(hint, /role < 0\s*\n\s*\? `\$\{label\} isn't in the preview\. Choose a preview slot in its dropdown on the left to apply it\.`/);
-  // Assigned members are checked against the live careAssignment map, not a fixed guess.
-  assert.match(hint, /const surfaces = PHOTO_SURFACE_CONTROLS\.filter\(\(\[part\]\) => careAssignment\[part\] === role\)\.map\(\(\[, title\]\) => title\);/);
+  assert.match(studio, /<span id="selectedColorUse" hidden><\/span>/);
+  assert.match(hint, /context !== 'landing' \|\| productKind !== 'skincare'/);
+  assert.match(hint, /roleOfMember\(current\.workspace, activeColorIndex\)/);
+  assert.match(hint, /Choose a color under Use in preview to replace it/);
+  assert.match(hint, /PHOTO_SURFACE_CONTROLS\.filter/);
   assert.match(hint, /if \(role === 4\) surfaces\.push\('Print'\)/);
-  assert.match(hint, /Colors \$\{surfaces\.join\(' & '\)\} in the photo\. Background and clear glass base stay fixed\./);
-  assert.match(hint, /Not applied to the photo\. Choose \$\{label\} for Label, Body, Accent or Cap above\./);
-  // Updated on member/color selection, and on context, product-kind and care-assignment changes.
-  assert.match(functionBody('renderColorLab'), /renderColorUseHint\(\);/);
-  assert.match(app, /setupTabs\('\[data-context\]', button => \{ context = button\.dataset\.context;.*renderColorUseHint\(\);/);
-  assert.match(app, /setupTabs\('\[data-product-kind\]', button => \{ productKind = button\.dataset\.productKind;.*renderColorUseHint\(\);/);
-  assert.match(app, /careAssignment\[select\.dataset\.carePart\] = index;\n  persistPalette\(current\);\n  renderMockup\(\);\n  renderColorUseHint\(\);/);
+  assert.match(hint, /Background and clear glass base stay fixed/);
+  assert.doesNotMatch(app, /Apply palette colors|data-care-part|class="care-map"|careOptions/);
+  assert.match(functionBody('renderColorLab'), /renderColorUseHint\(\)/);
+  assert.match(app, /previewPlacement'\)\.hidden = !isCompact\(current\.workspace\)/);
+  assert.match(app, /assignPreviewRole\(activeColorIndex, role\)/);
 });
 
 test('Studio assets are cache-busted', () => {
-  assert.match(studio, /\/app\.js\?v=101/);
-  assert.match(studio, /\/studio-editor\.css\?v=13/);
+  assert.match(studio, /\/app\.js\?v=103/);
+  assert.match(studio, /\/studio-editor\.css\?v=16/);
   assert.match(studio, /\/report-preview\.css\?v=2/);
-  assert.match(app, /'\.\/color-alternatives\.js\?v=1'/);
+  assert.match(app, /'\.\/color-alternatives\.js\?v=3'/);
 });
 
-test('Studio color names are neutral and application dropdowns identify mapped members', () => {
-  const palette = functionBody('renderPaletteRoles');
-  assert.match(palette, /<span class="role-name">\$\{previewLabel\(index\)\}<\/span>/);
-  assert.doesNotMatch(palette, /roles\[index\]|\$\{name\}/);
-  assert.match(palette, /aria-label="Preview slot for \$\{label\}"/);
+test('neutral member names and legacy exports remain independent of application', () => {
+  assert.match(functionBody('renderPaletteRoles'), /memberLabel\(workspace, index\)/);
+  assert.doesNotMatch(functionBody('renderPaletteRoles'), /roles\[index\]/);
   assert.match(app, /const previewLabel = role => previewColorLabel\(current\.workspace, role\)/);
-  assert.match(app, /const careOptions = selected => current\.colors\.map\(\(color, index\) => .*\$\{previewLabel\(index\)\} · \$\{color\}/);
-  assert.match(app, /Print: \$\{previewLabel\(4\)\} · background stays fixed/);
-  assert.match(app, /verdict\.textContent = `\$\{previewLabel\(4\)\} on \$\{previewLabel\(0\)\}`/);
   assert.match(functionBody('renderColorLab'), /`vs \$\{previewLabel\(pairIndex\)\}`/);
   assert.doesNotMatch(functionBody('renderColorLab'), /roles\[pairIndex\]/);
-  assert.match(app, /Choose another color to swap with \$\{previewLabel\(index\)\}/);
-  assert.doesNotMatch(studio, /Text on background|id="globeRole">Background/);
   assert.match(app, /<small>Color \$\{sample\}<\/small>/);
-  assert.doesNotMatch(app, /<small>\$\{role >= 0 \? roles\[role\]/);
 });
 
 test('initial shade anchors use ordered members, not the five mapped preview colors', () => {
@@ -188,9 +159,8 @@ test('initial shade anchors use ordered members, not the five mapped preview col
   assert.doesNotMatch(app, /let shadeSourceColors = current\.colors/);
 });
 
-test('small-screen neutral labels keep room for their number and HEX without taller rows', () => {
-  assert.match(studioStyles, /\.palette-inspector \.role-swatch\{grid-template-columns:28px minmax\(0,1fr\)\}/);
-  assert.match(studioStyles, /\.role-swatch \.role-select\{grid-column:2;padding-right:22px\}/);
-  assert.match(studioStyles, /\.role-swatch \.role-action\{position:absolute;right:3px;top:5px;width:28px;height:28px\}/);
-  assert.match(studioStyles, /\.member-cell\{grid-template-columns:26px minmax\(0,1fr\);gap:1px 4px;padding:5px\}/);
+test('small screens keep a scrollable horizontal palette rather than squeezing the result', () => {
+  assert.match(studioStyles, /\.studio-workspace,\.studio-workspace\.is-palette-collapsed\{grid-template-columns:minmax\(0,1fr\)\}/);
+  assert.match(studioStyles, /display:flex;gap:5px;max-height:none;overflow-x:auto;overflow-y:hidden/);
+  assert.match(studioStyles, /\.is-palette-collapsed \.palette-member\{flex-basis:44px\}/);
 });

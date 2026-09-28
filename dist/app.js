@@ -14,10 +14,10 @@ import { imagePoint, sampleImageColor } from './image-sampling.js?v=1';
 import { initCommunity } from './community-feed.js?v=1';
 import { freezeColorway } from './colorway-kit.js?v=3';
 import { mountPhotoColorway, PHOTO_COLORWAY_NOTE } from './photo-colorway.js?v=3';
-import { KATRE_SERUM_PROFILE } from './katre-serum.js?v=1';
-import { colorAlternatives, NEUTRAL_CHROMA } from './color-alternatives.js?v=1';
+import { KATRE_SERUM_PROFILE, SERUM_SOURCE_COLORS } from './katre-serum.js?v=1';
+import { colorAlternatives, quickColorAdjustments, NEUTRAL_CHROMA } from './color-alternatives.js?v=3';
 import { reportPreview } from './report-preview.js?v=1';
-import { withWorkspace, workspaceFromColors, sanitizeWorkspace, roleColors, roleOfMember, memberLabel, previewColorLabel, isCompact, setMember, assignRole, swapRoles, insertMember, removeMember, COMPACT_MEMBERS, EXTRACT_MAX_MEMBERS } from './studio-members.js?v=3';
+import { withWorkspace, workspaceFromColors, sanitizeWorkspace, roleColors, roleOfMember, memberLabel, previewColorLabel, isCompact, setMember, assignRole, swapRoles, insertMember, removeMember, EXTRACT_MAX_MEMBERS } from './studio-members.js?v=3';
 import { initAccountNavigation } from './account-client.js?v=4';
 import { DRAFT_KEY, STUDIO_HANDOFF_KEY, readDraft, sanitizeDraft } from './member-palette.js?v=2';
 
@@ -66,9 +66,9 @@ const specialEditions = [{
 }];
 const editionPalettes = [...palettes, ...reviewCandidates, ...retiredReviewPalettes, ...specialEditions];
 const workingDraft = {
-  id: 'working-draft', name: suggestPaletteName(),
-  description: 'A neutral starting point to shape in Studio; not part of the curated library.',
-  colors: ['#F7F6F2', '#DFE0DC', '#A9AAA7', '#6E7374', '#252B2F'],
+  id: 'working-draft', name: page === 'studio' ? 'Citrus Muse' : suggestPaletteName(),
+  description: 'A starting colorway to shape; not part of the curated library.',
+  colors: page === 'studio' ? [...SERUM_SOURCE_COLORS] : ['#F7F6F2', '#DFE0DC', '#A9AAA7', '#6E7374', '#252B2F'],
   image: null, category: 'Draft', tags: ['working draft'], sourcePaletteId: null,
 };
 const requestedPalette = editionPalettes.find(palette => palette.id === params.get('p'));
@@ -102,10 +102,7 @@ let extracted = null;
 let extractedVariants = [];
 let selectedExtraction = 0;
 let imageURL = null;
-let roleDrag = null;
 let activeColorIndex = 0;
-let pendingSwapIndex = null;
-let openShadeIndex = null;
 document.body.dataset.page = page;
 document.title = titles[page];
 
@@ -218,7 +215,6 @@ function choosePalette(palette, notify = true) {
   if (palette.id === 'skincare-system-01') productKind = 'skincare';
   else if (palette.id === 'drift-field-01') productKind = 'footwear';
   activeColorIndex = 0;
-  openShadeIndex = null;
   shadeSourceColors = [...current.workspace.members];
   persistPalette(current);
   renderSelection(true);
@@ -301,8 +297,6 @@ function loadStudioSnapshot(snapshot) {
     careAssignment[part] = Number.isInteger(value) && value >= 0 && value < 5 ? value : defaultIndex;
   }
   activeColorIndex = 0;
-  pendingSwapIndex = null;
-  openShadeIndex = null;
   shadeSourceColors = [...workspace.members];
   const legacyReport = $('#tab-presentation');
   if (legacyReport) legacyReport.hidden = context !== 'presentation';
@@ -319,11 +313,6 @@ function loadStudioSnapshot(snapshot) {
 }
 
 window.colorverseStudio = { getSnapshot: studioSnapshot, loadSnapshot: loadStudioSnapshot };
-
-function announcePaletteOrder(color, index) {
-  const status = $('#paletteOrderStatus');
-  if (status) status.textContent = `${color} is now ${previewLabel(index)}.`;
-}
 
 let colorTray = [];
 try { colorTray = [...new Set(JSON.parse(localStorage.getItem('colorverse-color-tray') || '[]').filter(color => /^#[0-9a-f]{6}$/i.test(color)).map(color => color.toUpperCase()))].slice(0, 18); } catch {}
@@ -362,7 +351,7 @@ function colorCoordinates(hex) {
 let shadeSourceColors = [...current.workspace.members];
 const trashIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7"/></svg>';
 
-function inlineShadeValues(index) {
+function selectedShadeValues(index) {
   const source = shadeSourceColors[index] || current.workspace.members[index];
   const family = buildShadeFamilies(source)[0]?.colors || [source];
   return [...new Set(family)].sort((a, b) => colorCoordinates(b).lightness - colorCoordinates(a).lightness);
@@ -372,78 +361,17 @@ const activeColor = () => current.workspace.members[activeColorIndex] || current
 const activeLabel = () => memberLabel(current.workspace, activeColorIndex);
 const previewLabel = role => previewColorLabel(current.workspace, role);
 
-function shadeOverlay(index, color, label) {
-  if (openShadeIndex !== index) return '';
-  const shades = inlineShadeValues(index);
-  const focusShade = shades.includes(color) ? color : shades[0];
-  return `<div class="role-shade-overlay" data-shade-overlay="${index}"><div class="inline-shade-strip" id="roleShades${index}" role="listbox" aria-label="Choose a shade for ${label}. Escape closes without changing it.">${shades.map(value => `<button type="button" role="option" data-inline-role-shade="${index}" data-inline-shade="${value}" aria-selected="${value === color}" tabindex="${value === focusShade ? 0 : -1}" title="${value}" style="--tone:${value};--tone-ink:${textOn(value)}"><span class="sr-only">${value}</span></button>`).join('')}</div></div>`;
-}
-
-// Five colors: one row per member. More colors: compact two-column member
-// cells (8–10 fit the five-row height; longer palettes scroll inside the panel).
+// A single select button per member. Selection is not a palette edit.
 function renderPaletteRoles() {
   const container = $('#paletteRoles');
   if (!container) return;
   const { workspace } = current;
-  const compact = isCompact(workspace);
-  container.classList.toggle('is-compact', compact);
-  container.classList.toggle('is-scrolling', workspace.members.length > COMPACT_MEMBERS);
-  container.setAttribute('aria-label', compact ? `${workspace.members.length} palette colors; five fill the preview slots` : 'Palette colors');
-  const hint = $('.palette-order-hint');
-  if (hint) hint.textContent = compact ? `${workspace.members.length} colors · 5 in preview` : 'Tap swatch';
-  if (compact) {
-    container.innerHTML = workspace.members.map((color, index) => {
-      const role = roleOfMember(workspace, index), label = memberLabel(workspace, index), open = openShadeIndex === index;
-      return `<div class="member-cell${activeColorIndex === index ? ' is-selected' : ''}${role >= 0 ? ' is-assigned' : ''}${open ? ' is-shade-open' : ''}" data-role-index="${index}">
-    <button class="role-color-control" type="button" data-role-color="${index}" style="--swatch:${color};--on:${textOn(color)}" title="Explore ${label} in Color Globe" aria-label="Change ${label} in Color Globe" aria-haspopup="dialog" aria-controls="colorGlobe"><span aria-hidden="true">${index + 1}</span></button>
-    <select class="member-role" data-member-role="${index}" aria-label="Preview slot for ${label}" title="Choose which of the five preview slots uses ${label}"><option value="none"${role < 0 ? ' selected' : ' disabled'}>${label} · Not in preview</option>${roles.map((_, position) => `<option value="${position}"${position === role ? ' selected' : ''}>${label} · Slot ${position + 1}</option>`).join('')}</select>
-    <button class="role-select" type="button" data-role-select="${index}" aria-expanded="${open}"${open ? ` aria-controls="roleShades${index}"` : ''} aria-label="Show shades for ${label}"><code>${color}</code></button>
-    ${shadeOverlay(index, color, label)}
-  </div>`;
-    }).join('');
-    return;
-  }
-  container.innerHTML = current.colors.slice(0, 5).map((color, index) => `<div class="role-swatch${activeColorIndex === index ? ' is-selected' : ''}${pendingSwapIndex === index ? ' is-swap-source' : ''}${openShadeIndex === index ? ' is-shade-open' : ''}" data-role-index="${index}">
-    <span class="role-grip" aria-hidden="true" title="Drag onto another color to swap"><svg viewBox="0 0 10 16"><circle cx="2" cy="3" r="1.2"/><circle cx="8" cy="3" r="1.2"/><circle cx="2" cy="8" r="1.2"/><circle cx="8" cy="8" r="1.2"/><circle cx="2" cy="13" r="1.2"/><circle cx="8" cy="13" r="1.2"/></svg></span>
-    <button class="role-color-control" type="button" data-role-color="${index}" style="--swatch:${color}" title="Explore ${previewLabel(index)} in Color Globe" aria-label="Change ${previewLabel(index)} in Color Globe" aria-haspopup="dialog" aria-controls="colorGlobe"><span aria-hidden="true"></span></button>
-    <button class="role-select" type="button" data-role-select="${index}" aria-expanded="${openShadeIndex === index}"${openShadeIndex === index ? ` aria-controls="roleShades${index}"` : ''} aria-label="${pendingSwapIndex !== null && pendingSwapIndex !== index ? `Swap with ${previewLabel(index)}` : `Show shades for ${previewLabel(index)}`}">
-      <span class="role-name">${previewLabel(index)}</span><code>${color}</code>
-    </button>
-    <button class="role-action" type="button" data-role-swap="${index}" aria-label="${pendingSwapIndex === index ? 'Cancel swap' : `Swap ${previewLabel(index)} with another color`}" title="Swap colors">↔</button>
-    ${shadeOverlay(index, color, previewLabel(index))}
-  </div>`).join('');
-}
-
-// Opening or closing a shade strip changes focus, not the palette: no project change event.
-function renderActiveRole() {
-  renderPaletteRoles();
-  renderColorLab();
-  renderMockup();
-}
-
-function closeInlineShade(index, after) {
-  const overlay = document.querySelector(`[data-shade-overlay="${index}"]`);
-  openShadeIndex = null;
-  if (!overlay || reduceMotion.matches) { after?.(); return; }
-  overlay.classList.add('is-closing');
-  let finished = false;
-  const finish = () => {
-    if (finished) return;
-    finished = true;
-    after?.();
-  };
-  overlay.addEventListener('animationend', finish, { once: true });
-  window.setTimeout(finish, 230);
-}
-
-function dismissInlineShade({ restoreFocus = false } = {}) {
-  if (openShadeIndex === null) return;
-  const index = openShadeIndex;
-  closeInlineShade(index, () => {
-    if (openShadeIndex !== null) return;
-    renderPaletteRoles();
-    if (restoreFocus) $('#paletteRoles')?.querySelector(`[data-role-select="${index}"]`)?.focus({ preventScroll: true });
-  });
+  container.classList.toggle('is-scrolling', workspace.members.length > 5);
+  container.setAttribute('aria-label', `${workspace.members.length} palette colors. Select a color to edit it on the right.`);
+  container.innerHTML = workspace.members.map((color, index) => {
+    const label = memberLabel(workspace, index), assigned = roleOfMember(workspace, index) >= 0;
+    return `<button class="palette-member${activeColorIndex === index ? ' is-selected' : ''}${assigned ? '' : ' is-unassigned'}" type="button" data-select-member="${index}" style="--swatch:${color};--on:${textOn(color)}" aria-pressed="${activeColorIndex === index}" aria-label="Select ${label}, ${color}${assigned ? '' : ', not in preview'}" title="${label} · ${color}${assigned ? '' : ' · not in preview'}"><i aria-hidden="true"></i><span class="palette-member-label">${label}<code>${color}</code></span></button>`;
+  }).join('');
 }
 
 function renderColorTray() {
@@ -468,10 +396,15 @@ function renderColorLab() {
   const source = shadeSourceColors[activeColorIndex] || color;
   const coordinates = colorCoordinates(source);
   const label = activeLabel();
-  // Shades live only in the inline strip on the left; this panel holds tools for the selected color.
+  // Obvious, always-visible tools; member selection on the left never edits it.
   $('#selectedColorLabel').textContent = label;
   $('#selectedColorHex').textContent = color;
   $('#selectedColorSwatch')?.style.setProperty('--swatch', color);
+  const shades = selectedShadeValues(activeColorIndex);
+  $('#colorShadeGrid').innerHTML = shades.map(value => `<button type="button" data-use-color="${value}" data-color-shade aria-label="Use shade ${value} for ${label}" aria-pressed="${value === color}" title="${value}" style="--choice:${value};--on:${textOn(value)}"><span class="sr-only">${value}</span></button>`).join('');
+  $('#colorQuickActions').innerHTML = quickColorAdjustments(color).map(({ id, label: action, color: value, disabled }) => `<button type="button" data-use-color="${value}" data-quick-action="${id}"${disabled ? ' disabled' : ''} aria-label="Make ${label} ${action.toLowerCase()}"><i style="background:${value}" aria-hidden="true"></i>${action}</button>`).join('') + (!isCompact(current.workspace) ? `<button type="button" data-swap-next>Swap with ${memberLabel(current.workspace, (activeColorIndex + 1) % 5)} ↔</button>` : '');
+  $('#previewPlacement').hidden = !isCompact(current.workspace);
+  $('#previewSlotChoices').innerHTML = current.colors.map((value, role) => `<button type="button" data-assign-slot="${role}" aria-pressed="${roleOfMember(current.workspace, activeColorIndex) === role}" aria-label="Use ${label} instead of ${previewLabel(role)} in preview" title="Replace ${previewLabel(role)} in preview"><i style="background:${value}" aria-hidden="true"></i><span>${previewLabel(role)}</span></button>`).join('');
   const scope = $('#alternativeScope');
   if (scope) scope.textContent = `${coordinates.chroma < NEUTRAL_CHROMA ? 'Nearby neutrals' : 'Nearby hues'} · changes ${label} only`;
   const alternatives = colorAlternatives(color);
@@ -506,13 +439,13 @@ function renderColorUseHint() {
   const role = roleOfMember(current.workspace, activeColorIndex);
   const label = activeLabel();
   const text = role < 0
-    ? `${label} isn't in the preview. Choose a preview slot in its dropdown on the left to apply it.`
+    ? `${label} isn't in the preview. Choose a color under Use in preview to replace it.`
     : (() => {
       const surfaces = PHOTO_SURFACE_CONTROLS.filter(([part]) => careAssignment[part] === role).map(([, title]) => title);
       if (role === 4) surfaces.push('Print');
       return surfaces.length
         ? `Colors ${surfaces.join(' & ')} in the photo. Background and clear glass base stay fixed.`
-        : `Not applied to the photo. Choose ${label} for Label, Body, Accent or Cap above.`;
+        : 'Not used on this product. Editing it still updates your palette.';
     })();
   hint.hidden = false;
   hint.textContent = text;
@@ -685,15 +618,12 @@ function renderMockup() {
     skincare: { label: 'Skincare / Series study', title: 'Soft Structure', detail: 'Five objects. One quiet system.', specs: 'Matte polymer · ribbed cap · mono print' },
     object: { label: 'Object / Material study', title: 'Everyday object', detail: 'A useful object with a considered surface.', specs: 'Ceramic · dry glaze · tactile form' },
   }[productKind] || { label: 'Footwear / Field study', title: 'Field 01', detail: 'One silhouette. Three directions.', specs: 'Mesh · suede · modular rubber' };
-  const careOptions = selected => current.colors.map((color, index) => `<option value="${index}"${index === selected ? ' selected' : ''}>${previewLabel(index)} · ${color}</option>`).join('');
   // One approved Katre serum design: four surface assignments plus print from
   // the Text role. The mounted photo renderer survives ordinary palette edits.
   const carePreview = `<div class="mockup context-kit care-preview-kit photo-preview-kit${colorwayBaseline ? ' is-comparing' : ''}">
-    <header><div><span class="kit-kicker">Skincare concept · glass serum</span><h4>Katre</h4></div><span class="product-preview-meta">Live color application</span></header>
-    <div class="colorway-toolbar"><button type="button" data-colorway="lock">${colorwayBaseline ? 'Update comparison' : 'Keep for comparison'}</button>${colorwayBaseline ? '<button type="button" data-colorway="restore">Use comparison colors</button><button type="button" data-colorway="clear">Clear comparison</button>' : ''}<button type="button" data-colorway="retry" hidden>Reload photo</button><button type="button" data-colorway="export" disabled>Export PNG ↗</button></div>
+    <header><div><span class="kit-kicker">Skincare concept · glass serum</span><h4>Katre</h4></div><div class="colorway-toolbar"><button type="button" data-colorway="lock">${colorwayBaseline ? 'Update comparison' : 'Keep for comparison'}</button>${colorwayBaseline ? '<button type="button" data-colorway="restore">Use comparison colors</button><button type="button" data-colorway="clear">Clear comparison</button>' : ''}<button type="button" data-colorway="retry" hidden>Reload photo</button><button type="button" data-colorway="export" disabled>Export PNG ↗</button></div></header>
     <div class="care-preview-body">
       <div class="care-photo-host" data-photo-host></div>
-      <div class="care-map"><span class="kit-kicker">Apply palette colors</span>${PHOTO_SURFACE_CONTROLS.map(([part, title]) => `<label>${title}<select data-care-part="${part}" aria-label="${title} color">${careOptions(careAssignment[part])}</select></label>`).join('')}<small class="care-print-note">Print: ${previewLabel(4)} · background stays fixed</small></div>
     </div><footer><span>Label / body / accent / cap / print</span><span>Katre is a design concept · approximate digital preview</span></footer></div>`;
   const productPreview = productKind === 'skincare' ? carePreview : `<div class="mockup context-kit product-preview-kit"><header><div><span class="kit-kicker">${escape(productConfig.label)}</span><h4>${escape(productConfig.title)}</h4></div><span class="product-preview-meta">ColorVerse / product direction</span></header><div class="product-preview-stage"><div class="product-preview-image visual-pending"><span>Reference image pending</span></div><aside><strong>${escape(productConfig.detail)}</strong><p>${escape(productConfig.specs)}</p><div class="product-preview-swatches" aria-label="Applied product colors">${current.colors.slice(0, 5).map((color, index) => `<i style="--swatch:${color}" title="${roles[index]} ${color}"></i>`).join('')}</div><small>Palette colors shown at left.</small></aside></div><footer><span>Product study</span><span>Colour / material direction</span><span>Original ColorVerse concept</span></footer></div>`;
   const layouts = {
@@ -847,18 +777,6 @@ function setupTabs(selector, callback) {
 
 setupTabs('[data-context]', button => { context = button.dataset.context; renderProductPicker(); renderContextCaption(); renderMockup(); renderColorUseHint(); window.dispatchEvent(new CustomEvent('colorverse:studiochange')); track('context_preview', { context }); });
 setupTabs('[data-product-kind]', button => { productKind = button.dataset.productKind; renderProductPicker(); renderContextCaption(); renderMockup(); renderColorUseHint(); window.dispatchEvent(new CustomEvent('colorverse:studiochange')); track('product_preview', { product: productKind }); });
-$('#mockup')?.addEventListener('change', event => {
-  const select = event.target.closest('[data-care-part]');
-  if (!select || !Object.hasOwn(careAssignment, select.dataset.carePart)) return;
-  const index = Number(select.value);
-  if (!Number.isInteger(index) || index < 0 || index >= 5) return;
-  careAssignment[select.dataset.carePart] = index;
-  persistPalette(current);
-  renderMockup();
-  renderColorUseHint();
-  window.dispatchEvent(new CustomEvent('colorverse:studiochange'));
-  $('#mockup')?.querySelector(`[data-care-part="${select.dataset.carePart}"]`)?.focus({ preventScroll: true });
-});
 setupTabs('[data-format]', button => { format = button.dataset.format; renderExport(); });
 $('#mockup')?.addEventListener('click', async event => {
   const button = event.target.closest('[data-colorway]');
@@ -930,180 +848,68 @@ const colorGlobe = createColorGlobe({
   onApply(index, color) { const label = memberLabel(current.workspace, index); replacePaletteColor(index, color); track('color_edit', { method: 'globe' }); toast(`${label} updated to ${color}.`); },
   onClose(index) {
     renderMockup();
-    paletteRoles?.querySelector(`[data-role-color="${index}"]`)?.focus({ preventScroll: true });
+    $('#openSelectedGlobe')?.focus({ preventScroll: true });
   },
 });
 if (paletteRoles) {
   paletteRoles.addEventListener('click', event => {
-    const inlineShade = event.target.closest('[data-inline-role-shade]');
-    if (inlineShade) {
-      const index = Number(inlineShade.dataset.inlineRoleShade);
-      const color = inlineShade.dataset.inlineShade;
-      closeInlineShade(index, () => {
-        activeColorIndex = index;
-        replacePaletteColor(index, color, { keepShadeSource: true });
-        track('color_edit', { method: 'inline-shade' });
-        paletteRoles.querySelector(`[data-role-select="${index}"]`)?.focus({ preventScroll: true });
-      });
-      return;
-    }
-    // Clicks between the strip's tones stay inside the open strip.
-    if (event.target.closest('[data-shade-overlay]')) return;
-    const edit = event.target.closest('[data-role-color]');
-    if (edit) {
-      activeColorIndex = Number(edit.dataset.roleColor);
-      pendingSwapIndex = null;
-      openShadeIndex = null;
-      renderSelection();
-      colorGlobe.open(activeColorIndex);
-      return;
-    }
-    const swap = event.target.closest('[data-role-swap]');
-    if (swap) {
-      const index = Number(swap.dataset.roleSwap);
-      if (pendingSwapIndex === null) {
-        pendingSwapIndex = index;
-        activeColorIndex = index;
-        openShadeIndex = null;
-        renderSelection();
-        toast(`Choose another color to swap with ${previewLabel(index)}.`);
-      } else if (pendingSwapIndex === index) {
-        pendingSwapIndex = null;
-        renderSelection();
-      } else {
-        const from = pendingSwapIndex;
-        pendingSwapIndex = null;
-        openShadeIndex = null;
-        activeColorIndex = index;
-        swapPaletteColors(from, index);
-        announcePaletteOrder(current.colors[index], index);
-      }
-      return;
-    }
-    const select = event.target.closest('[data-role-select]');
-    if (!select) return;
-    const index = Number(select.dataset.roleSelect);
-    if (pendingSwapIndex !== null && pendingSwapIndex !== index) {
-      const from = pendingSwapIndex;
-      pendingSwapIndex = null;
-      openShadeIndex = null;
-      activeColorIndex = index;
-      swapPaletteColors(from, index);
-      announcePaletteOrder(current.colors[index], index);
-    } else {
-      activeColorIndex = index;
-      if (openShadeIndex === index) {
-        closeInlineShade(index, () => { renderActiveRole(); paletteRoles.querySelector(`[data-role-select="${index}"]`)?.focus({ preventScroll: true }); });
-        return;
-      }
-      openShadeIndex = index;
-      renderActiveRole();
-      // Keyboard users land on the current tone; Escape returns them to the row.
-      paletteRoles.querySelector(`[data-inline-role-shade="${index}"][tabindex="0"]`)?.focus({ preventScroll: true });
-      return;
-    }
-    paletteRoles.querySelector(`[data-role-select="${index}"]`)?.focus({ preventScroll: true });
+    const button = event.target.closest('[data-select-member]');
+    if (!button) return;
+    activeColorIndex = Number(button.dataset.selectMember);
+    renderPaletteRoles();
+    renderColorLab();
+    // Material preview follows the selected member; no palette mutation/event.
+    renderMockup();
+    paletteRoles.querySelector(`[data-select-member="${activeColorIndex}"]`)?.focus({ preventScroll: true });
   });
-
   paletteRoles.addEventListener('keydown', event => {
-    const tone = event.target.closest('[data-inline-role-shade]');
-    if (tone) {
-      const tones = [...tone.parentElement.querySelectorAll('[data-inline-role-shade]')];
-      const position = tones.indexOf(tone);
-      const next = { ArrowLeft: position - 1, ArrowUp: position - 1, ArrowRight: position + 1, ArrowDown: position + 1, Home: 0, End: tones.length - 1 }[event.key];
-      if (next === undefined) return;
-      event.preventDefault();
-      const target = tones[Math.max(0, Math.min(tones.length - 1, next))];
-      tones.forEach(item => { item.tabIndex = item === target ? 0 : -1; });
-      target.focus();
-      return;
-    }
-    const select = event.target.closest('[data-role-select]');
-    if (!select) return;
-    const index = Number(select.dataset.roleSelect);
-    let next = index;
-    if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') next = Math.max(0, index - 1);
-    const last = current.workspace.members.length - 1;
-    if (event.key === 'ArrowDown' || event.key === 'ArrowRight') next = Math.min(last, index + 1);
-    if (event.key === 'Home') next = 0;
-    if (event.key === 'End') next = last;
-    if (next === index) return;
+    const button = event.target.closest('[data-select-member]');
+    if (!button) return;
+    const index = Number(button.dataset.selectMember), last = current.workspace.members.length - 1;
+    const next = { ArrowUp: Math.max(0, index - 1), ArrowLeft: Math.max(0, index - 1), ArrowDown: Math.min(last, index + 1), ArrowRight: Math.min(last, index + 1), Home: 0, End: last }[event.key];
+    if (next === undefined) return;
     event.preventDefault();
-    paletteRoles.querySelector(`[data-role-select="${next}"]`)?.focus();
-  });
-
-  // Explicit role assignment for larger palettes; nothing is mapped automatically.
-  paletteRoles.addEventListener('change', event => {
-    const select = event.target.closest('[data-member-role]');
-    if (!select) return;
-    const member = Number(select.dataset.memberRole), role = Number(select.value);
-    if (!Number.isInteger(role) || role < 0 || role > 4) { renderPaletteRoles(); return; }
-    activeColorIndex = member;
-    openShadeIndex = null;
-    assignPreviewRole(member, role);
-    paletteRoles.querySelector(`[data-member-role="${member}"]`)?.focus({ preventScroll: true });
-  });
-
-  paletteRoles.addEventListener('pointerdown', event => {
-    const grip = event.target.closest('.role-grip');
-    const swatch = grip?.closest('[data-role-index]');
-    if (!swatch || event.button > 0) return;
-    event.preventDefault();
-    const index = Number(swatch.dataset.roleIndex);
-    roleDrag = { from: index, target: index, color: current.colors[index] };
-    document.body.classList.add('is-reordering-palette');
-    swatch.classList.add('is-dragging');
-  });
-
-  window.addEventListener('pointermove', event => {
-    if (!roleDrag) return;
-    event.preventDefault();
-    const target = document.elementFromPoint(event.clientX, event.clientY)?.closest?.('[data-role-index]');
-    if (!target || !paletteRoles.contains(target)) return;
-    const to = Number(target.dataset.roleIndex);
-    roleDrag.target = to;
-    paletteRoles.querySelectorAll('.is-drop-target').forEach(item => item.classList.remove('is-drop-target'));
-    if (to !== roleDrag.from) target.classList.add('is-drop-target');
-  }, { passive: false });
-
-  const finishRoleDrag = () => {
-    if (!roleDrag) return;
-    const { color, from, target } = roleDrag;
-    roleDrag = null;
-    document.body.classList.remove('is-reordering-palette');
-    paletteRoles.querySelector('.is-dragging')?.classList.remove('is-dragging');
-    paletteRoles.querySelector('.is-drop-target')?.classList.remove('is-drop-target');
-    if (from !== target) {
-      activeColorIndex = target;
-      swapPaletteColors(from, target);
-      announcePaletteOrder(color, target);
-    }
-  };
-  window.addEventListener('pointerup', finishRoleDrag);
-  window.addEventListener('pointercancel', finishRoleDrag);
-
-  // An open strip closes without a color change: click anywhere outside the
-  // palette rows (rows switch or close it themselves), or press Escape.
-  document.addEventListener('click', event => {
-    if (openShadeIndex === null || event.target.closest?.('#paletteRoles [data-role-index]')) return;
-    dismissInlineShade();
-  }, true);
-  document.addEventListener('keydown', event => {
-    if (event.key !== 'Escape' || openShadeIndex === null || event.defaultPrevented || document.querySelector('dialog[open]')) return;
-    event.preventDefault();
-    dismissInlineShade({ restoreFocus: paletteRoles.contains(document.activeElement) || document.activeElement === document.body });
+    const target = paletteRoles.querySelector(`[data-select-member="${next}"]`);
+    target?.click();
   });
 }
+$('#togglePaletteRail')?.addEventListener('click', event => {
+  const button = event.currentTarget;
+  const collapsed = $('.studio-workspace').classList.toggle('is-palette-collapsed');
+  button.setAttribute('aria-expanded', String(!collapsed));
+  button.setAttribute('aria-label', collapsed ? 'Expand palette' : 'Collapse palette');
+  button.title = collapsed ? 'Expand palette' : 'Collapse palette';
+});
+$('#openSelectedGlobe')?.addEventListener('click', () => colorGlobe.open(activeColorIndex));
 
 $('#colorLab')?.addEventListener('click', event => {
+  const slot = event.target.closest('[data-assign-slot]');
+  if (slot) {
+    const role = Number(slot.dataset.assignSlot);
+    if (roleOfMember(current.workspace, activeColorIndex) === role) return;
+    assignPreviewRole(activeColorIndex, role);
+    $('#previewSlotChoices').querySelector(`[data-assign-slot="${role}"]`)?.focus({ preventScroll: true });
+    return;
+  }
+  if (event.target.closest('[data-swap-next]')) {
+    const next = (activeColorIndex + 1) % 5;
+    swapPaletteColors(activeColorIndex, next);
+    activeColorIndex = next;
+    renderPaletteRoles();
+    renderColorLab();
+    $('#colorQuickActions [data-swap-next]')?.focus({ preventScroll: true });
+    return;
+  }
   const choice = event.target.closest('[data-use-color]');
   if (choice) {
     const containerId = choice.closest('[id]')?.id;
     const index = [...choice.parentElement.children].indexOf(choice);
     const color = choice.dataset.useColor;
-    replacePaletteColor(activeColorIndex, color);
+    if (color === activeColor().toUpperCase()) return;
+    replacePaletteColor(activeColorIndex, color, { keepShadeSource: choice.hasAttribute('data-color-shade') });
     const container = document.getElementById(containerId);
-    (container?.querySelector(`[data-use-color="${color}"]`) || container?.children[index])?.focus?.({ preventScroll: true });
+    const target = container?.querySelector(`[data-use-color="${color}"]`) || container?.children[index];
+    (target?.disabled ? $('#openSelectedGlobe') : target)?.focus?.({ preventScroll: true });
   }
   const remove = event.target.closest('[data-remove-color]');
   if (remove) {

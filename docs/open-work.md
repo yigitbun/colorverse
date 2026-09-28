@@ -31,6 +31,7 @@ korur. Tarih hedefi, geçilmemiş kontrolleri tamamlanmış saydırmaz.
 
 | İş | Sahip | Durum / sıradaki çıktı |
 | --- | --- | --- |
+| STUDIO-FOCUS-07 — sonuç odaklı Studio ve görünür düzenleme | Codex tek yazar | [Yerel teslim](tasks/studio-focus-07.md): renkli yeni başlangıç, Apply paneli yok, solda 184/64px rail ve seçme, sağda görünür tonlar/tek tıklık ayarlar/açık Globe. Üyeler/atamalar/baseline korunur; >5 üye için explicit sağ yerleştirme. 111 static / 189 PASS; 4203 5/10 renk, select-only/shade/collapse/comparison/Globe/reload ve 320px kontrolü; owner UX kabulü/yayın yok, Claude kullanılmadı |
 | STUDIO-NAMING-06 — palet rengi ile uygulama yüzeyini ayır | Codex tek yazar | [Yerel teslim](tasks/studio-naming-06.md): Studio/Extract Color 1…N; ürün yüzeyleri ve Print gerçek üyeyi gösterir. Kayıt/rol/HEX/sıra korunur; başlangıç shade anchor ve 320px kesilme düzeltildi. 189 PASS, 4202 gerçek 5/10 renk/atama/reload/comparison/mobil yolu ve temiz console. Owner görsel kabulü henüz yok; Claude/ajan çağrılmadı, yayın yok |
 | SERUM-RENDERER-01A — onaylı şişenin beş yüzeyli renk uygulaması | Codex fallback worker teslim; Codex lead inceleme | Claude quota %100 ile durdu, hiç dosya değiştirmedi. Base `06f78e4` → `f4eff775`, tam inceleme sonrası yerel main `903f9ea`; worker durdu. [Dar scope](tasks/serum-renderer-01a.md); beş yüzey, exact source identity, arka plan/clear base sabit; eski photo API korunur |
 | SERUM-STUDIO-01B — v3'ü Studio'ya bağla | Codex lead | [Entegrasyon](tasks/serum-studio-01b.md) yerelde tamam. Açık kayıt indeksleri/karşılaştırma korunur; Label/Body/Accent/Cap ve beşinci slot→Print. İlk teslim 185 PASS; 4201 browser renk/atama/restore/clear/context ve temiz console. Sonraki NAMING-06 320px ürün/comparison kontrolünü tamamladı. Cihaz PNG/authenticated save NOT RUN; yayın yok |
@@ -75,10 +76,10 @@ Studio bir renk düzenleyici olarak anlaşılır; iyi bir renk sistemini göster
    değildir. Çok açık/koyu hedefler ve sabit baskı, renkleri plastik veya okunmaz
    gösterebilir. Kenar iyileştirmesi ürünü fiziksel proof yapmaz; fotoğraf tek
    başına bütün paletin estetik başarısını kanıtlamaz.
-3. **Tekrarlanan düzenleme.** Soldaki inline tonlar ile sağdaki uzun ton strip'i
-   aynı işi yapar; Color Globe üçüncü giriş yoludur. Kullanıcının beğendiği inline
-   seçim kalsın; sağ alanın amacı seçilen renk yardımı mı tüm palet yönü mü net
-   kararlaştırılsın. Bu değerlendirme yeni öneri motoru kurma yetkisi değildir.
+3. **Tekrarlanan düzenleme.** İlk değerlendirme inline seçimi korumayı önerdi;
+   son owner kararı FOCUS-07 ile bunu değiştirdi. Sol yalnız seçer, tonlar ve
+   açık Globe sağdadır; tek tıklık seçenekler yalnız seçilen rengi değiştirir.
+   Bu, tüm-palete öneri motoru veya corpus üretimi yetkisi değildir.
 4. **Sonuç vermeyen seçimler.** Footwear/Object genel palette yalnız Reference
    image pending gösterir. Kontrol gibi görünür ama beklenen tasarım sonucu yok;
    görsel hazır değilken nasıl gösterileceği owner kararıdır. Kategori alanının

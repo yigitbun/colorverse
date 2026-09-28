@@ -31,13 +31,14 @@ test('Product preview offers directions without retired images', () => {
   assert.doesNotMatch(app, /\/assets\/(?:editions|palette-library)\//);
 });
 
-test('Skincare uses the approved serum profile with four surface controls and Text print', () => {
+test('Skincare keeps approved serum mappings without an extra assignment panel', () => {
   assert.match(app, /mountPhotoColorway/);
   assert.match(app, /\['label', 'Label'\], \['bottle', 'Body'\], \['carton', 'Accent'\], \['cap', 'Cap'\]/);
   assert.match(app, /tube: assignment\.label, bottle: assignment\.bottle, jar: assignment\.carton, cap: assignment\.cap/);
   assert.match(app, /data-photo-host/);
   assert.match(app, /mountPhotoColorway\(host, \{ profile: KATRE_SERUM_PROFILE, colorway, baseline \}\)/);
-  assert.match(app, /Print: \$\{previewLabel\(4\)\} · background stays fixed/);
+  assert.doesNotMatch(app, /Apply palette colors|data-care-part|class="care-map"/);
+  assert.match(app, /if \(role === 4\) surfaces\.push\('Print'\)/);
   assert.doesNotMatch(app, /class="care-bottle"|const careStage/);
   assert.match(studio, /photo-colorway\.css/);
 });
@@ -48,12 +49,12 @@ test('older report projects keep their original preview', () => {
   assert.match(store, /slides: 'presentation'/);
 });
 
-test('Palette rows open an in-card shade curtain', () => {
-  assert.match(app, /role-shade-overlay/);
-  assert.match(app, /data-inline-role-shade/);
-  assert.match(app, /role="option" data-inline-role-shade/);
-  assert.match(studioStyles, /role-shade-in/);
-  assert.match(studioStyles, /role-shade-out/);
+test('Palette rows select; visible right-side tools apply shades', () => {
+  assert.match(app, /data-select-member/);
+  assert.match(studio, /id="colorShadeGrid"/);
+  assert.match(app, /data-color-shade/);
+  assert.doesNotMatch(app, /role-shade-overlay|data-inline-role-shade/);
+  assert.doesNotMatch(studioStyles, /role-shade-in|role-shade-out/);
   assert.doesNotMatch(studio, /shadeStudio|openShadeStudio|shade-studio\.css/);
   assert.doesNotMatch(app, /createShadeStudio|openShadeStudio/);
 });

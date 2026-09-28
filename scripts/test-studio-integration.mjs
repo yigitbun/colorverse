@@ -12,7 +12,7 @@ test('photo renderer is reused across role edits and released on leaving its vie
   assert.match(app, /photoPreview\.update\(colorway\)/);
   assert.match(app, /photoPreview\.setBaseline\(baseline\)/);
   assert.match(app, /photoPreview\?\.destroy\(\)/);
-  assert.match(studio, /photo-colorway\.css\?v=4/);
+  assert.match(studio, /photo-colorway\.css\?v=6/);
 });
 test('PNG exports visible photo canvases, including locked comparison, not the old vector', () => {
   assert.match(app, /photo-colorway-stage:not\(\[hidden\]\)/);
@@ -38,17 +38,17 @@ test('larger Extract lists switch to readable rows on narrow screens', () => {
 });
 test('shared clients and account handoff are cache-busted and narrow headers use two columns', () => {
   assert.match(account, /\/account\.js\?v=9/);
-  assert.match(studio, /\/app\.js\?v=101/);
+  assert.match(studio, /\/app\.js\?v=103/);
   assert.match(header, /grid-template-columns:minmax\(0,1fr\) auto;column-gap:6px/);
 });
 test('photo size stays bounded and new serum colorways use all five colors without replacing saved mappings', () => {
-  assert.match(photoCss, /\.photo-preview-kit \.photo-colorway-stage\{width:100%;max-width:320px\}/);
+  assert.match(photoCss, /\.photo-preview-kit \.photo-colorway-stage\{width:100%;max-width:420px\}/);
   assert.match(app, /const DEFAULT_CARE_ASSIGNMENT = Object\.freeze\(\{ backdrop: 0, bottle: 2, cap: 1, label: 0, carton: 3 \}\)/);
   assert.match(app, /const careAssignment = \{ \.\.\.DEFAULT_CARE_ASSIGNMENT \}/);
   assert.match(app, /Object\.entries\(DEFAULT_CARE_ASSIGNMENT\)/);
   assert.match(app, /if \(current\.careAssignment\) for/);
   assert.match(app, /careAssignment\[part\] = value/);
-  assert.match(photoCss, /\.photo-preview-kit\.is-comparing \.care-map\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)\}/);
+  assert.doesNotMatch(app, /class="care-map"/);
   assert.match(photoCss, /aspect-ratio:var\(--photo-aspect,4\/5\)/);
 });
 test('project, palette and comparison actions have distinct visible labels', () => {
