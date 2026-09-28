@@ -128,8 +128,8 @@ function renderPalettes() {
     const ref = referenceFor(item.source_metadata?.reference_key || item.palette_id);
     const actions = make('div', '', 'member-palette-actions');
     const edit = make('button', 'Edit'); edit.type = 'button'; edit.addEventListener('click', () => openEditor(item));
-    const studio = make('button', 'Open in Studio ↗'); studio.type = 'button'; studio.disabled = item.colors.length < 5;
-    if (studio.disabled) studio.title = 'Add at least five colors to use the five Studio roles.';
+    const studio = make('button', 'Open in Studio ↗'); studio.type = 'button'; studio.disabled = item.colors.length < MIN_COLORS;
+    if (studio.disabled) studio.title = `Add at least ${MIN_COLORS} colors to open this palette in Studio.`;
     studio.addEventListener('click', () => chooseStudio(item));
     const remove = make('button'); remove.type = 'button'; remove.dataset.remove = ''; remove.setAttribute('aria-label', `Delete ${item.name || 'palette'}`);
     remove.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7m4-7v7"/></svg>';
@@ -184,14 +184,17 @@ $('#paletteForm').addEventListener('submit', async event => {
   finally { button.disabled = false; }
 });
 
-// Studio receives every saved color; the five chosen positions become its preview roles.
+// Studio receives only the saved colors. For 6–24 the five chosen positions become its preview roles;
+// 2–4 send no roleIndex and Studio adds neutral preview-only support, never saved or handed off.
 function openStudio(item, roleIndex) {
   const draft = sanitizeDraft({ name: item.name, collection: item.collections?.name, colors: item.colors, roleIndex, referenceKey: item.source_metadata?.reference_key || item.palette_id });
+  if (!draft) { status('This palette has invalid colors. Edit it before opening it in Studio.', 'error'); return; }
   try { sessionStorage.setItem(STUDIO_HANDOFF_KEY, JSON.stringify(draft)); }
   catch { status('Browser storage is unavailable. Allow site storage to transfer this palette to Studio.', 'error'); return; }
   location.assign('/studio/?saved=1');
 }
 function chooseStudio(item) {
+  if (item.colors.length < 5) { openStudio(item); return; }
   if (item.colors.length === 5) { openStudio(item, [0, 1, 2, 3, 4]); return; }
   choice = item; chosen = []; renderChoice(); $('#studioColorPicker').showModal();
 }

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import vm from 'node:vm';
 import {
   workspaceFromColors, sanitizeWorkspace, withWorkspace, roleColors, roleOfMember, memberLabel, previewColorLabel, isCompact,
   setMember, assignRole, swapRoles, insertMember, removeMember, previewMapping, syncRoleColors, EXTRACT_MAX_MEMBERS,
@@ -283,10 +284,69 @@ test('My palettes hands every color plus the chosen five positions to Studio', (
   assert.equal(sanitizeDraft({ colors: ten, roleIndex: [0, 0, 1, 2, 3] }).roleIndex, undefined);
   assert.match(account, /function openStudio\(item, roleIndex\) \{\n  const draft = sanitizeDraft\(\{ name: item\.name, collection: item\.collections\?\.name, colors: item\.colors, roleIndex,/);
   assert.match(account, /openStudio\(choice, \[\.\.\.chosen\]\)/);
-  assert.match(account, /studio\.disabled = item\.colors\.length < 5/);
+  assert.match(account, /studio\.disabled = item\.colors\.length < MIN_COLORS/);
+  assert.doesNotMatch(account, /at least five colors/);
   assert.match(app, /workspaceFromColors\(saved\.colors, saved\.roleIndex \|\| \(saved\.colors\.length === 5 \? undefined : null\)\)/);
   assert.doesNotMatch(app, /saved\?\.colors\.length === 5/);
   assert.match(app, /sanitizeDraft\(\{ \.\.\.snapshot, colors: \[\.\.\.current\.workspace\.members\]/);
+});
+
+// Runs Account's real openStudio/chooseStudio with stubbed browser globals; no auth or network.
+function accountHandoff({ failStorage = false } = {}) {
+  const source = account.slice(account.indexOf('function openStudio('), account.indexOf('function renderChoice('));
+  const stored = new Map(); const log = { assigned: null, status: null, picker: 0 };
+  const context = vm.createContext({
+    sanitizeDraft, STUDIO_HANDOFF_KEY: 'colorverse-member-palette',
+    sessionStorage: { setItem(key, value) { if (failStorage) throw new Error('blocked'); stored.set(key, value); } },
+    location: { assign: url => { log.assigned = url; } },
+    status: (text, kind) => { log.status = { text, kind }; },
+    $: () => ({ showModal: () => { log.picker += 1; } }), renderChoice: () => {}, choice: null, chosen: [],
+  });
+  vm.runInContext(`${source}\nthis.chooseStudio = chooseStudio;`, context);
+  return { choose: item => context.chooseStudio(item), stored, log };
+}
+
+test('My palettes opens 2–4 colors in Studio with only the authored colors', () => {
+  for (const colors of [ten.slice(5, 7), ten.slice(5, 8), ten.slice(5, 9)]) {
+    const { choose, stored, log } = accountHandoff();
+    const item = { name: 'Short', collections: { name: 'Work' }, colors: [...colors], palette_id: null };
+    choose(item);
+    assert.equal(log.picker, 0, 'short palettes skip the five-color picker');
+    assert.equal(log.assigned, '/studio/?saved=1');
+    const payload = JSON.parse(stored.get('colorverse-member-palette'));
+    assert.deepEqual(payload.colors, colors, `${colors.length} colors are sent unchanged`);
+    assert.equal(payload.roleIndex, undefined, 'Studio makes the deterministic preview mapping');
+    assert.ok(!payload.colors.some(color => SUPPORT_COLORS.includes(color)), 'no support tone in the handoff');
+    assert.deepEqual(item.colors, colors, 'the saved member palette is not modified');
+    assert.deepEqual(workspaceFromColors(payload.colors).members, colors);
+  }
+  assert.equal(sanitizeDraft({ colors: ten.slice(5, 8), roleIndex: [0, 1, 2, 0, 1] }).roleIndex, undefined, 'short handoffs never carry a role index');
+});
+
+test('My palettes keeps five-color identity and the 6–24 picker', () => {
+  const identity = accountHandoff();
+  identity.choose({ name: 'Five', colors: [...five] });
+  const payload = JSON.parse(identity.stored.get('colorverse-member-palette'));
+  assert.deepEqual(payload.colors, five);
+  assert.deepEqual(payload.roleIndex, [0, 1, 2, 3, 4]);
+  assert.equal(identity.log.picker, 0);
+  for (const colors of [ten.slice(0, 6), ten, many]) {
+    const large = accountHandoff();
+    large.choose({ name: 'Large', colors });
+    assert.equal(large.log.picker, 1, `${colors.length} colors open the five-choice picker`);
+    assert.equal(large.stored.size, 0); assert.equal(large.log.assigned, null);
+  }
+});
+
+test('My palettes reports invalid colors and blocked storage without navigating', () => {
+  const invalid = accountHandoff();
+  invalid.choose({ name: 'Bad', colors: ['#12345', '#ABCDEF'] });
+  assert.equal(invalid.stored.size, 0); assert.equal(invalid.log.assigned, null);
+  assert.deepEqual(invalid.log.status, { text: 'This palette has invalid colors. Edit it before opening it in Studio.', kind: 'error' });
+  const blocked = accountHandoff({ failStorage: true });
+  blocked.choose({ name: 'Short', colors: ten.slice(5, 8) });
+  assert.equal(blocked.log.assigned, null);
+  assert.deepEqual(blocked.log.status, { text: 'Browser storage is unavailable. Allow site storage to transfer this palette to Studio.', kind: 'error' });
 });
 
 // Replays the storage chain the Studio routes use (JSON through sessionStorage or
