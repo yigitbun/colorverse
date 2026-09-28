@@ -593,7 +593,8 @@ function renderAtlasSelection() {
   if (colors) colors.innerHTML = atlasSelected.map(({ hex }) => `<span class="atlas-selected-swatch" style="--swatch:${hex};--on:${textOn(hex)}" title="${hex}"><code>${hex}</code></span>`).join('');
   const suggested = atlasSelected.length === 1 ? suggestedPalettes(atlasSelected[0].hex) : [];
   if (suggestions) suggestions.innerHTML = suggested.length ? `<span class="atlas-suggestions-label">Suggested palettes</span>${suggested.map(palette => `<button type="button" class="atlas-suggestion" data-atlas-suggestion="${palette.id}" aria-label="Try ${escape(palette.name)} palette"><span class="atlas-suggestion-swatches">${palette.colors.map(color => `<i style="--swatch:${color}"></i>`).join('')}</span><span>${escape(palette.name)}</span></button>`).join('')}` : '';
-  if (action) action.textContent = atlasSelected.length === 5 ? 'Continue in Studio ↗' : 'Complete in Studio ↗';
+  // Only a single color is completed with generated tones; 2–5 continue as chosen.
+  if (action) action.textContent = atlasSelected.length === 1 ? 'Complete in Studio ↗' : 'Continue in Studio ↗';
   renderMiniEditor();
 }
 
@@ -646,10 +647,17 @@ function addAtlasSelection(payload) {
   toast(atlasPinned ? `${atlasSelected.length} color${atlasSelected.length === 1 ? '' : 's'} selected.` : 'Selection cleared.');
 }
 
+// Only colors actually chosen on the globe are authored. Two to four open as exactly
+// those members with fixed preview-only support; suggested swatches stay suggestions.
+// One color is still completed with generated tones; five are the historic five roles.
 function buildAtlasPalette() {
   if (!atlasSelected.length) return null;
-  const colors = miniStudioColors();
-  return { id: 'atlas-custom', name: suggestPaletteName(colors), description: `${atlasSelected.length} selected color${atlasSelected.length === 1 ? '' : 's'} with generated supporting tones.`, colors: colors.slice(0, 5), image: null, category: 'Your palette', tags: ['custom'] };
+  const chosen = atlasSelected.map(item => item.hex);
+  const workspace = chosen.length > 1 && chosen.length < 5 ? workspaceFromColors(chosen) : null;
+  const base = { id: 'atlas-custom', image: null, category: 'Your palette', tags: ['custom'] };
+  if (workspace) return { ...base, name: suggestPaletteName(workspace.members), description: `${chosen.length} chosen colors, previewed with neutral support that is not part of the palette.`, colors: roleColors(workspace), workspace };
+  const colors = miniStudioColors().slice(0, 5);
+  return { ...base, name: suggestPaletteName(colors), description: chosen.length === 1 ? 'One chosen color, completed with four generated suggested tones.' : `${chosen.length} chosen colors.`, colors };
 }
 
 function renderMockup() {

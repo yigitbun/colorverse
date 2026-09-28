@@ -526,3 +526,49 @@ test('Extract inserts between rows up to ten, keeps points, and hands the full p
   assert.match(extractHtml, /\/app\.js\?v=104/);
   assert.match(extractStyles, /\.extract-page \.extracted-swatches \.extract-insert\{position:absolute;/);
 });
+
+test('globe selections open in Studio with exactly the chosen colors; suggestions are never authored', async () => {
+  const [{ paletteFromColor }, { suggestPaletteName }, { savePaletteHandoff }] = await Promise.all([
+    import('../dist/color.js'), import('../dist/palette-names.js'), import('../dist/palette-handoff.js'),
+  ]);
+  // Runs the real homepage functions from app.js with only the selection state supplied.
+  const body = name => `${app.slice(app.indexOf(`function ${name}(`), app.indexOf('\n}\n', app.indexOf(`function ${name}(`)))}\n}`;
+  const build = selected => new Function('atlasSelected', 'paletteFromColor', 'suggestPaletteName', 'workspaceFromColors', 'roleColors',
+    `${body('miniStudioColors')}\n${body('buildAtlasPalette')}\nreturn { palette: buildAtlasPalette(), suggested: miniStudioColors() };`,
+  )(selected.map(hex => ({ hex })), paletteFromColor, suggestPaletteName, workspaceFromColors, roleColors);
+  const picks = ['#C0392B', '#2255CC', '#F2C14E', '#3D7A5A', '#6D597A'];
+  assert.equal(build([]).palette, null, 'nothing chosen, nothing handed off');
+  for (let count = 1; count <= 5; count += 1) {
+    const chosen = picks.slice(0, count);
+    const { palette, suggested } = build(chosen);
+    assert.equal(suggested.length, 5, `${count}: the homepage still shows five swatches, suggestions included`);
+    assert.equal(palette.colors.length, 5, `${count}: five role colors ride along for compatibility`);
+    const storage = new Map();
+    assert.equal(savePaletteHandoff(palette, () => ({ setItem: (key, value) => storage.set(key, value) })), true);
+    const restored = withWorkspace(JSON.parse(storage.get('colorverse-current-palette')));
+    if (count === 1) {
+      assert.equal(palette.workspace, undefined);
+      assert.deepEqual(restored.workspace.members, suggested, 'one color keeps the existing completion');
+      assert.equal(palette.description, 'One chosen color, completed with four generated suggested tones.');
+    } else if (count === 5) {
+      assert.equal(palette.workspace, undefined);
+      assert.deepEqual(restored.workspace, { v: 1, members: chosen, roleIndex: [0, 1, 2, 3, 4] }, 'five stay the historic five members');
+      assert.equal(palette.description, '5 chosen colors.');
+    } else {
+      assert.deepEqual(palette.workspace, workspaceFromColors(chosen));
+      assert.deepEqual(restored.workspace.members, chosen, `${count}: exactly the chosen colors are members`);
+      assert.deepEqual(restored.workspace.roleIndex, defaultRoleIndex(count));
+      roleColors(restored.workspace).forEach((color, role) => {
+        if (isSupportRole(restored.workspace, role)) assert.equal(color, SUPPORT_COLORS[role], 'support only in role slots');
+      });
+      for (const tone of suggested.slice(count)) assert.ok(!restored.workspace.members.includes(tone), 'a suggested tone is never a member');
+      assert.deepEqual(exportPalette(restored, 'hex').split('\n').map(line => line.split('\t')[0]), chosen, 'export lists only the chosen colors');
+      assert.deepEqual(withWorkspace(JSON.parse(JSON.stringify(restored))).workspace, restored.workspace, 'second reload');
+      assert.equal(palette.description, `${count} chosen colors, previewed with neutral support that is not part of the palette.`);
+    }
+  }
+  let message = '';
+  assert.equal(savePaletteHandoff(build(picks.slice(0, 2)).palette, () => { throw new Error('denied'); }, text => { message = text; }), false, 'storage failure stays on the homepage');
+  assert.match(message, /Browser storage is unavailable/);
+  assert.match(app, /if \(action\) action\.textContent = atlasSelected\.length === 1 \? 'Complete in Studio ↗' : 'Continue in Studio ↗';/);
+});
