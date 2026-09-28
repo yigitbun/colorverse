@@ -1,7 +1,7 @@
 import { getAccountClient, initAccountNavigation, accountReturnURL } from './account-client.js?v=3';
 import { initEmailCodeFlow } from './email-code-flow.js?v=3';
 import { emailAccessMessage } from './email-access.js?v=3';
-import { MIN_COLORS, MAX_COLORS, DRAFT_KEY, STUDIO_HANDOFF_KEY, normalizeHex, readDraft, sanitizeDraft, studioColors } from './member-palette.js';
+import { MIN_COLORS, MAX_COLORS, DRAFT_KEY, STUDIO_HANDOFF_KEY, normalizeHex, readDraft, sanitizeDraft, studioColors } from './member-palette.js?v=2';
 import { palettes } from './palettes.js?v=28';
 import { textOn } from './color.js';
 import { suggestPaletteName } from './palette-names.js?v=1';
@@ -184,14 +184,15 @@ $('#paletteForm').addEventListener('submit', async event => {
   finally { button.disabled = false; }
 });
 
-function openStudio(item, colors) {
-  const draft = sanitizeDraft({ name: item.name, colors, referenceKey: item.source_metadata?.reference_key || item.palette_id });
+// Studio receives every saved color; the five chosen positions become its preview roles.
+function openStudio(item, roleIndex) {
+  const draft = sanitizeDraft({ name: item.name, collection: item.collections?.name, colors: item.colors, roleIndex, referenceKey: item.source_metadata?.reference_key || item.palette_id });
   try { sessionStorage.setItem(STUDIO_HANDOFF_KEY, JSON.stringify(draft)); }
   catch { status('Browser storage is unavailable. Allow site storage to transfer this palette to Studio.', 'error'); return; }
   location.assign('/studio/?saved=1');
 }
 function chooseStudio(item) {
-  if (item.colors.length === 5) { openStudio(item, item.colors); return; }
+  if (item.colors.length === 5) { openStudio(item, [0, 1, 2, 3, 4]); return; }
   choice = item; chosen = []; renderChoice(); $('#studioColorPicker').showModal();
 }
 function renderChoice() {
@@ -206,7 +207,7 @@ function renderChoice() {
   $('#studioChoiceStatus').textContent = `${chosen.length} of 5 selected`; $('#openChosenStudio').disabled = chosen.length !== 5;
 }
 $('#closeStudioPicker').addEventListener('click', () => $('#studioColorPicker').close());
-$('#openChosenStudio').addEventListener('click', () => { const colors = studioColors(choice.colors, chosen); if (colors) openStudio(choice, colors); });
+$('#openChosenStudio').addEventListener('click', () => { if (studioColors(choice.colors, chosen)) openStudio(choice, [...chosen]); });
 $('#cancelDelete').addEventListener('click', () => $('#deletePaletteDialog').close());
 $('#confirmDelete').addEventListener('click', async () => {
   if (!deleting || !session) return; $('#confirmDelete').disabled = true;

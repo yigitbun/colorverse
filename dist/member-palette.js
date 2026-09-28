@@ -16,12 +16,15 @@ export function validColors(colors) {
 
 export function sanitizeDraft(value) {
   if (!value || !validColors(value.colors)) return null;
-  return {
+  const draft = {
     name: String(value.name || suggestPaletteName(value.colors)).slice(0, 120),
     collection: String(value.collection || 'My palettes').slice(0, 100),
     colors: value.colors.map(color => color.toUpperCase()),
     referenceKey: typeof value.referenceKey === 'string' && /^[a-z0-9-]{1,120}$/.test(value.referenceKey) ? value.referenceKey : null,
   };
+  // Studio handoff: all colors travel with the five explicitly chosen preview positions.
+  if (value.roleIndex != null && studioColors(draft.colors, value.roleIndex)) draft.roleIndex = [...value.roleIndex];
+  return draft;
 }
 
 export function readDraft(storage, key = DRAFT_KEY) {

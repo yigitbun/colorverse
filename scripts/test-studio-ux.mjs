@@ -99,20 +99,26 @@ test('report colors follow the live palette variables only', () => {
   assert.doesNotMatch(reportStyles, /#[0-9a-f]{3,8}\b|rgb\(|hsl\(/i);
   for (const variable of ['--p-bg', '--p-text', '--p-primary', '--p-accent', '--p-surface']) assert.ok(reportStyles.includes(`var(${variable})`), variable);
   assert.match(reportStyles, /\.bi-axis\{fill:var\(--bi-muted\)/);
+  // The site-wide svg{stroke:currentColor} icon rule must not outline chart labels.
+  assert.match(reportStyles, /\.bi-trend\{[^}]*stroke:none\}/);
+  assert.match(reportStyles, /\.bi-trend text\{stroke:none/);
+  const html = reportPreview();
+  assert.equal(html.match(/class="bi-axis"[^>]*text-anchor="end"/g)?.length, 3, 'one label per y tick');
   assert.match(reportStyles, /@container \(max-width:560px\)/);
 });
 
 test('Alternatives state their single-color scope and use the neutral-safe generator', () => {
   assert.match(studio, /<p id="alternativeScope">Changes the selected color only<\/p>/);
-  assert.match(app, /changes \$\{roles\[activeColorIndex\]\} only/);
+  assert.match(app, /changes \$\{label\} only/);
+  assert.match(app, /const label = activeLabel\(\);/);
   assert.match(app, /const alternatives = colorAlternatives\(color\);/);
   assert.doesNotMatch(app, /clamp\(coordinates\.chroma \* 1\.04, \.06, \.2\)/);
   assert.match(app, /replacePaletteColor\(activeColorIndex, color\);/);
 });
 
 test('Studio assets are cache-busted', () => {
-  assert.match(studio, /\/app\.js\?v=94/);
-  assert.match(studio, /\/studio-editor\.css\?v=8/);
-  assert.match(studio, /\/report-preview\.css\?v=1/);
+  assert.match(studio, /\/app\.js\?v=95/);
+  assert.match(studio, /\/studio-editor\.css\?v=9/);
+  assert.match(studio, /\/report-preview\.css\?v=2/);
   assert.match(app, /'\.\/color-alternatives\.js\?v=1'/);
 });

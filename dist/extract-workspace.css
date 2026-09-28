@@ -28,10 +28,25 @@ body[data-page=extract] .extract-page{display:block;padding-top:26px;padding-bot
 .extract-color-copy code{font:13px var(--mono)}
 .extract-color-edit{display:flex;align-items:center;gap:9px;font:12px var(--mono)}
 .extract-color-edit input{width:28px;height:28px;border:1px solid currentColor;border-radius:5px;background:none;padding:2px;cursor:pointer}
+/* Up to ten samples: rows tighten after five; + sits on the seam between two rows. */
+.extract-color-row{position:relative}
+.extract-page .extracted-swatches{overflow:visible}
+.extract-page .extracted-swatches>.extract-color-row:first-child{border-radius:10px 10px 0 0}
+.extract-page .extracted-swatches>.extract-color-row:last-child{border-radius:0 0 10px 10px}
+.extract-page .extracted-swatches:has(>:nth-child(6)) .extract-color-row{min-height:38px;padding-block:5px}
+.extract-color-copy small{display:block;margin-top:2px;font-size:10px;opacity:.78}
+.extract-color-tools{display:flex;align-items:center;gap:8px}
+.extract-page .extracted-swatches .extract-remove{flex:none;display:grid;place-items:center;width:26px;height:26px;padding:0;border:1px solid currentColor;border-radius:50%;background:transparent;color:inherit;font:15px/1 var(--font);cursor:pointer}
+.extract-page .extracted-swatches .extract-insert{position:absolute;left:50%;bottom:-12px;z-index:3;flex:none;display:grid;place-items:center;width:24px;height:24px;margin-left:-12px;padding:0;border:1px solid var(--line-strong);border-radius:50%;background:var(--surface);color:var(--ink);font:16px/1 var(--font);box-shadow:0 2px 6px #0000001f;opacity:.72;cursor:pointer;transition:opacity .15s,transform .15s}
+.extract-page .extracted-swatches .extract-insert:hover,.extract-page .extracted-swatches .extract-insert:focus-visible{opacity:1;transform:scale(1.1);outline:2px solid var(--accent);outline-offset:1px}
 .extract-page .extract-result-footer{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;margin-top:16px;padding:12px 0;border:0;background:none}
 .extract-name{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted)}
 .extract-name input{width:210px;max-width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);font-size:14px}
 .extract-page #extractionInfo{color:var(--muted);font-size:12px}
 .extract-page #extractStatus{margin-top:10px;font-size:12px}
 @media(max-width:700px){.extract-editor{grid-template-columns:1fr}.extract-page .extracted-image-wrap{height:400px}.extract-page .extracted-swatches{flex-direction:row;min-height:85px;gap:2px}.extract-color-row{min-width:0;flex-direction:column;padding:10px 2px;gap:6px;justify-content:center}.extract-color-copy code{font-size:clamp(8px,1.8vw,11px)}.extract-color-edit{font-size:10px;gap:4px}.extract-page .extract-head{align-items:flex-start;flex-direction:column}.extract-page #extractionInfo{flex-basis:100%}.extract-name input{width:180px}}
+@media(max-width:700px){.extract-page .extracted-swatches>.extract-color-row:first-child{border-radius:10px 0 0 10px}.extract-page .extracted-swatches>.extract-color-row:last-child{border-radius:0 10px 10px 0}.extract-page .extracted-swatches .extract-insert{left:auto;right:-12px;bottom:auto;top:50%;margin:-12px 0 0}.extract-color-tools{flex-direction:column;gap:4px}.extract-color-copy small{font-size:8px}}
+@media(pointer:coarse){.extract-page .extracted-swatches .extract-insert{width:32px;height:32px;opacity:1}}
+@media(pointer:coarse) and (min-width:701px){.extract-page .extracted-swatches .extract-insert{margin-left:-16px;bottom:-16px}}
+@media(pointer:coarse) and (max-width:700px){.extract-page .extracted-swatches .extract-insert{right:-16px;margin-top:-16px}}
 @media(max-width:420px){.extract-page .extracted-image-wrap{height:340px}.extract-page .extract-name{flex-wrap:wrap}.extract-name input{width:100%}.extract-page .extract-result-footer>.button{width:100%}.extract-page .extract-name{width:100%}}

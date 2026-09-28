@@ -75,12 +75,16 @@ export function paletteFromColor(hex) {
 }
 export function exportPalette(palette, format) {
   const id = palette.id.replace(/[^a-z0-9-]/gi, '-').toLowerCase();
-  const map = Object.fromEntries(roles.map((r, i) => [r.toLowerCase(), palette.colors[i]]));
-  if (format === 'json') return JSON.stringify({ name: palette.name, colors: map }, null, 2);
-  if (format === 'scss') return `// ${palette.name}\n` + Object.entries(map).map(([k, v]) => `$${id}-${k}: ${v};`).join('\n');
-  if (format === 'tailwind') return `// Add to theme.extend.colors\nexport default {\n  theme: {\n    extend: {\n      colors: {\n        '${id}': ${JSON.stringify(map, null, 2).replace(/\n/g, '\n        ')}\n      }\n    }\n  }\n};`;
-  if (format === 'hex') return palette.colors.join('\n');
-  return `/* ${palette.name} */\n:root {\n` + Object.entries(map).map(([k, v]) => `  --${id}-${k}: ${v};`).join('\n') + '\n}';
+  const map = Object.fromEntries(roles.map((r, i) => [r.toLowerCase(), palette.colors[i]]).filter(([, value]) => value));
+  // Larger Studio palettes keep every member; role formats say they hold the five preview roles.
+  const members = palette.workspace?.members?.length > 5 ? palette.workspace.members : null;
+  const roleNote = members ? ` — five preview roles of ${members.length} colors` : '';
+  const roleFor = index => roles[palette.workspace.roleIndex.indexOf(index)];
+  if (format === 'json') return JSON.stringify(members ? { name: palette.name, colors: map, members, previewRoles: Object.fromEntries(roles.map((r, i) => [r.toLowerCase(), palette.workspace.roleIndex[i] + 1])) } : { name: palette.name, colors: map }, null, 2);
+  if (format === 'scss') return `// ${palette.name}${roleNote}\n` + Object.entries(map).map(([k, v]) => `$${id}-${k}: ${v};`).join('\n');
+  if (format === 'tailwind') return `// Add to theme.extend.colors${roleNote}\nexport default {\n  theme: {\n    extend: {\n      colors: {\n        '${id}': ${JSON.stringify(map, null, 2).replace(/\n/g, '\n        ')}\n      }\n    }\n  }\n};`;
+  if (format === 'hex') return members ? members.map((color, index) => roleFor(index) ? `${color}\t${roleFor(index)}` : color).join('\n') : palette.colors.join('\n');
+  return `/* ${palette.name}${roleNote} */\n:root {\n` + Object.entries(map).map(([k, v]) => `  --${id}-${k}: ${v};`).join('\n') + '\n}';
 }
 
 const chromaOf = color => { const [, a, b] = oklab(color); return Math.hypot(a, b); };

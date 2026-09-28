@@ -21,7 +21,9 @@
 .bi-legend i{display:block;width:12px;height:3px;border-radius:2px;background:var(--p-primary)}
 .bi-legend .bi-key-previous{height:0;border-top:2px dashed color-mix(in srgb,var(--p-text) 45%,transparent);background:none}
 .bi-legend .bi-key-target{width:2px;height:10px;background:var(--p-text)}
-.bi-trend{display:block;width:100%;height:auto;overflow:visible}
+/* The site-wide icon rule (svg{stroke:currentColor}) would outline chart text; charts opt out. */
+.bi-trend{display:block;width:100%;height:auto;overflow:visible;stroke:none}
+.bi-trend text{stroke:none;paint-order:normal}
 .bi-grid{stroke:var(--bi-line);stroke-width:1}
 .bi-axis{fill:var(--bi-muted);font:9px var(--font)}
 .bi-area{fill:color-mix(in srgb,var(--p-primary) 12%,transparent);stroke:none}

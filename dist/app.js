@@ -8,15 +8,16 @@ import { paletteNameLibrary } from './palette-name-library.js?v=3';
 import { roles, clamp, contrast, textOn, rgb, toHex, oklab, oklch, paletteFromColor, exportPalette, extractPaletteVariants, oklabDistance } from './color.js';
 import { createAtlas, atlasWorlds } from './globe.js?v=29';
 import { buildShadeFamilies } from './shade-studio.js?v=1';
-import { createColorGlobe, toHsl, fromHsl } from './color-globe.js?v=2';
+import { createColorGlobe, toHsl, fromHsl } from './color-globe.js?v=3';
 import { SUPPORTED_IMAGE_TYPES, validateImageFile } from './image-file.js?v=1';
 import { imagePoint, sampleImageColor } from './image-sampling.js?v=1';
 import { initCommunity } from './community-feed.js?v=1';
 import { freezeColorway, downloadColorway } from './colorway-kit.js?v=2';
 import { colorAlternatives, NEUTRAL_CHROMA } from './color-alternatives.js?v=1';
 import { reportPreview } from './report-preview.js?v=1';
+import { withWorkspace, workspaceFromColors, sanitizeWorkspace, roleColors, roleOfMember, memberLabel, isCompact, setMember, assignRole, swapRoles, insertMember, removeMember, COMPACT_MEMBERS, EXTRACT_MAX_MEMBERS } from './studio-members.js?v=1';
 import { initAccountNavigation } from './account-client.js?v=3';
-import { DRAFT_KEY, STUDIO_HANDOFF_KEY, readDraft, sanitizeDraft } from './member-palette.js';
+import { DRAFT_KEY, STUDIO_HANDOFF_KEY, readDraft, sanitizeDraft } from './member-palette.js?v=2';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -74,14 +75,17 @@ const resumablePalette = storedPalette?.id?.startsWith('world-') ? null : stored
 let current = requestedPalette && resumablePalette?.id === requestedPalette.id ? resumablePalette : requestedPalette || (resumablePalette && (!params.get('p') || resumablePalette.id === params.get('p')) ? resumablePalette : workingDraft);
 if (page === 'studio' && params.get('saved') === '1') {
   const saved = readDraft(sessionStorage, STUDIO_HANDOFF_KEY);
-  if (saved?.colors.length === 5) {
+  // Every saved color arrives; the five explicitly chosen positions drive the preview.
+  const workspace = saved && workspaceFromColors(saved.colors, saved.roleIndex || (saved.colors.length === 5 ? undefined : null));
+  if (workspace) {
     const reference = editionPalettes.find(palette => palette.id === saved.referenceKey);
-    current = { ...(reference || workingDraft), id: `saved-${Date.now()}`, name: saved.name,
-      description: 'A working copy of your private palette.', colors: saved.colors, sourcePaletteId: reference?.id || null };
+    current = { ...(reference || workingDraft), id: `saved-${Date.now()}`, name: saved.name, collection: saved.collection,
+      description: 'A working copy of your private palette.', colors: roleColors(workspace), workspace, sourcePaletteId: reference?.id || null };
     try { sessionStorage.removeItem(STUDIO_HANDOFF_KEY); sessionStorage.setItem('colorverse-current-palette', JSON.stringify(current)); } catch {}
     history.replaceState(null, '', '/studio/');
   }
 }
+current = withWorkspace(current) || withWorkspace(workingDraft);
 let context = 'landing';
 let productKind = params.get('tool') === 'colorway' ? 'skincare' : current.id === 'drift-field-01' ? 'footwear' : 'skincare';
 const careAssignment = { backdrop: 0, bottle: 2, cap: 4, label: 1, carton: 1 };
@@ -205,37 +209,50 @@ function renderSelection(updateURL = false) {
 }
 
 function choosePalette(palette, notify = true) {
-  if (!palette || !Array.isArray(palette.colors) || palette.colors.length < 5) return;
-  current = palette;
+  const next = palette && Array.isArray(palette.colors) && palette.colors.length >= 5 ? withWorkspace(palette) : null;
+  if (!next) return;
+  current = next;
   if (palette.id === 'skincare-system-01') productKind = 'skincare';
   else if (palette.id === 'drift-field-01') productKind = 'footwear';
-  shadeSourceColors = current.colors.slice(0, 5);
-  persistPalette(palette);
+  activeColorIndex = 0;
+  openShadeIndex = null;
+  shadeSourceColors = [...current.workspace.members];
+  persistPalette(current);
   renderSelection(true);
   track('palette_open', { source: page === 'community' ? 'community' : 'library' });
   if (notify) toast(`${palette.name} selected.`);
 }
 
-function swapPaletteColors(from, to) {
-  if (from === to || from < 0 || to < 0 || from > 4 || to > 4) return;
-  const colors = [...current.colors];
-  [colors[from], colors[to]] = [colors[to], colors[from]];
-  current = { ...current, id: current.id.startsWith('custom-') ? current.id : `custom-${current.id}`, colors };
-  [shadeSourceColors[from], shadeSourceColors[to]] = [shadeSourceColors[to], shadeSourceColors[from]];
+// All edits go through the workspace; `current.colors` is re-derived as the five role colors.
+function commitWorkspace(workspace, extra = {}) {
+  current = { ...current, ...extra, id: current.id.startsWith('custom-') ? current.id : `custom-${current.id}`, workspace, colors: roleColors(workspace) };
   persistPalette(current);
   renderSelection(true);
+}
+
+// `from`/`to` are preview roles. Five-color palettes swap the colors themselves
+// (as before); larger palettes swap which members fill the roles, keeping member order.
+function swapPaletteColors(from, to) {
+  if (from === to || from < 0 || to < 0 || from > 4 || to > 4) return;
+  if (!isCompact(current.workspace)) [shadeSourceColors[from], shadeSourceColors[to]] = [shadeSourceColors[to], shadeSourceColors[from]];
+  commitWorkspace(swapRoles(current.workspace, from, to));
   track('color_edit', { method: 'swap' });
 }
 
+// `index` is a palette member; the preview changes only if that member holds a role.
 function replacePaletteColor(index, color, { keepShadeSource = false } = {}) {
-  if (index < 0 || index > 4 || !/^#[0-9a-f]{6}$/i.test(color)) return;
-  const colors = [...current.colors];
-  colors[index] = color.toUpperCase();
-  current = { ...current, id: current.id.startsWith('custom-') ? current.id : `custom-${current.id}`, name: current.name.replace(/^Custom · /, '') };
-  current.colors = colors;
-  if (!keepShadeSource) shadeSourceColors[index] = colors[index];
-  persistPalette(current);
-  renderSelection(true);
+  if (index < 0 || index >= current.workspace.members.length || !/^#[0-9a-f]{6}$/i.test(color)) return;
+  const workspace = setMember(current.workspace, index, color);
+  if (!keepShadeSource) shadeSourceColors[index] = workspace.members[index];
+  commitWorkspace(workspace, { name: current.name.replace(/^Custom · /, '') });
+}
+
+function assignPreviewRole(member, role) {
+  const before = current.workspace.roleIndex[role];
+  commitWorkspace(assignRole(current.workspace, role, member));
+  const status = $('#paletteOrderStatus');
+  if (status) status.textContent = `Color ${member + 1} is now ${roles[role]}${current.workspace.roleIndex.includes(before) ? '' : `; color ${before + 1} is no longer in the preview`}.`;
+  track('color_edit', { method: 'assign-role' });
 }
 
 function studioSnapshot() {
@@ -249,6 +266,9 @@ function studioSnapshot() {
     productKind,
     careAssignment: { ...careAssignment },
     colorwayBaseline,
+    // Five-color RPC fields above stay role colors; the complete palette rides in editor state.
+    workspace: isCompact(current.workspace) ? { ...current.workspace, members: [...current.workspace.members], roleIndex: [...current.workspace.roleIndex] } : null,
+    collection: current.collection || null,
   };
 }
 
@@ -256,15 +276,19 @@ function loadStudioSnapshot(snapshot) {
   if (!snapshot || !Array.isArray(snapshot.colors) || snapshot.colors.length !== 5 || !snapshot.colors.every(color => /^#[0-9a-f]{6}$/i.test(color))) return;
   const colors = snapshot.colors.map(color => color.toUpperCase());
   const source = editionPalettes.find(palette => palette.id === snapshot.sourcePaletteId) || signatureFor(colors[2]);
+  // Old five-color snapshots (no or inconsistent workspace) load with identity mapping.
+  const workspace = sanitizeWorkspace(snapshot.workspace, colors) || workspaceFromColors(colors);
   current = {
     id: `project-${snapshot.id || Date.now()}`,
     name: snapshot.name || 'Saved project',
     description: 'A private ColorVerse project restored from your latest saved version.',
-    colors,
+    colors: roleColors(workspace),
+    workspace,
     image: source.image,
     category: 'Saved project',
     tags: ['project'],
     sourcePaletteId: snapshot.sourcePaletteId || null,
+    collection: snapshot.collection || null,
   };
   context = ['landing', 'interface', 'social', 'presentation'].includes(snapshot.context) ? snapshot.context : 'landing';
   productKind = snapshot.productKind && ['footwear', 'skincare', 'object'].includes(snapshot.productKind) ? snapshot.productKind : 'skincare';
@@ -276,7 +300,7 @@ function loadStudioSnapshot(snapshot) {
   activeColorIndex = 0;
   pendingSwapIndex = null;
   openShadeIndex = null;
-  shadeSourceColors = [...colors];
+  shadeSourceColors = [...workspace.members];
   const legacyReport = $('#tab-presentation');
   if (legacyReport) legacyReport.hidden = context !== 'presentation';
   $$('[data-context]').forEach(button => {
@@ -336,28 +360,54 @@ let shadeSourceColors = current.colors.slice(0, 5);
 const trashIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7"/></svg>';
 
 function inlineShadeValues(index) {
-  const source = shadeSourceColors[index] || current.colors[index];
+  const source = shadeSourceColors[index] || current.workspace.members[index];
   const family = buildShadeFamilies(source)[0]?.colors || [source];
   return [...new Set(family)].sort((a, b) => colorCoordinates(b).lightness - colorCoordinates(a).lightness);
 }
 
+const activeColor = () => current.workspace.members[activeColorIndex] || current.colors[0];
+const activeLabel = () => memberLabel(current.workspace, activeColorIndex);
+
+function shadeOverlay(index, color, label) {
+  if (openShadeIndex !== index) return '';
+  const shades = inlineShadeValues(index);
+  const focusShade = shades.includes(color) ? color : shades[0];
+  return `<div class="role-shade-overlay" data-shade-overlay="${index}"><div class="inline-shade-strip" id="roleShades${index}" role="listbox" aria-label="Choose a shade for ${label}. Escape closes without changing it.">${shades.map(value => `<button type="button" role="option" data-inline-role-shade="${index}" data-inline-shade="${value}" aria-selected="${value === color}" tabindex="${value === focusShade ? 0 : -1}" title="${value}" style="--tone:${value};--tone-ink:${textOn(value)}"><span class="sr-only">${value}</span></button>`).join('')}</div></div>`;
+}
+
+// Five colors: one row per preview role. More colors: compact two-column member
+// cells (8–10 fit the five-row height; longer palettes scroll inside the panel).
 function renderPaletteRoles() {
   const container = $('#paletteRoles');
   if (!container) return;
-  container.innerHTML = current.colors.slice(0, 5).map((color, index) => {
-    const open = openShadeIndex === index;
-    const shades = open ? inlineShadeValues(index) : [];
-    const focusShade = shades.includes(color) ? color : shades[0];
-    return `<div class="role-swatch${activeColorIndex === index ? ' is-selected' : ''}${pendingSwapIndex === index ? ' is-swap-source' : ''}${open ? ' is-shade-open' : ''}" data-role-index="${index}">
+  const { workspace } = current;
+  const compact = isCompact(workspace);
+  container.classList.toggle('is-compact', compact);
+  container.classList.toggle('is-scrolling', workspace.members.length > COMPACT_MEMBERS);
+  container.setAttribute('aria-label', compact ? `${workspace.members.length} palette colors; five fill the preview roles` : 'Palette roles');
+  const hint = $('.palette-order-hint');
+  if (hint) hint.textContent = compact ? `${workspace.members.length} colors · 5 in preview` : 'Tap swatch';
+  if (compact) {
+    container.innerHTML = workspace.members.map((color, index) => {
+      const role = roleOfMember(workspace, index), label = memberLabel(workspace, index), open = openShadeIndex === index;
+      return `<div class="member-cell${activeColorIndex === index ? ' is-selected' : ''}${role >= 0 ? ' is-assigned' : ''}${open ? ' is-shade-open' : ''}" data-role-index="${index}">
+    <button class="role-color-control" type="button" data-role-color="${index}" style="--swatch:${color};--on:${textOn(color)}" title="Explore color ${index + 1} in Color Globe" aria-label="Change color ${index + 1}${role >= 0 ? ` (${label})` : ''} in Color Globe" aria-haspopup="dialog" aria-controls="colorGlobe"><span aria-hidden="true">${index + 1}</span></button>
+    <select class="member-role" data-member-role="${index}" aria-label="Preview role for color ${index + 1}"><option value="none"${role < 0 ? ' selected' : ' disabled'}>Color ${index + 1}</option>${roles.map((name, position) => `<option value="${position}"${position === role ? ' selected' : ''}>${name}</option>`).join('')}</select>
+    <button class="role-select" type="button" data-role-select="${index}" aria-expanded="${open}"${open ? ` aria-controls="roleShades${index}"` : ''} aria-label="Show shades for color ${index + 1}${role >= 0 ? `, ${label}` : ''}"><code>${color}</code></button>
+    ${shadeOverlay(index, color, `color ${index + 1}`)}
+  </div>`;
+    }).join('');
+    return;
+  }
+  container.innerHTML = current.colors.slice(0, 5).map((color, index) => `<div class="role-swatch${activeColorIndex === index ? ' is-selected' : ''}${pendingSwapIndex === index ? ' is-swap-source' : ''}${openShadeIndex === index ? ' is-shade-open' : ''}" data-role-index="${index}">
     <span class="role-grip" aria-hidden="true" title="Drag onto another color to swap"><svg viewBox="0 0 10 16"><circle cx="2" cy="3" r="1.2"/><circle cx="8" cy="3" r="1.2"/><circle cx="2" cy="8" r="1.2"/><circle cx="8" cy="8" r="1.2"/><circle cx="2" cy="13" r="1.2"/><circle cx="8" cy="13" r="1.2"/></svg></span>
     <button class="role-color-control" type="button" data-role-color="${index}" style="--swatch:${color}" title="Explore ${roles[index]} in Color Globe" aria-label="Change ${roles[index]} color in Color Globe" aria-haspopup="dialog" aria-controls="colorGlobe"><span aria-hidden="true"></span></button>
-    <button class="role-select" type="button" data-role-select="${index}" aria-expanded="${open}"${open ? ` aria-controls="roleShades${index}"` : ''} aria-label="${pendingSwapIndex !== null && pendingSwapIndex !== index ? `Swap with ${roles[index]}` : `Show shades for ${roles[index]}`}">
+    <button class="role-select" type="button" data-role-select="${index}" aria-expanded="${openShadeIndex === index}"${openShadeIndex === index ? ` aria-controls="roleShades${index}"` : ''} aria-label="${pendingSwapIndex !== null && pendingSwapIndex !== index ? `Swap with ${roles[index]}` : `Show shades for ${roles[index]}`}">
       <span class="role-name">${roles[index]}</span><code>${color}</code>
     </button>
     <button class="role-action" type="button" data-role-swap="${index}" aria-label="${pendingSwapIndex === index ? 'Cancel swap' : `Swap ${roles[index]} with another role`}" title="Swap colors">↔</button>
-    ${open ? `<div class="role-shade-overlay" data-shade-overlay="${index}"><div class="inline-shade-strip" id="roleShades${index}" role="listbox" aria-label="Choose a shade for ${roles[index]}. Escape closes without changing it.">${shades.map(value => `<button type="button" role="option" data-inline-role-shade="${index}" data-inline-shade="${value}" aria-selected="${value === color}" tabindex="${value === focusShade ? 0 : -1}" title="${value}" style="--tone:${value};--tone-ink:${textOn(value)}"><span class="sr-only">${value}</span></button>`).join('')}</div></div>` : ''}
-  </div>`;
-  }).join('');
+    ${shadeOverlay(index, color, roles[index])}
+  </div>`).join('');
 }
 
 // Opening or closing a shade strip changes focus, not the palette: no project change event.
@@ -401,30 +451,33 @@ function renderColorTray() {
   </div>`).join('') : '<p>Keep colors here for later.</p>';
   $('#trayCount').textContent = `${colorTray.length} / 18`;
   const add = $('#addColorToTray');
-  const saved = colorTray.includes(current.colors[activeColorIndex].toUpperCase());
+  const saved = colorTray.includes(activeColor().toUpperCase());
   add.disabled = saved;
   add.querySelector('span').textContent = saved ? 'Added to color tray' : 'Add to color tray';
 }
 
 function renderColorLab() {
   const lab = $('#colorLab');
-  if (!lab || !current.colors[activeColorIndex]) return;
-  const color = current.colors[activeColorIndex].toUpperCase();
-  const source = shadeSourceColors[activeColorIndex];
+  if (!lab) return;
+  if (!current.workspace.members[activeColorIndex]) activeColorIndex = 0;
+  const color = activeColor().toUpperCase();
+  const source = shadeSourceColors[activeColorIndex] || color;
   const coordinates = colorCoordinates(source);
-  $('#shadeRoleNameInline').textContent = roles[activeColorIndex];
+  const label = activeLabel();
+  $('#shadeRoleNameInline').textContent = label;
   const scope = $('#alternativeScope');
-  if (scope) scope.textContent = `${coordinates.chroma < NEUTRAL_CHROMA ? 'Nearby neutrals' : 'Nearby hues'} · changes ${roles[activeColorIndex]} only`;
+  if (scope) scope.textContent = `${coordinates.chroma < NEUTRAL_CHROMA ? 'Nearby neutrals' : 'Nearby hues'} · changes ${label} only`;
   $('#shadeCurrentHex').textContent = color;
   const family = buildShadeFamilies(source)[0].colors;
   const shades = [...new Set([...family.filter((_, index) => index % 2 === 0), source])]
     .sort((a, b) => colorCoordinates(b).lightness - colorCoordinates(a).lightness);
   const shadeGrid = $('#colorShadeGrid');
-  shadeGrid.innerHTML = shades.map(value => `<button type="button" style="--tone:${value};--tone-ink:${textOn(value)}" data-inline-shade="${value}" aria-pressed="${value === color}" aria-label="Apply shade ${value} to ${roles[activeColorIndex]}" title="${value}"><code>${value}</code><span aria-hidden="true">${value === color ? '✓' : ''}</span></button>`).join('');
+  shadeGrid.innerHTML = shades.map(value => `<button type="button" style="--tone:${value};--tone-ink:${textOn(value)}" data-inline-shade="${value}" aria-pressed="${value === color}" aria-label="Apply shade ${value} to ${label}" title="${value}"><code>${value}</code><span aria-hidden="true">${value === color ? '✓' : ''}</span></button>`).join('');
   $('#shadeOptionCount').textContent = `${shades.length} tones`;
   const alternatives = colorAlternatives(color);
-  $('#colorAlternativeGrid').innerHTML = alternatives.map(value => `<button type="button" style="--choice:${value};--on:${textOn(value)}" data-use-color="${value}" aria-label="Replace ${roles[activeColorIndex]} with ${value}" title="${value} · ${roles[activeColorIndex]} only"><code>${value.slice(1)}</code></button>`).join('');
-  const pairIndex = activeColorIndex === 0 ? 4 : 0;
+  $('#colorAlternativeGrid').innerHTML = alternatives.map(value => `<button type="button" style="--choice:${value};--on:${textOn(value)}" data-use-color="${value}" aria-label="Replace ${label} with ${value}" title="${value} · ${label} only"><code>${value.slice(1)}</code></button>`).join('');
+  const activeRole = roleOfMember(current.workspace, activeColorIndex);
+  const pairIndex = activeRole === 0 ? 4 : 0;
   const pair = current.colors[pairIndex];
   $('#colorContrastPair').textContent = `vs ${roles[pairIndex].toLowerCase()}`;
   const candidates = [...new Set([...[.15, .3, .45, .6, .8, .92, .98].flatMap(lightness =>
@@ -434,7 +487,7 @@ function renderColorLab() {
   const contrastColors = [candidates[0], candidates.find(value => oklabDistance(value, candidates[0]) > .08) || candidates[1]].filter(Boolean);
   $('#colorContrastGrid').innerHTML = contrastColors.map(value => {
     const ratio = contrast(value, pair).toFixed(2);
-    return `<button type="button" class="contrast-choice" data-use-color="${value}" title="${value} against ${pair}" aria-label="Use ${value}, contrast ${ratio} to 1 against ${roles[pairIndex]}"><span style="background:${activeColorIndex === 0 ? value : pair};color:${activeColorIndex === 0 ? pair : value}" aria-hidden="true">Aa</span><code>${ratio}:1</code></button>`;
+    return `<button type="button" class="contrast-choice" data-use-color="${value}" title="${value} against ${pair}" aria-label="Use ${value}, contrast ${ratio} to 1 against ${roles[pairIndex]}"><span style="background:${activeRole === 0 ? value : pair};color:${activeRole === 0 ? pair : value}" aria-hidden="true">Aa</span><code>${ratio}:1</code></button>`;
   }).join('');
   renderColorTray();
 }
@@ -580,7 +633,7 @@ function renderMockup() {
   for (const [name, value] of Object.entries({ bg, surface, primary, accent, text: ink })) panel.style.setProperty(`--p-${name}`, value);
   panel.style.setProperty('--on-primary', textOn(primary));
   panel.style.setProperty('--on-accent', textOn(accent));
-  panel.style.setProperty('--p-material', current.colors[activeColorIndex]);
+  panel.style.setProperty('--p-material', activeColor());
   panel.setAttribute('aria-labelledby', `tab-${context}`);
   const packagingKit = current.id === 'skincare-system-01'
     ? `<div class="mockup context-kit edition-packaging-kit">
@@ -623,8 +676,8 @@ function renderMockup() {
     presentation: `<div class="mockup context-kit report-kit"><header><span>North Region / Operations</span><b>Q3 REVIEW · 08 / 16</b></header><div class="report-body"><section class="report-copy"><span class="kit-kicker">Performance summary</span><h4>Strong demand.<br><em>Smarter pace.</em></h4><p>Revenue grew while delivery time fell across three core markets.</p><div class="report-stat"><strong>+24%</strong><span>Year-over-year<br>revenue growth</span></div></section><section class="report-data"><div class="report-legend"><span><i></i>Current period</span><span><i></i>Previous period</span></div><div class="report-numbers"><p><span>Conversion</span><strong>6.8%</strong><em class="trend-up">↑ 1.4%</em></p><p><span>Retention</span><strong>91%</strong><em class="trend-up">↑ 3.2%</em></p><p><span>Delivery</span><strong>4.2d</strong><em class="trend-down">↓ 0.6d</em></p></div><div class="report-lines" role="img" aria-label="Illustrative performance line chart"><svg viewBox="0 0 360 180" preserveAspectRatio="none" aria-hidden="true"><path d="M4 150 C58 142 72 116 112 121 S176 80 211 91 S267 50 356 24"/><path d="M4 164 C51 148 87 150 121 137 S187 124 218 113 S293 91 356 82"/></svg><span>Jan</span><span>Mar</span><span>May</span><span>Jul</span></div></section></div><footer><span>Internal working document</span><span>ColorVerse palette preview</span></footer></div>`,
     shop: packagingKit,
     material: `<div class="mockup context-kit material-kit">
-      <header class="material-kit-head"><div><span class="kit-kicker">Bridge colour / screen study</span><h4>One color.<br><em>Five surfaces.</em></h4></div><div class="material-role"><span>Selected role</span><strong>${escape(roles[activeColorIndex])}</strong><code>${current.colors[activeColorIndex]}</code></div></header>
-      <div class="material-samples" role="img" aria-label="Simulated appearance of ${current.colors[activeColorIndex]} on five material surfaces">
+      <header class="material-kit-head"><div><span class="kit-kicker">Bridge colour / screen study</span><h4>One color.<br><em>Five surfaces.</em></h4></div><div class="material-role"><span>Selected role</span><strong>${escape(activeLabel())}</strong><code>${activeColor()}</code></div></header>
+      <div class="material-samples" role="img" aria-label="Simulated appearance of ${activeColor()} on five material surfaces">
         <article class="material-sample material-plaster"><i aria-hidden="true"></i><div><strong>Mineral paint</strong><span>soft scatter · low sheen</span></div></article>
         <article class="material-sample material-textile"><i aria-hidden="true"></i><div><strong>Woven textile</strong><span>absorbed light · visible fibre</span></div></article>
         <article class="material-sample material-paper"><i aria-hidden="true"></i><div><strong>Uncoated paper</strong><span>warm base · dry finish</span></div></article>
@@ -716,7 +769,13 @@ $('#mockup')?.addEventListener('click', async event => {
   }
   if (action === 'lock') colorwayBaseline = freezeColorway({ colors: current.colors, assignment: careAssignment });
   if (action === 'clear') colorwayBaseline = null;
-  if (action === 'restore' && colorwayBaseline) { current = { ...current, colors: [...colorwayBaseline.colors] }; Object.assign(careAssignment, colorwayBaseline.assignment); shadeSourceColors = [...current.colors]; }
+  if (action === 'restore' && colorwayBaseline) {
+    // The baseline holds five role colors; write them back into the members that fill those roles.
+    const workspace = current.workspace.roleIndex.reduce((next, member, role) => setMember(next, member, colorwayBaseline.colors[role]), current.workspace);
+    current = { ...current, workspace, colors: roleColors(workspace) };
+    Object.assign(careAssignment, colorwayBaseline.assignment);
+    shadeSourceColors = [...workspace.members];
+  }
   persistPalette(current);
   renderSelection();
 });
@@ -736,21 +795,27 @@ document.addEventListener('click', event => {
 const copyCode = $('#copyCode');
 if (copyCode) copyCode.addEventListener('click', () => { copy(exportPalette(current, format), `${format === 'hex' ? 'Hex list' : format.toUpperCase()} copied.`); track('palette_export', { format }); });
 const copyPalette = $('#copyPalette');
-if (copyPalette) copyPalette.addEventListener('click', () => copy(current.colors.join(', '), 'All five colors copied.'));
+if (copyPalette) copyPalette.addEventListener('click', () => {
+  const members = current.workspace?.members || current.colors;
+  copy(members.join(', '), `All ${members.length} colors copied.`);
+});
 const paletteRoles = $('#paletteRoles');
+// The Globe edits one palette member; labels name its role when it has one.
 const colorGlobe = createColorGlobe({
-  getPalette: () => current,
+  getPalette: () => ({ ...current, members: current.workspace.members, labels: current.workspace.members.map((_, index) => memberLabel(current.workspace, index)) }),
   onPreview(index, color) {
+    const role = roleOfMember(current.workspace, index);
     const colors = [...current.colors];
-    colors[index] = color;
-    // Only the visual preview changes until the user applies the draft.
+    if (role >= 0) colors[role] = color;
+    // Only the visual preview changes until the user applies the draft; unassigned members leave it untouched.
     const panel = $('#mockup');
     if (!panel) return;
-    ['bg', 'surface', 'primary', 'accent', 'text'].forEach((role, position) => panel.style.setProperty(`--p-${role}`, colors[position]));
+    ['bg', 'surface', 'primary', 'accent', 'text'].forEach((name, position) => panel.style.setProperty(`--p-${name}`, colors[position]));
     panel.style.setProperty('--on-primary', textOn(colors[2]));
     panel.style.setProperty('--on-accent', textOn(colors[3]));
+    if (index === activeColorIndex) panel.style.setProperty('--p-material', color);
   },
-  onApply(index, color) { replacePaletteColor(index, color); track('color_edit', { method: 'globe' }); toast(`${roles[index]} updated to ${color}.`); },
+  onApply(index, color) { const label = memberLabel(current.workspace, index); replacePaletteColor(index, color); track('color_edit', { method: 'globe' }); toast(`${label} updated to ${color}.`); },
   onClose(index) {
     renderMockup();
     paletteRoles?.querySelector(`[data-role-color="${index}"]`)?.focus({ preventScroll: true });
@@ -846,12 +911,25 @@ if (paletteRoles) {
     const index = Number(select.dataset.roleSelect);
     let next = index;
     if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') next = Math.max(0, index - 1);
-    if (event.key === 'ArrowDown' || event.key === 'ArrowRight') next = Math.min(4, index + 1);
+    const last = current.workspace.members.length - 1;
+    if (event.key === 'ArrowDown' || event.key === 'ArrowRight') next = Math.min(last, index + 1);
     if (event.key === 'Home') next = 0;
-    if (event.key === 'End') next = 4;
+    if (event.key === 'End') next = last;
     if (next === index) return;
     event.preventDefault();
     paletteRoles.querySelector(`[data-role-select="${next}"]`)?.focus();
+  });
+
+  // Explicit role assignment for larger palettes; nothing is mapped automatically.
+  paletteRoles.addEventListener('change', event => {
+    const select = event.target.closest('[data-member-role]');
+    if (!select) return;
+    const member = Number(select.dataset.memberRole), role = Number(select.value);
+    if (!Number.isInteger(role) || role < 0 || role > 4) { renderPaletteRoles(); return; }
+    activeColorIndex = member;
+    openShadeIndex = null;
+    assignPreviewRole(member, role);
+    paletteRoles.querySelector(`[data-member-role="${member}"]`)?.focus({ preventScroll: true });
   });
 
   paletteRoles.addEventListener('pointerdown', event => {
@@ -1347,6 +1425,7 @@ if (input && dropzone) {
     const layer = $('#imagePickers');
     if (!layer || !extracted?.colors) return;
     if (reposition || pickerPositions.length !== extracted.colors.length) pickerPositions = locatePickerPositions(extracted.colors);
+    layer.setAttribute('aria-label', `${extracted.colors.length} draggable color sample points`);
     layer.innerHTML = extracted.colors.map((color, index) => {
       const point = pickerPositions[index] || { x: 50, y: 50 };
       return `<button type="button" class="image-picker" data-image-picker="${index}" style="--picker:${color};--picker-on:${textOn(color)};left:${point.x}%;top:${point.y}%" aria-label="Move sample ${index + 1}, currently ${color}"><b>${index + 1}</b><span>${color}</span></button>`;
@@ -1357,7 +1436,7 @@ if (input && dropzone) {
     return sampleImageColor(manualSample.context, manualSample.width, manualSample.height, xPercent, yPercent);
   }
   function rememberExtraction() {
-    extractionUndo.push({ selected: selectedExtraction, colors: extractedVariants.map(variant => [...variant.colors]), positions: pickerPositions.map(point => ({ ...point })) });
+    extractionUndo.push({ selected: selectedExtraction, colors: extractedVariants.map(variant => [...variant.colors]), roleIndex: extractedVariants.map(variant => [...variant.roleIndex]), positions: pickerPositions.map(point => ({ ...point })) });
     if (extractionUndo.length > 30) extractionUndo.shift();
     $('#undoExtraction').disabled = false;
   }
@@ -1399,16 +1478,44 @@ if (input && dropzone) {
     $('#extractionReading').value = String(index);
     const info = $('#extractionInfo');
     const action = $('#useExtraction');
-    if (info) info.textContent = `${extracted.variantName} · 5 colors`;
+    if (info) info.textContent = `${extracted.variantName} · ${extracted.colors.length} colors`;
     if (action) action.textContent = 'Continue in Studio ↗';
     renderExtractionVariants();
     renderImagePickers(changed);
     syncPickerBounds();
   }
+  // Row N is image point N. The five original colors keep their preview roles;
+  // inserted colors are extras that can be removed again.
   function renderExtractionVariants() {
     const container = $('#extractedSwatches');
     if (!container) return;
-    container.innerHTML = (extractedVariants[selectedExtraction]?.colors || []).map((color, index) => `<div class="extract-color-row" style="--swatch:${color};--on:${textOn(color)}"><button type="button" class="extract-color-copy" data-copy="${color}" aria-label="Copy color ${index + 1}: ${color}"><code>${color}</code></button><label class="extract-color-edit">${index + 1}<input type="color" value="${color}" data-extract-color="${index}" aria-label="Edit color ${index + 1}"></label></div>`).join('');
+    const variant = extractedVariants[selectedExtraction];
+    const colors = variant?.colors || [];
+    const canInsert = colors.length < EXTRACT_MAX_MEMBERS;
+    container.setAttribute('aria-label', `${colors.length} extracted palette colors`);
+    container.innerHTML = colors.map((color, index) => {
+      const role = variant.roleIndex.indexOf(index), sample = index + 1;
+      return `<div class="extract-color-row${role < 0 ? ' is-extra' : ''}" style="--swatch:${color};--on:${textOn(color)}"><button type="button" class="extract-color-copy" data-copy="${color}" aria-label="Copy HEX ${color}, sample ${sample}"><code>${color}</code><small>${role >= 0 ? roles[role] : 'Extra color'}</small></button><span class="extract-color-tools">${role < 0 ? `<button type="button" class="extract-remove" data-extract-remove="${index}" aria-label="Remove extra color, sample ${sample}" title="Remove this extra color">×</button>` : ''}<label class="extract-color-edit"><span aria-hidden="true" title="Image point ${sample}">${sample}</span><input type="color" value="${color}" data-extract-color="${index}" aria-label="Edit color of sample ${sample} (image point ${sample})"></label></span>${canInsert && index < colors.length - 1 ? `<button type="button" class="extract-insert" data-extract-insert="${index + 1}" aria-label="Insert a color between samples ${sample} and ${sample + 1}" title="Insert a color here">+</button>` : ''}</div>`;
+    }).join('');
+  }
+  // Existing points stay where the user left them; only the inserted/removed point changes.
+  function editExtractionMembers(change, movePoints, message) {
+    const variant = extractedVariants[selectedExtraction];
+    if (!variant || pickerPositions.length !== variant.colors.length) return false;
+    const next = change({ members: variant.colors, roleIndex: variant.roleIndex });
+    if (!next) return false;
+    rememberExtraction();
+    movePoints();
+    variant.colors = next.members;
+    variant.roleIndex = next.roleIndex;
+    extracted = variant;
+    renderExtractionVariants();
+    renderImagePickers(false);
+    const info = $('#extractionInfo');
+    if (info) info.textContent = `${variant.variantName} · ${variant.colors.length} colors`;
+    const status = $('#extractStatus');
+    if (status) status.textContent = message;
+    return true;
   }
   async function extract(file) {
     if (!file) return;
@@ -1453,7 +1560,7 @@ if (input && dropzone) {
       imageURL = nextURL;
       extractionSample = { width: sample.width, height: sample.height, pixels: sampleData.data };
       manualSample = { context: fullContext, width: full.width, height: full.height };
-      extractedVariants = result.variants.map(variant => ({ id: `your-image-${variant.key}`, name: suggestPaletteName(variant.colors), variantName: variant.name, detail: variant.detail, description: variant.description, colors: variant.colors, image: null }));
+      extractedVariants = result.variants.map(variant => ({ id: `your-image-${variant.key}`, name: suggestPaletteName(variant.colors), variantName: variant.name, detail: variant.detail, description: variant.description, colors: variant.colors, roleIndex: [0, 1, 2, 3, 4], image: null }));
       const nameInput = $('#extractionName');
       if (nameInput && (!nameInput.value.trim() || nameInput.value === nameInput.dataset.suggested || nameInput.value === 'Untitled')) {
         nameInput.value = extractedVariants[0].name;
@@ -1518,17 +1625,41 @@ if (input && dropzone) {
     const control = event.target.closest('[data-extract-color]');
     if (!control || !extracted) return;
     rememberExtraction();
-    extracted.colors[Number(control.dataset.extractColor)] = control.value.toUpperCase();
+    const index = Number(control.dataset.extractColor);
+    extracted.colors[index] = control.value.toUpperCase();
+    // Move only the edited point to its nearest match; the other samples stay put.
+    const [point] = locatePickerPositions([extracted.colors[index]]);
+    if (point && pickerPositions.length === extracted.colors.length) pickerPositions[index] = point;
     renderExtractionVariants();
-    renderImagePickers(true);
+    renderImagePickers(false);
+  });
+  extractedSwatches?.addEventListener('click', event => {
+    const insert = event.target.closest('[data-extract-insert]');
+    const remove = event.target.closest('[data-extract-remove]');
+    if (insert) {
+      const position = Number(insert.dataset.extractInsert);
+      const before = pickerPositions[position - 1], after = pickerPositions[position];
+      const point = before && after ? { x: (before.x + after.x) / 2, y: (before.y + after.y) / 2 } : { ...(before || after || { x: 50, y: 50 }) };
+      const color = sampleColorAt(point.x, point.y) || extracted?.colors[position - 1];
+      if (editExtractionMembers(workspace => insertMember(workspace, position, color, EXTRACT_MAX_MEMBERS), () => pickerPositions.splice(position, 0, point), `Sample ${position + 1} added between the neighbouring points. Drag it to choose its color.`)) {
+        $(`[data-image-picker="${position}"]`)?.focus({ preventScroll: true });
+      }
+      return;
+    }
+    if (remove) {
+      const index = Number(remove.dataset.extractRemove);
+      if (editExtractionMembers(workspace => removeMember(workspace, index), () => pickerPositions.splice(index, 1), `Extra sample ${index + 1} removed.`)) {
+        (extractedSwatches.querySelector(`[data-extract-color="${Math.max(0, index - 1)}"]`))?.focus({ preventScroll: true });
+      }
+    }
   });
   $('#extractionReading')?.addEventListener('change', event => { rememberExtraction(); selectExtractionVariant(Number(event.target.value)); });
   $('#replaceExtractionImage')?.addEventListener('click', () => input.click());
-  $('#resetExtraction')?.addEventListener('click', () => { rememberExtraction(); extractedVariants[selectedExtraction].colors = [...extractionOriginals[selectedExtraction]]; pickerPositions = []; selectExtractionVariant(selectedExtraction); });
+  $('#resetExtraction')?.addEventListener('click', () => { rememberExtraction(); extractedVariants[selectedExtraction].colors = [...extractionOriginals[selectedExtraction]]; extractedVariants[selectedExtraction].roleIndex = [0, 1, 2, 3, 4]; pickerPositions = []; selectExtractionVariant(selectedExtraction); });
   $('#undoExtraction')?.addEventListener('click', () => {
     const saved = extractionUndo.pop();
     if (!saved) return;
-    extractedVariants.forEach((variant, index) => { variant.colors = saved.colors[index]; });
+    extractedVariants.forEach((variant, index) => { variant.colors = saved.colors[index]; variant.roleIndex = saved.roleIndex[index]; });
     selectedExtraction = saved.selected;
     pickerPositions = saved.positions;
     selectExtractionVariant(selectedExtraction);
@@ -1579,7 +1710,10 @@ if (input && dropzone) {
   const useExtraction = $('#useExtraction');
   if (useExtraction) useExtraction.addEventListener('click', () => {
     if (!extracted) return;
-    if (!persistPalette({ ...extracted, name: $('#extractionName')?.value.trim().slice(0, 120) || extracted.name })) {
+    // Studio receives every sample in order; the original five keep their preview roles.
+    const workspace = workspaceFromColors(extracted.colors, extracted.roleIndex);
+    if (!workspace) return;
+    if (!persistPalette({ ...extracted, name: $('#extractionName')?.value.trim().slice(0, 120) || extracted.name, colors: roleColors(workspace), workspace })) {
       $('#extractStatus').textContent = 'Browser storage is unavailable. Your palette is still here; copy it before leaving this page.';
       return;
     }
@@ -1598,11 +1732,12 @@ initAccountNavigation();
 if (page === 'studio') {
   $('#savePersonalPalette')?.addEventListener('click', () => {
     const snapshot = studioSnapshot();
-    const draft = sanitizeDraft({ ...snapshot, referenceKey: snapshot.sourcePaletteId });
+    // My palettes keeps the complete member list (2–24), not only the five preview roles.
+    const draft = sanitizeDraft({ ...snapshot, colors: [...current.workspace.members], collection: snapshot.collection || undefined, referenceKey: snapshot.sourcePaletteId });
     try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); location.assign('/account/'); }
     catch { toast('Allow browser storage to keep this palette while signing in.'); }
   });
-  import('./project-store.js?v=26')
+  import('./project-store.js?v=27')
     .then(({ initProjectWorkspace }) => initProjectWorkspace(window.colorverseStudio))
     .catch(() => { const label = $('#projectSyncLabel'); if (label) label.textContent = 'Local draft'; });
 }

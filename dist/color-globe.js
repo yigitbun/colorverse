@@ -32,7 +32,7 @@ export function createColorGlobe({ getPalette, onPreview, onApply, onClose }) {
   const hexInput = $('#globeHex');
   const apply = $('#applyGlobeColor');
   const controls = { h: $('#globeHue'), s: $('#globeSaturation'), l: $('#globeLightness') };
-  let atlas, index = 0, original, selected, palette, point, fieldSaturation;
+  let atlas, index = 0, original, selected, palette, labels = roles, point, fieldSaturation;
 
   const fieldColor = cell => fromHsl({
     h: (Math.atan2(cell.center[0], cell.center[2]) * 180 / Math.PI + 360) % 360,
@@ -52,7 +52,7 @@ export function createColorGlobe({ getPalette, onPreview, onApply, onClose }) {
       const color = position === index ? selected : palette[position];
       swatch.style.background = color;
       swatch.style.color = textOn(color);
-      swatch.setAttribute('aria-label', `${roles[position]} ${color}${position === index ? ', editing' : ''}`);
+      swatch.setAttribute('aria-label', `${labels[position]} ${color}${position === index ? ', editing' : ''}`);
     });
     controls.h.value = point.h;
     controls.s.value = point.s * 100;
@@ -85,14 +85,18 @@ export function createColorGlobe({ getPalette, onPreview, onApply, onClose }) {
     return true;
   }
 
-  function open(roleIndex) {
+  // `memberIndex` points into the palette's members (the five roles when none are given).
+  function open(memberIndex) {
     if (dialog.open) return;
-    index = roleIndex;
-    palette = getPalette().colors.slice(0, 5);
+    const source = getPalette();
+    index = memberIndex;
+    palette = Array.isArray(source.members) ? [...source.members] : source.colors.slice(0, 5);
+    labels = Array.isArray(source.labels) && source.labels.length === palette.length ? source.labels : roles;
+    if (!palette[index]) return;
     original = selected = palette[index].toUpperCase();
     point = toHsl(selected);
     // Neutral colors can still explore the hue spectrum as soon as intensity rises.
-    $('#globeRole').textContent = roles[index];
+    $('#globeRole').textContent = labels[index];
     $('#globeOriginal').style.background = original;
     $('#globeOriginalHex').textContent = original;
     $('#globePalette').replaceChildren(...palette.map((_, position) => {

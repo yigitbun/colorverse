@@ -6,7 +6,13 @@ const $ = selector => document.querySelector(selector);
 function validProjectId(value) { return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value || ''); }
 const contextToDatabase = value => ({ landing: 'brand', interface: 'website', social: 'custom', presentation: 'slides' })[value] || 'custom';
 const contextToStudio = value => ({ brand: 'landing', website: 'interface', slides: 'presentation' })[value] || 'landing';
-const contextLabel = value => ({ landing: 'Objects', interface: 'Screens', social: 'Campaigns', presentation: 'Report (legacy)' })[value] || 'Objects';
+const contextLabel = value => ({ landing: 'Products', interface: 'Screens', social: 'Campaigns', presentation: 'Report (legacy)' })[value] || 'Products';
+// One editor-state shape for project, prototype and template saves. A larger
+// palette's complete members ride here; RPC color fields stay the five roles.
+const editorStateFor = snapshot => ({
+  context: snapshot.context, productKind: snapshot.productKind, careAssignment: snapshot.careAssignment, colorwayBaseline: snapshot.colorwayBaseline,
+  ...(snapshot.workspace ? { workspace: snapshot.workspace } : {}),
+});
 function templateUseLabel(template) { return template.colors.length === 5 ? 'Use' : 'Choose in My palettes'; }
 
 function relativeTime(value) {
@@ -390,6 +396,7 @@ export async function initProjectWorkspace(studio) {
   }
 
   function openSavedPalette(item) {
+    // Other sizes need the explicit five-role choice in My palettes, which then hands over every color.
     if (item.colors.length !== 5) { location.assign('/account/'); return; }
     studio.loadSnapshot({
       name: item.name || 'Saved palette',
@@ -397,7 +404,8 @@ export async function initProjectWorkspace(studio) {
       colors: item.colors,
       roles: {},
       context: 'landing',
-      productKind: 'footwear',
+      productKind: 'skincare',
+      collection: item.collections?.name || null,
     });
     activeProjectId = null;
     dirty = true;
@@ -502,7 +510,7 @@ export async function initProjectWorkspace(studio) {
     savedPaletteList.setAttribute('aria-busy', 'true');
     const { data, error } = await client
       .from('saved_palette_items')
-      .select('id,name,palette_id,colors,created_at,collections(name)')
+      .select('id,name,palette_id,colors,source_metadata,created_at,collections(name)')
       .order('created_at', { ascending: false })
       .limit(12);
     savedPaletteList.removeAttribute('aria-busy');
@@ -548,6 +556,7 @@ export async function initProjectWorkspace(studio) {
       productKind: version.editor_state?.productKind || 'skincare',
       careAssignment: version.editor_state?.careAssignment,
       colorwayBaseline: version.editor_state?.colorwayBaseline,
+      workspace: version.editor_state?.workspace,
     });
     activeProjectId = project.id;
     activePrototype = version.variant_key === 'baseline' || version.variant_key === 'alternative' ? version.variant_key : null;
@@ -570,6 +579,7 @@ export async function initProjectWorkspace(studio) {
       productKind: version.editor_state?.productKind || 'skincare',
       careAssignment: version.editor_state?.careAssignment,
       colorwayBaseline: version.editor_state?.colorwayBaseline,
+      workspace: version.editor_state?.workspace,
     });
     activeProjectId = project.id;
     activePrototype = prototypeKey;
@@ -590,6 +600,7 @@ export async function initProjectWorkspace(studio) {
       productKind: template.defaults?.productKind || 'skincare',
       careAssignment: template.defaults?.careAssignment,
       colorwayBaseline: template.defaults?.colorwayBaseline,
+      workspace: template.defaults?.workspace,
     });
     activeProjectId = null;
     dirty = true;
@@ -604,6 +615,7 @@ export async function initProjectWorkspace(studio) {
     const snapshot = studio.getSnapshot();
     nameInput.value = activeProjectId ? (projects.find(project => project.id === activeProjectId)?.name || snapshot.name) : snapshot.name;
     templateNameInput.value = snapshot.name;
+    if (collectionNameInput && !collectionNameInput.value && snapshot.collection) collectionNameInput.value = snapshot.collection;
     contextInput.value = contextToDatabase(snapshot.context);
     renderSession();
     if (session) await Promise.all([loadProjects(), loadTemplates(), loadSavedPalettes()]);
@@ -625,7 +637,7 @@ export async function initProjectWorkspace(studio) {
       p_source_palette_id: snapshot.sourcePaletteId,
       p_colors: snapshot.colors,
       p_roles: snapshot.roles,
-      p_editor_state: { context: snapshot.context, productKind: snapshot.productKind, careAssignment: snapshot.careAssignment, colorwayBaseline: snapshot.colorwayBaseline },
+      p_editor_state: editorStateFor(snapshot),
     });
     submit.disabled = false;
     if (error || !validProjectId(data)) {
@@ -665,6 +677,7 @@ export async function initProjectWorkspace(studio) {
         productKind: baseline.editor_state?.productKind || 'skincare',
         careAssignment: baseline.editor_state?.careAssignment,
         colorwayBaseline: baseline.editor_state?.colorwayBaseline,
+        workspace: baseline.editor_state?.workspace,
       };
       studio.loadSnapshot({ id: project.id, ...snapshot });
     }
@@ -677,7 +690,7 @@ export async function initProjectWorkspace(studio) {
       p_source_palette_id: snapshot.sourcePaletteId,
       p_colors: snapshot.colors,
       p_roles: snapshot.roles,
-      p_editor_state: { context: snapshot.context, productKind: snapshot.productKind, careAssignment: snapshot.careAssignment, colorwayBaseline: snapshot.colorwayBaseline },
+      p_editor_state: editorStateFor(snapshot),
       p_parent_version_id: baseline?.id || null,
       p_lock: lock,
     });
@@ -713,7 +726,7 @@ export async function initProjectWorkspace(studio) {
       p_source_project_id: activeProjectId,
       p_colors: snapshot.colors,
       p_roles: snapshot.roles,
-      p_defaults: { context: snapshot.context, productKind: snapshot.productKind, careAssignment: snapshot.careAssignment, colorwayBaseline: snapshot.colorwayBaseline },
+      p_defaults: editorStateFor(snapshot),
     });
     submit.disabled = false;
     if (error || !validProjectId(data)) {
@@ -731,12 +744,28 @@ export async function initProjectWorkspace(studio) {
     const submit = savePaletteForm.querySelector('button[type="submit"]');
     submit.disabled = true;
     setMessage('Saving palette to your collection…');
-    const { error } = await client.rpc('save_palette_to_collection', {
-      p_collection_name: collectionNameInput.value.trim(),
-      p_name: snapshot.name,
-      p_palette_id: snapshot.sourcePaletteId,
-      p_colors: snapshot.colors,
-    });
+    const members = snapshot.workspace?.members;
+    let error;
+    if (members?.length > 5) {
+      // The five-only collection RPC would drop colors; save a new member palette (2–24) instead.
+      const save = referenceKey => client.rpc('save_member_palette', {
+        p_item_id: null,
+        p_collection_name: collectionNameInput.value.trim(),
+        p_name: snapshot.name,
+        p_colors: members,
+        p_reference_key: referenceKey,
+      });
+      ({ error } = await save(snapshot.sourcePaletteId || null));
+      // An unpublished reference is only provenance; keep the palette rather than fail.
+      if (error?.code === 'P0002' && snapshot.sourcePaletteId) ({ error } = await save(null));
+    } else {
+      ({ error } = await client.rpc('save_palette_to_collection', {
+        p_collection_name: collectionNameInput.value.trim(),
+        p_name: snapshot.name,
+        p_palette_id: snapshot.sourcePaletteId,
+        p_colors: snapshot.colors,
+      }));
+    }
     submit.disabled = false;
     if (error) {
       setMessage('This palette could not be saved. Your project is still intact.', 'error');

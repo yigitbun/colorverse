@@ -108,7 +108,12 @@ test('Focused Studio contexts map cleanly into project snapshots', () => {
   assert.match(store, /interface: 'website'/);
   assert.match(store, /brand: 'landing'/);
   assert.match(store, /productKind: version\.editor_state\?\.productKind \|\| 'skincare'/);
-  assert.match(store, /p_editor_state: \{ context: snapshot\.context, productKind: snapshot\.productKind, careAssignment: snapshot\.careAssignment, colorwayBaseline: snapshot\.colorwayBaseline \}/);
+  // One shared editor-state builder keeps the four original fields and adds the optional workspace.
+  assert.match(store, /\nconst editorStateFor = snapshot => \(\{\n  context: snapshot\.context, productKind: snapshot\.productKind, careAssignment: snapshot\.careAssignment, colorwayBaseline: snapshot\.colorwayBaseline,\n  \.\.\.\(snapshot\.workspace \? \{ workspace: snapshot\.workspace \} : \{\}\),\n\}\);/);
+  assert.equal(store.match(/p_editor_state: editorStateFor\(snapshot\)/g)?.length, 2);
+  assert.match(store, /p_defaults: editorStateFor\(snapshot\)/);
+  assert.match(store, /landing: 'Products'/);
+  assert.doesNotMatch(store, /'Objects'/);
 });
 
 test('Studio exposes private reusable template actions', () => {
