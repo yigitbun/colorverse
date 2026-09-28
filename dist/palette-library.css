@@ -60,3 +60,31 @@ body.is-curation-hold .palette-library-head>.button,body.is-curation-hold .palet
   .palette-library .palette-card{min-height:300px}
   .palette-library .palette-card-colors,.palette-library .palette-card-colors button,.palette-library .palette-card-colors button:nth-child(n){height:96px}
 }
+/* Supplied AI concept-study shelf (study-gallery.js). Separate from the approved rail. */
+body.is-curation-hold.has-study-shelf .library-curation-hold{padding:34px 0 26px}
+body.is-curation-hold.has-study-shelf .palette-finder{display:grid}
+body.is-curation-hold.has-study-shelf .library-color-search{display:flex}
+/* Supplied studies carry no feeling metadata, so the Feeling row stays hidden in concept-only mode. */
+body.is-curation-hold.has-study-shelf #libraryRanking{display:none}
+.study-concept-shelf{margin-top:30px;padding-top:18px;border-top:1px solid var(--line)}
+.study-concept-shelf[hidden],.study-concept-empty[hidden]{display:none}
+.study-concept-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:14px}
+.study-concept-head h2{margin:6px 0 4px;font-size:1.5rem;letter-spacing:-.035em}
+.study-concept-head p{max-width:560px;color:var(--muted);font-size:.8125rem;line-height:1.55}
+.study-concept-count{flex:none;color:var(--muted);font-size:11px}
+.study-concept-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.study-concept-grid .study-card{display:flex;min-width:0;flex-direction:column;overflow:hidden;border:1px solid var(--line);border-radius:11px;background:var(--surface)}
+.study-concept-grid .study-palette{display:flex;height:48px;padding:6px;gap:4px}
+.study-concept-grid .study-palette i{flex:1;border-radius:4px}
+.study-concept-grid .study-visual{position:relative;display:block;aspect-ratio:4/3;overflow:hidden;background:var(--surface-2);border-block:1px solid var(--line)}
+.study-concept-grid .study-visual img{display:block;width:100%;height:100%;object-fit:cover}
+.study-concept-grid .study-ai-badge{position:absolute;left:8px;bottom:8px;padding:3px 6px;border-radius:4px;background:#17171bcc;color:#fff;font:10px var(--mono);letter-spacing:.06em}
+.study-concept-grid .study-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 13px}
+.study-concept-grid .study-meta>div{min-width:0}
+.study-concept-grid .study-meta small{color:var(--muted);font-size:.6875rem}
+.study-concept-grid .study-meta h3{margin-top:4px;font-size:1rem;letter-spacing:-.02em}
+.study-concept-grid .study-meta>a{flex:none;color:var(--accent);font-size:.6875rem;font-weight:700}
+.study-concept-grid .study-meta>a:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:3px}
+.study-concept-empty{margin:0;padding:30px 0;color:var(--muted);text-align:center}
+@media(max-width:1000px){.study-concept-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.study-concept-head{align-items:flex-start;flex-direction:column;gap:8px}.study-concept-grid{grid-template-columns:1fr;gap:11px}.study-concept-grid .study-visual{aspect-ratio:16/10}}
