@@ -7,6 +7,39 @@ güncel yönlendirme sonraki görüşmeyi kaydeder.
 
 ## Güncel yönlendirme — 2026-09-28
 
+- Son uygulama turu **yerel**: UX-04 checkpoint `21c10e7`; Claude'un üç
+  küçük mühendislik teslimi main'e incelenerek alındı: UX-05A `2e9352c`,
+  tray-05B `697594c`, role-use-05C `83aa555`. Sağdaki tekrar ton şeridi yok;
+  inline shades korunur. Tepsi tüm workspace üyelerinde seçilen doğru rengi
+  alır. Seçilen rengin gerçek fotoğraf yüzeyi/boş kullanım bilgisi mapping ile
+  güncellenir ve Screens'te gizlenir. App v99/Studio CSS v12 cache pass yerel.
+  `npm run check:release`: 176 PASS / 0 FAIL. Bu UX kabulü veya yayın değildir.
+  İzole preview `http://127.0.0.1:4200/studio/?p=concept-piera`; kullanım
+  açıklaması, yüzey ataması, Screens geçişi ve Escape doğrulandı; console temiz.
+  Sahibin 4197 origin'deki custom draftına/sunumuna dokunulmadı.
+- Claude'un corpus ilk araştırması ve kanıt düzeltmesi teslim edildi:
+  `f6693f8` + `64e688a`, yerel main `8e727df` + `6d36211`.
+  [Kaynak raporu](research/corpus-source-audit-01.md) altı kaynak listeler;
+  ham renk tablosu okunamadığından sayısal aday **yok**. İthalat/palet onayı yok.
+  Codex review ilk Wada life+70 ve numeric=HEX varsayımlarını reddetti;
+  son incelemede kalan kesin hak ifadeleri de kaldırıldı. Hak durumları
+  kaynak kurum beyanlarıdır, küresel hukuki clearance değildir. Bir sonraki
+  küçük research görevi NBS tablosundan az sayıda konumlu özgün değer olabilir;
+  henüz başlatılmadı, Munsell verisi için lisans sorusu açık.
+- Yeni görsel adayı built-in imagegen ile üretildi:
+  [görsel brief'i/promptlar](tasks/studio-visual-01.md). Tek hero şişede mevcut
+  Citrus Muse renkleri gövde/etiket/kapak/vurgu/yazıda; arka plan ayrı sakin
+  nötr. [Renkli proof](assets/katre-product-design-proof-v1.png) yalnız tasarım
+  yönü, interaktif veya live replacement değil. Nötr alpha master'ın kenar
+  kusurları çözülmedi; renderer'a kabul edilmedi. Kaynak Katre asset'i korunur.
+- Gerçek Claude oturumları: kısa Studio `a060c844-3ef8-498c-9dcf-07204ec47851`,
+  research `06598d4e-d8c5-4af5-add9-0acfa91db048`; bütün bu turdaki çağrılar
+  teslim/STOP ile bitti, arkada aktif mühendis yok. Son rate-limit bildirimi
+  five-hour %98 / weekly %69 kullanım; reset epoch `1790596200` bildirildi.
+  Yeni işten önce kotayı tekrar doğrula. Eski büyük bağlamlı `bc13dca1` küçük
+  işler için yeniden kullanılmasın; kullanıcıya hazırlanmış işi başlamış gibi
+  bildirme. MCP/private proje erişimi açılmadı. Main push/deploy bu turda yok.
+
 - Yeni owner talimatı: açık Studio işleri küçük Claude uygulama görevleriyle
   başlatılsın; corpus akademik/kaynak araştırması ve renk toplama da Claude'a
   verilsin. Dış ekip-only araştırma sınırı bu kapsam için değişti. Önce küçük
@@ -27,7 +60,7 @@ güncel yönlendirme sonraki görüşmeyi kaydeder.
   kayıtlar ve eski snapshot atamaları korunur. Genel sağ-panel tasarımı,
   Footwear/Object boş durumları ve Campaigns kararı hâlâ ürün değerlendirmesi;
   UX kalitesini test/audit sayısıyla tamamlanmış göstermeme isteği geçerlidir.
-  UX-04 şu an yalnız yerel önizlemede; commit/push veya public yayın yapılmadı.
+  UX-04 yerel `21c10e7` checkpoint'inde; push/public yayın yapılmadı.
   Codex tek yazar; aynı Claude oturumu yalnız bağımsız read-only inceleme için
   yeniden çağrıldı, yeni implementasyon görevi verilmedi.
   Statik incelemede blocker yok; küçük takip düzeltmeleri de okuma değerlendirmesi
@@ -179,7 +212,9 @@ gibi doldurmaz; canlı kullanıcı/veri silmek önceki bir onayın devamı deği
   Email alanındaki password-manager/Find your login simgesi site bileşeni değildir.
 - RoomKit'e dokunma; kaynak fotoğrafın bütününü Surface rolüyle tint etme.
   Code-native yüzey ataması, gerçek/AI fotoğraf recolor'undan ayrı özelliktir.
-- Yeni görsel **üretme**. Owner-supplied AI görseller disclosure ile kullanılabilir.
+- Yeni görsel üretmeme önceki sınırdı; güncel owner talimatı Studio için dar
+  yeni ürün görseli adayını açtı. Otomatik galeri/corpus üretimi veya live asset
+  değişimi yetkisi değildir. Owner-supplied AI görseller disclosure ile kullanılabilir.
   Stock görsel geri getirme, lisansı source link var diye otomatik cleared sayma.
 - Kısa editorial isimler ASCII, bir/iki kelime, ≤18 karakter; stable ID ve aile
   adı farklı alanlar. Member'ın yazdığı isimler/non-ASCII metinler korunur.

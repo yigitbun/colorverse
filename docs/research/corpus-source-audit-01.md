@@ -15,17 +15,22 @@ reasoning, an unsupported secondary claim, a non-paraphrased quote, and the
 tool-count reporting in the original 01A delivery (base `f6693f8`), per
 Codex review and the official source at
 https://www.bunka.go.jp/seisaku/chosakuken/hokaisei/kantaiheiyo_chosakuken/1411890.html.
-No new sources were added and no numeric values were collected or converted.
+The correction adds the official transition-rule citation; it does not add
+a new corpus-source candidate. No numeric values were collected or converted.
+Codex's final review also removes residual blanket rights claims and
+unverified source/tool-count wording. This remains research, not legal clearance.
 
 ## Method
 
-Live WebSearch/WebFetch against official sources only: a standards body
-(CIE), a U.S. federal science agency (NIST/NBS) and its accredited lab
-partner (RIT Munsell Color Science Laboratory), and national/institutional
+Live WebSearch/WebFetch prioritized primary sources: a standards body
+(CIE), a U.S. federal science agency (NIST/NBS), a university laboratory
+(RIT Munsell Color Science Laboratory), and national/institutional
 libraries (Smithsonian Libraries, Internet Archive as their hosting mirror,
 Biodiversity Heritage Library, Japan's National Diet Library / NDL Search).
 No palette-aggregator sites, blog color-picker posts, or Adobe Color/Coolors
-pages were used as evidence, per the task brief. Several fetches failed
+pages were used as evidence, per the task brief. A Wikipedia author page
+was also opened for discovery; it is not primary evidence or rights clearance.
+Several fetches failed
 (HTTP 403/404, or exceeded the fetch tool's size limit) and were retried
 against a working official URL where possible; the exact list is in "Checks
 actually run" below rather than summarized here, to avoid restating an
@@ -33,7 +38,8 @@ approximate count. No files outside the two allowed outputs were created;
 no build, install, or network write occurred.
 
 Three academic/methodology sources and three original historical/reference
-collections were verified, matching the brief's suggested shape. This is a
+collections were identified, matching the brief's suggested shape. Evidence
+and unresolved access/rights limits are recorded per entry. This is a
 first, deliberately small pass — not a target count for later collection
 tasks.
 
@@ -109,15 +115,14 @@ tasks.
   Central Bureau.
 - **Publication/access dates:** Published 2018; accessed 2026-09-28.
 - **Direct evidence URL:** https://cie.co.at/publications/colorimetry-4th-edition
-  — the CIE's own product page, confirming it is "readily available from the
-  CIE Webshop or from the National Committees of the CIE" with a stated
-  "Members receive a 66,7% discount," i.e. a paid document.
+  — the CIE's own product page lists webshop/National Committee availability
+  and a member discount, indicating a paid publication.
 - **Why useful:** Defines the standard illuminants, standard observers, and
   tristimulus/chromaticity calculation conventions that any Munsell-to-sRGB
   or historical-plate colorimetric conversion would need to cite by the
   book, rather than an ad hoc assumption.
-- **Limitations:** Not freely redistributable; cannot be quoted or bundled
-  into this repository. Useful only as a cited methodology reference.
+- **Limitations:** Exact reuse terms were not read. Repository policy for
+  this pass is reference-only: do not copy or bundle the publication.
 - **Rights-statement URL:** none published inline on the CIE product page;
   purchase is handled by the CIE Webshop (`store.accuristech.com`) and
   National Committees. No public-domain or open-access grant is shown.
@@ -196,17 +201,18 @@ tasks.
 - **Publication/access dates:** Published 1933–1934; accessed 2026-09-28.
 - **Direct evidence URL:** https://ndlsearch.ndl.go.jp/books/R100000039-I1191847
   (National Diet Library Search bibliographic record for a volume of the
-  original work); author life dates independently confirmed at
-  https://id.ndl.go.jp/auth/ndlna/00089958 (Web NDL Authorities, "1883-1967").
+  original work); the authority identifier
+  https://id.ndl.go.jp/auth/ndlna/00089958 is a follow-up locator for author
+  life dates, not a directly fetched verification in this audit.
 - **Why useful:** A historically significant Japanese color-combination
   reference distinct from Western color-naming traditions; explicitly named
   in the task brief as a source to identify but not bulk-ingest.
 - **Limitations:** No colorimetric measurement data; a name-and-swatch
   reference from letterpress-era printing, same scan/reproduction caveat as
   B1/B2. Modern commercial reprints (e.g. Seigensha's 2011 edition) are
-  separate, independently copyrighted derivative publications layered on
-  top of an already-restricted original — they do not clear rights for the
-  original.
+  separate editions whose added material may carry its own rights. Their
+  existence settles neither the original's rights nor permission to reuse
+  a particular edition.
 - **Rights-statement URL:** none published by NDL granting reuse. The
   applicable rule is more complex than "life plus 70 years" applied
   mechanically to Wada's 1967 death:
@@ -217,26 +223,18 @@ tasks.
   2018-12-30: works whose term had already lapsed by 2018-12-29 stay in the
   public domain; only works still protected on that date received the
   extended 70-year term. Japan's pre-reform individual-author term was life
-  plus 50 years, which for an author who died in 1967 would, on that
-  earlier rule alone, have lapsed at the start of 1968+50 = 2018 — i.e.
-  arguably just before the reform's effective date. Whether that is in fact
-  how it resolves for this specific work has **not** been independently
-  confirmed here: it depends on Japan's exact date-counting method, on
-  whether the work is legally treated as multi-author/collective given its
-  six-volume structure and publisher, and on whether any other extension
-  (e.g. wartime addition, which applies to some Allied-national works, not
-  generally to Japanese authors) applies. Territory-specific reuse outside
-  Japan (e.g. US/EU) is a separate, unresolved question from Japan-domestic
-  status, and any modern reprint edition (e.g. Seigensha's 2011 edition)
-  carries its own separate, independently held rights regardless of the
-  original's status.
+  plus 50 years; that makes the non-revival rule relevant rather than
+  permitting today's term to be applied mechanically. This audit does not
+  determine the expiry date or legal treatment of this particular work.
+  Edition-specific material and territory-specific reuse outside Japan
+  remain separate questions requiring verification.
 - **Rights status:** **unresolved**. Do not treat this as either "protected
   through 2037" (the original 01A claim, which applied today's term
   retroactively without accounting for the no-revival rule) or as a
   universal free-to-use public-domain work. Edition- and territory-specific
-  clearance is required before any reuse. This still matches, and gives the
-  correct legal grounding for, the task brief's explicit rule against
-  bulk-ingesting Wada.
+  clearance is required before any reuse. The task brief's separate product
+  rule against bulk-ingesting Wada remains in force regardless of this
+  unresolved rights question.
 
 ---
 
@@ -308,13 +306,12 @@ candidate without any HEX conversion at all.
 
 ## Checks actually run
 
-Counts below cover both the original 01A pass and this 01B correction pass,
-recounted directly against the tool-call transcript rather than estimated.
+The activity list below was reported by Claude for both passes. Codex
+reviewed the delivered files and the official transition-rule source, but
+did not independently re-open every source or certify exact tool counts.
 
-- **WebSearch:** 10 queries total — one per source in the initial pass (5:
-  Munsell, NBS SP440, Ridgway, Werner's, Wada), one each for CIE pricing and
-  for the general NIST copyright policy, two for the NDL/Wada bibliographic
-  record, and one (01B) confirming the Bunka-chō term-extension Q&A content.
+- **WebSearch:** Munsell, NBS SP440, Ridgway, Werner's, Wada, CIE pricing,
+  NIST copyright policy, NDL bibliography, and the Bunka-chō reform Q&A.
 - **WebFetch, successful (returned usable content):**
   `rit.edu/science/munsell-color-science-lab-educational-resources`,
   `nist.gov/publications/color-universal-language-and-dictionary-names`,
@@ -326,14 +323,13 @@ recounted directly against the tool-call transcript rather than estimated.
   `nist.gov/copyrights-disclaimers` (200, but its content did not cover
   publications, only software — not relied on for the PD claim),
   `nist.gov/open/license`,
-  and (01B) `bunka.go.jp/seisaku/chosakuken/hokaisei/kantaiheiyo_chosakuken/1411890.html`
-  — 10 total.
+  and (01B) `bunka.go.jp/seisaku/chosakuken/hokaisei/kantaiheiyo_chosakuken/1411890.html`.
 - **WebFetch, failed with an HTTP error (not relied on for any claim):**
   `biodiversitylibrary.org/item/126819` (403),
   `biodiversitylibrary.org/bibliography/144788` (403),
   `nist.gov/nist-information-quality-standards/...` (404, wrong URL — replaced
   by the working `nist.gov/open/license` above),
-  `rit-mcsl.org/MunsellRenotation/` (403) — 4 total.
+  `rit-mcsl.org/MunsellRenotation/` (403).
 - **WebFetch, attempted but incomplete:** `nvlpubs.nist.gov/.../nbsspecialpublication440.pdf`
   — request exceeded the tool's content-size limit, so the PDF's actual
   centroid table was never read; only its existence and bibliographic

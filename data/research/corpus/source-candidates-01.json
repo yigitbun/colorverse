@@ -1,10 +1,10 @@
 {
   "manifestVersion": "research-candidate-lightweight-01",
   "task": "CORPUS-RESEARCH-01A",
-  "correctedBy": "CORPUS-RESEARCH-01B",
+  "correctedBy": "CORPUS-RESEARCH-01B + Codex final evidence wording review",
   "producedAt": "2026-09-28",
   "editorialStatus": "research-candidate",
-  "note": "Lightweight research manifest for a small first source/rights audit, corrected once (01B) per Codex evidence review. This is NOT the final ColorVerse corpus interchange schema described in docs/color-corpus-integration-assessment.md section E, and no entry here is an approved product record, approved palette, or approved color. Full source detail, rights citations and reasoning live in docs/research/corpus-source-audit-01.md.",
+  "note": "Lightweight research manifest for a small first source/rights audit, corrected in 01B and reviewed for residual evidence wording by Codex. Rights labels summarize cited institutional statements, not global legal clearance. This is NOT the final ColorVerse corpus interchange schema described in docs/color-corpus-integration-assessment.md section E, and no entry here is an approved product record, approved palette, or approved color. Full source detail, rights citations and reasoning live in docs/research/corpus-source-audit-01.md.",
   "candidates": [],
   "candidatesEmptyReason": "The brief accepts an original numeric value in its own original space (e.g. Munsell notation or CIE xyY) and never requires HEX. The empty list here is not about HEX conversion: it is because no primary source's raw numeric table was actually fetched and read in this pass (two sources describe numeric data on their listing/abstract pages, but the raw files/centroid table themselves were not retrieved), and no other source has both authoritative numeric values and a clear reuse basis. See sourcesReviewed[].eligibleForCandidate and docs/research/corpus-source-audit-01.md for full per-source reasoning. An empty list here is an honest result, not a placeholder to be filled with invented or hand-converted values.",
   "sourcesReviewed": [
@@ -32,7 +32,7 @@
       "rightsStatus": "verified-public-domain",
       "rightsStatementUrl": "https://www.nist.gov/open/license",
       "eligibleForCandidate": false,
-      "reason": "Text is public domain (17 U.S.C. 105). The brief does not require converting Munsell-notation centroids to HEX; the actual reason no candidate was taken from this source is that the centroid table inside the scanned PDF was not actually fetched and read in this pass (it exceeded this session's fetch size limit), so no specific centroid value has been verified against the primary document."
+      "reason": "Government-authored text is public domain in the United States according to the cited NIST policy (17 U.S.C. 105); embedded third-party material and other territories are not cleared by this statement. The brief does not require converting Munsell-notation centroids to HEX; the actual reason no candidate was taken from this source is that the centroid table inside the scanned PDF was not actually fetched and read in this pass (it exceeded this session's fetch size limit), so no specific centroid value has been verified against the primary document."
     },
     {
       "sourceId": "cie-015-2018-colorimetry",
@@ -84,7 +84,7 @@
       "rightsStatus": "unresolved",
       "rightsStatementUrl": "https://www.bunka.go.jp/seisaku/chosakuken/hokaisei/kantaiheiyo_chosakuken/1411890.html",
       "eligibleForCandidate": false,
-      "reason": "Do not apply today's life-plus-70 term retroactively: Japan's official Agency for Cultural Affairs Q&A confirms the 2018 term-extension reform does not revive a copyright that had already expired before it took effect (2018-12-30). Under the pre-reform life-plus-50 term, an author who died in 1967 arguably lapsed into the public domain just before that date, but this was not independently confirmed (exact date-counting method, possible collective-work treatment, and territory-specific status outside Japan remain open). Status is therefore unresolved, not verified-restricted and not free-to-use; edition- and territory-specific clearance is required. No colorimetric data was found regardless. Matches the task brief's explicit rule against bulk Wada ingestion; identified for rights-audit purposes only, not proposed for use."
+      "reason": "Do not apply today's life-plus-70 term retroactively: Japan's official Agency for Cultural Affairs Q&A confirms the 2018 term-extension reform does not revive a copyright that had already expired before it took effect (2018-12-30). This audit does not determine the expiry date or legal treatment of this particular work; author-life-date authority records, edition-specific material and territory-specific status require further verification. Status is therefore unresolved, not verified-restricted and not free-to-use; edition- and territory-specific clearance is required. No colorimetric data was found. The separate task rule against bulk Wada ingestion remains regardless of rights status; this entry is for research only, not proposed for use."
     }
   ]
 }
