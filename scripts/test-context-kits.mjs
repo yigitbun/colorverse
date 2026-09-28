@@ -9,12 +9,17 @@ const styles = await readFile(new URL('../dist/context-kits.css', import.meta.ur
 const studioStyles = await readFile(new URL('../dist/studio-editor.css', import.meta.url), 'utf8');
 const store = await readFile(new URL('../dist/project-store.js', import.meta.url), 'utf8');
 
-test('Studio groups live applications as Objects, Screens, and Campaigns', () => {
+test('Studio groups live applications as Products, Screens, and Campaigns', () => {
   const contexts = [...studio.matchAll(/data-context="([^"]+)"/g)].map(match => match[1]);
   assert.deepEqual(contexts, ['landing', 'interface', 'social', 'presentation']);
-  for (const label of ['Objects', 'Screens', 'Campaigns']) assert.match(studio, new RegExp(`>${label}<`));
+  for (const label of ['Products', 'Screens', 'Campaigns']) assert.match(studio, new RegExp(`>${label}<`));
+  // The visible label changed; the saved context key did not.
+  assert.match(studio, /data-context="landing">Products<\/button>/);
+  assert.doesNotMatch(studio, />Objects</);
+  assert.match(studio, /<option value="brand">Products<\/option>/);
   assert.match(studio, /data-context="presentation" hidden>Report \(legacy\)<\/button>/);
-  assert.match(app, /interface:\s*`<div class="mockup context-kit product-kit">/);
+  assert.match(app, /interface: reportPreview\(\),/);
+  assert.match(app, /import \{ reportPreview \} from '\.\/report-preview\.js\?v=\d+'/);
   assert.match(app, /landing: productPreview/);
   assert.match(app, /social:\s*`<div class="mockup context-kit campaign-kit">/);
 });
@@ -44,6 +49,7 @@ test('older report projects keep their original preview', () => {
 test('Palette rows open an in-card shade curtain', () => {
   assert.match(app, /role-shade-overlay/);
   assert.match(app, /data-inline-role-shade/);
+  assert.match(app, /role="option" data-inline-role-shade/);
   assert.match(studioStyles, /role-shade-in/);
   assert.match(studioStyles, /role-shade-out/);
   assert.doesNotMatch(studio, /shadeStudio|openShadeStudio|shade-studio\.css/);

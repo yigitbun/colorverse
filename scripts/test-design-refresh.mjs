@@ -49,6 +49,9 @@ test('PNG source is self-contained vector work, escapes names, and uses each map
   assert.match(svg, /&lt;script&gt;&amp;test/);
   assert.doesNotMatch(svg, /<script|<image|href=/);
   for (const color of colors) assert.ok(svg.includes(color));
+  assert.equal(svg.match(/>KATRE</g)?.length, 2);
+  assert.doesNotMatch(svg, /CV \/ CARE|CV \/ SS/);
+  assert.match(svg, /design concept, not a real product/);
 });
 test('private discussions reject invalid data and bound comments without interpreting markup', () => {
   const draft=cleanDiscussion({id:'draft-abc',type:'question',text:'<img onerror=x>',colors,comments:Array(50).fill('x'.repeat(600))});

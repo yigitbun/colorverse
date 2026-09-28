@@ -12,7 +12,9 @@ import { createColorGlobe, toHsl, fromHsl } from './color-globe.js?v=2';
 import { SUPPORTED_IMAGE_TYPES, validateImageFile } from './image-file.js?v=1';
 import { imagePoint, sampleImageColor } from './image-sampling.js?v=1';
 import { initCommunity } from './community-feed.js?v=1';
-import { freezeColorway, downloadColorway } from './colorway-kit.js?v=1';
+import { freezeColorway, downloadColorway } from './colorway-kit.js?v=2';
+import { colorAlternatives, NEUTRAL_CHROMA } from './color-alternatives.js?v=1';
+import { reportPreview } from './report-preview.js?v=1';
 import { initAccountNavigation } from './account-client.js?v=3';
 import { DRAFT_KEY, STUDIO_HANDOFF_KEY, readDraft, sanitizeDraft } from './member-palette.js';
 
@@ -183,6 +185,9 @@ function renderSelection(updateURL = false) {
     ratio.textContent = `${value.toFixed(2)}:1 · ${value >= 7 ? 'AAA contrast' : value >= 4.5 ? 'AA contrast' : value >= 3 ? 'Large text only' : 'Low contrast'}`;
   }
   if (verdict) verdict.textContent = 'Text on background';
+  // Opening a palette can change the product direction; keep the rail in step.
+  renderProductPicker();
+  renderContextCaption();
   $$('.palette-card').forEach(card => {
     const active = card.dataset.palette === current.id;
     card.classList.toggle('is-active', active);
@@ -339,21 +344,33 @@ function inlineShadeValues(index) {
 function renderPaletteRoles() {
   const container = $('#paletteRoles');
   if (!container) return;
-  container.innerHTML = current.colors.slice(0, 5).map((color, index) => `<div class="role-swatch${activeColorIndex === index ? ' is-selected' : ''}${pendingSwapIndex === index ? ' is-swap-source' : ''}" data-role-index="${index}">
+  container.innerHTML = current.colors.slice(0, 5).map((color, index) => {
+    const open = openShadeIndex === index;
+    const shades = open ? inlineShadeValues(index) : [];
+    const focusShade = shades.includes(color) ? color : shades[0];
+    return `<div class="role-swatch${activeColorIndex === index ? ' is-selected' : ''}${pendingSwapIndex === index ? ' is-swap-source' : ''}${open ? ' is-shade-open' : ''}" data-role-index="${index}">
     <span class="role-grip" aria-hidden="true" title="Drag onto another color to swap"><svg viewBox="0 0 10 16"><circle cx="2" cy="3" r="1.2"/><circle cx="8" cy="3" r="1.2"/><circle cx="2" cy="8" r="1.2"/><circle cx="8" cy="8" r="1.2"/><circle cx="2" cy="13" r="1.2"/><circle cx="8" cy="13" r="1.2"/></svg></span>
     <button class="role-color-control" type="button" data-role-color="${index}" style="--swatch:${color}" title="Explore ${roles[index]} in Color Globe" aria-label="Change ${roles[index]} color in Color Globe" aria-haspopup="dialog" aria-controls="colorGlobe"><span aria-hidden="true"></span></button>
-    <button class="role-select" type="button" data-role-select="${index}" aria-pressed="${activeColorIndex === index}" aria-label="Show shades for ${roles[index]}" aria-controls="paletteRoles">
+    <button class="role-select" type="button" data-role-select="${index}" aria-expanded="${open}"${open ? ` aria-controls="roleShades${index}"` : ''} aria-label="${pendingSwapIndex !== null && pendingSwapIndex !== index ? `Swap with ${roles[index]}` : `Show shades for ${roles[index]}`}">
       <span class="role-name">${roles[index]}</span><code>${color}</code>
     </button>
     <button class="role-action" type="button" data-role-swap="${index}" aria-label="${pendingSwapIndex === index ? 'Cancel swap' : `Swap ${roles[index]} with another role`}" title="Swap colors">↔</button>
-    ${openShadeIndex === index ? `<div class="role-shade-overlay" data-shade-overlay="${index}"><div class="inline-shade-strip" role="listbox" aria-label="Choose a shade for ${roles[index]}">${inlineShadeValues(index).map(value => `<button type="button" data-inline-role-shade="${index}" data-inline-shade="${value}" aria-selected="${value === color}" title="${value}" style="--tone:${value};--tone-ink:${textOn(value)}"><span class="sr-only">${value}</span></button>`).join('')}</div></div>` : ''}
-  </div>`).join('');
+    ${open ? `<div class="role-shade-overlay" data-shade-overlay="${index}"><div class="inline-shade-strip" id="roleShades${index}" role="listbox" aria-label="Choose a shade for ${roles[index]}. Escape closes without changing it.">${shades.map(value => `<button type="button" role="option" data-inline-role-shade="${index}" data-inline-shade="${value}" aria-selected="${value === color}" tabindex="${value === focusShade ? 0 : -1}" title="${value}" style="--tone:${value};--tone-ink:${textOn(value)}"><span class="sr-only">${value}</span></button>`).join('')}</div></div>` : ''}
+  </div>`;
+  }).join('');
+}
+
+// Opening or closing a shade strip changes focus, not the palette: no project change event.
+function renderActiveRole() {
+  renderPaletteRoles();
+  renderColorLab();
+  renderMockup();
 }
 
 function closeInlineShade(index, after) {
   const overlay = document.querySelector(`[data-shade-overlay="${index}"]`);
   openShadeIndex = null;
-  if (!overlay) { after?.(); return; }
+  if (!overlay || reduceMotion.matches) { after?.(); return; }
   overlay.classList.add('is-closing');
   let finished = false;
   const finish = () => {
@@ -363,6 +380,16 @@ function closeInlineShade(index, after) {
   };
   overlay.addEventListener('animationend', finish, { once: true });
   window.setTimeout(finish, 230);
+}
+
+function dismissInlineShade({ restoreFocus = false } = {}) {
+  if (openShadeIndex === null) return;
+  const index = openShadeIndex;
+  closeInlineShade(index, () => {
+    if (openShadeIndex !== null) return;
+    renderPaletteRoles();
+    if (restoreFocus) $('#paletteRoles')?.querySelector(`[data-role-select="${index}"]`)?.focus({ preventScroll: true });
+  });
 }
 
 function renderColorTray() {
@@ -386,6 +413,8 @@ function renderColorLab() {
   const source = shadeSourceColors[activeColorIndex];
   const coordinates = colorCoordinates(source);
   $('#shadeRoleNameInline').textContent = roles[activeColorIndex];
+  const scope = $('#alternativeScope');
+  if (scope) scope.textContent = `${coordinates.chroma < NEUTRAL_CHROMA ? 'Nearby neutrals' : 'Nearby hues'} · changes ${roles[activeColorIndex]} only`;
   $('#shadeCurrentHex').textContent = color;
   const family = buildShadeFamilies(source)[0].colors;
   const shades = [...new Set([...family.filter((_, index) => index % 2 === 0), source])]
@@ -393,9 +422,8 @@ function renderColorLab() {
   const shadeGrid = $('#colorShadeGrid');
   shadeGrid.innerHTML = shades.map(value => `<button type="button" style="--tone:${value};--tone-ink:${textOn(value)}" data-inline-shade="${value}" aria-pressed="${value === color}" aria-label="Apply shade ${value} to ${roles[activeColorIndex]}" title="${value}"><code>${value}</code><span aria-hidden="true">${value === color ? '✓' : ''}</span></button>`).join('');
   $('#shadeOptionCount').textContent = `${shades.length} tones`;
-  const alternatives = [...new Set([-60, -45, -30, -15, 15, 30, 45, 60, -80, 80, -100, 100].map(offset =>
-    oklch(clamp(coordinates.lightness, .3, .82), clamp(coordinates.chroma * 1.04, .06, .2), coordinates.hue + offset)))];
-  $('#colorAlternativeGrid').innerHTML = alternatives.map(value => `<button type="button" style="--choice:${value};--on:${textOn(value)}" data-use-color="${value}" aria-label="Use alternative ${value}" title="${value}"><code>${value.slice(1)}</code></button>`).join('');
+  const alternatives = colorAlternatives(color);
+  $('#colorAlternativeGrid').innerHTML = alternatives.map(value => `<button type="button" style="--choice:${value};--on:${textOn(value)}" data-use-color="${value}" aria-label="Replace ${roles[activeColorIndex]} with ${value}" title="${value} · ${roles[activeColorIndex]} only"><code>${value.slice(1)}</code></button>`).join('');
   const pairIndex = activeColorIndex === 0 ? 4 : 0;
   const pair = current.colors[pairIndex];
   $('#colorContrastPair').textContent = `vs ${roles[pairIndex].toLowerCase()}`;
@@ -556,13 +584,13 @@ function renderMockup() {
   panel.setAttribute('aria-labelledby', `tab-${context}`);
   const packagingKit = current.id === 'skincare-system-01'
     ? `<div class="mockup context-kit edition-packaging-kit">
-      <header><span class="kit-kicker">ColorVerse Edition / care objects</span><b>CV / SS</b><small>Soft Structure · Series 01</small></header>
+      <header><span class="kit-kicker">ColorVerse Edition / care objects</span><b>KATRE</b><small>Soft Structure · Series 01</small></header>
       <div class="edition-pack-scene" role="img" aria-label="Soft Structure palette applied to five care objects">
-        <article class="edition-tube edition-tube-1" style="--pack:var(--p-bg);--pack-ink:var(--p-text)"><span>CV / SS</span><div><strong>Cleanse</strong><small>Balance · purify · refresh</small></div><b>100 ml</b></article>
-        <article class="edition-tube edition-tube-2" style="--pack:var(--p-surface);--pack-ink:var(--p-text)"><span>CV / SS</span><div><strong>Veil</strong><small>Hydrate · support · replenish</small></div><b>75 ml</b></article>
-        <article class="edition-tube edition-tube-3" style="--pack:var(--p-primary);--pack-ink:var(--on-primary)"><span>CV / SS</span><div><strong>Polish</strong><small>Refine · smooth · renew</small></div><b>60 ml</b></article>
-        <article class="edition-tube edition-tube-4" style="--pack:var(--p-accent);--pack-ink:var(--p-text)"><span>CV / SS</span><div><strong>Mask</strong><small>Soothe · restore · fortify</small></div><b>75 ml</b></article>
-        <article class="edition-tube edition-tube-5" style="--pack:var(--p-text);--pack-ink:var(--p-bg)"><span>CV / SS</span><div><strong>Night</strong><small>Repair · smooth · revive</small></div><b>75 ml</b></article>
+        <article class="edition-tube edition-tube-1" style="--pack:var(--p-bg);--pack-ink:var(--p-text)"><span>KATRE</span><div><strong>Cleanse</strong><small>Balance · purify · refresh</small></div><b>100 ml</b></article>
+        <article class="edition-tube edition-tube-2" style="--pack:var(--p-surface);--pack-ink:var(--p-text)"><span>KATRE</span><div><strong>Veil</strong><small>Hydrate · support · replenish</small></div><b>75 ml</b></article>
+        <article class="edition-tube edition-tube-3" style="--pack:var(--p-primary);--pack-ink:var(--on-primary)"><span>KATRE</span><div><strong>Polish</strong><small>Refine · smooth · renew</small></div><b>60 ml</b></article>
+        <article class="edition-tube edition-tube-4" style="--pack:var(--p-accent);--pack-ink:var(--p-text)"><span>KATRE</span><div><strong>Mask</strong><small>Soothe · restore · fortify</small></div><b>75 ml</b></article>
+        <article class="edition-tube edition-tube-5" style="--pack:var(--p-text);--pack-ink:var(--p-bg)"><span>KATRE</span><div><strong>Night</strong><small>Repair · smooth · revive</small></div><b>75 ml</b></article>
       </div>
       <footer><span>Shared silhouette</span><span>Color-coded formula</span><span>Consistent hierarchy</span><span>Production study</span></footer>
     </div>`
@@ -579,23 +607,18 @@ function renderMockup() {
     object: { label: 'Object / Material study', title: 'Everyday object', detail: 'A useful object with a considered surface.', specs: 'Ceramic · dry glaze · tactile form' },
   }[productKind] || { label: 'Footwear / Field study', title: 'Field 01', detail: 'One silhouette. Three directions.', specs: 'Mesh · suede · modular rubber' };
   const careOptions = selected => current.colors.map((color, index) => `<option value="${index}"${index === selected ? ' selected' : ''}>${roles[index]} · ${color}</option>`).join('');
-  const careStage = (colors, assignment, title) => `<div class="care-colorway"><span class="care-colorway-label">${title}</span><div class="care-stage" style="--care-backdrop:${colors[assignment.backdrop]};--care-bottle:${colors[assignment.bottle]};--care-cap:${colors[assignment.cap]};--care-label:${colors[assignment.label]};--care-carton:${colors[assignment.carton]};--care-carton-ink:${textOn(colors[assignment.carton])};--care-label-ink:${textOn(colors[assignment.label])}" role="img" aria-label="${title}: body ${colors[assignment.bottle]}, cap ${colors[assignment.cap]}, label ${colors[assignment.label]}, carton ${colors[assignment.carton]}, backdrop ${colors[assignment.backdrop]}"><div class="care-shadow"></div><div class="care-carton"><span>CV / CARE</span><strong>Daily<br>Balance</strong><small>SKINCARE · 100 ML</small></div><div class="care-bottle"><div class="care-bottle-cap"></div><div class="care-bottle-neck"></div><div class="care-bottle-body"><div class="care-bottle-label"><span>CV / CARE</span><strong>Daily<br>Balance</strong><small>SKINCARE · 100 ML</small><i></i></div></div></div></div></div>`;
+  const careStage = (colors, assignment, title) => `<div class="care-colorway"><span class="care-colorway-label">${title}</span><div class="care-stage" style="--care-backdrop:${colors[assignment.backdrop]};--care-bottle:${colors[assignment.bottle]};--care-cap:${colors[assignment.cap]};--care-label:${colors[assignment.label]};--care-carton:${colors[assignment.carton]};--care-carton-ink:${textOn(colors[assignment.carton])};--care-label-ink:${textOn(colors[assignment.label])}" role="img" aria-label="${title}: body ${colors[assignment.bottle]}, cap ${colors[assignment.cap]}, label ${colors[assignment.label]}, carton ${colors[assignment.carton]}, backdrop ${colors[assignment.backdrop]}"><div class="care-shadow"></div><div class="care-carton"><span>KATRE</span><strong>Daily<br>Balance</strong><small>SKINCARE · 100 ML</small></div><div class="care-bottle"><div class="care-bottle-cap"></div><div class="care-bottle-neck"></div><div class="care-bottle-body"><div class="care-bottle-label"><span>KATRE</span><strong>Daily<br>Balance</strong><small>SKINCARE · 100 ML</small><i></i></div></div></div></div></div>`;
   const carePreview = `<div class="mockup context-kit care-preview-kit${colorwayBaseline ? ' is-comparing' : ''}" style="--care-backdrop:${current.colors[careAssignment.backdrop]};--care-bottle:${current.colors[careAssignment.bottle]};--care-cap:${current.colors[careAssignment.cap]};--care-label:${current.colors[careAssignment.label]};--care-label-ink:${textOn(current.colors[careAssignment.label])}">
-    <header><div><span class="kit-kicker">ColorwayKit / Skincare</span><h4>CV / Care</h4></div><span class="product-preview-meta">Live color application</span></header>
+    <header><div><span class="kit-kicker">Skincare concept</span><h4>Katre</h4></div><span class="product-preview-meta">Live color application</span></header>
     <div class="colorway-toolbar"><button type="button" data-colorway="lock">${colorwayBaseline ? 'Replace baseline' : 'Lock baseline'}</button>${colorwayBaseline ? '<button type="button" data-colorway="restore">Use baseline colors</button><button type="button" data-colorway="clear">Clear comparison</button>' : ''}<button type="button" data-colorway="export">Export PNG ↗</button></div>
     <div class="care-preview-body">
       <div class="care-colorways${colorwayBaseline ? ' is-comparing' : ''}">${colorwayBaseline ? careStage(colorwayBaseline.colors, colorwayBaseline.assignment, 'Baseline · locked') : ''}${careStage(current.colors, careAssignment, 'Current colorway')}</div>
       <div class="care-map"><span class="kit-kicker">Apply palette colors</span>${[['backdrop', 'Backdrop'], ['bottle', 'Bottle'], ['cap', 'Cap'], ['label', 'Label'], ['carton', 'Carton']].map(([part, title]) => `<label>${title}<select data-care-part="${part}" aria-label="${title} color">${careOptions(careAssignment[part])}</select></label>`).join('')}</div>
-    </div><footer><span>Body / cap / label / carton / backdrop</span><span>CSS concept · no photo recolored</span></footer></div>`;
+    </div><footer><span>Body / cap / label / carton / backdrop</span><span>Katre is a design concept · no photo recolored</span></footer></div>`;
   const productPreview = productKind === 'skincare' ? carePreview : `<div class="mockup context-kit product-preview-kit"><header><div><span class="kit-kicker">${escape(productConfig.label)}</span><h4>${escape(productConfig.title)}</h4></div><span class="product-preview-meta">ColorVerse / product direction</span></header><div class="product-preview-stage"><div class="product-preview-image visual-pending"><span>Reference image pending</span></div><aside><strong>${escape(productConfig.detail)}</strong><p>${escape(productConfig.specs)}</p><div class="product-preview-swatches" aria-label="Applied product colors">${current.colors.slice(0, 5).map((color, index) => `<i style="--swatch:${color}" title="${roles[index]} ${color}"></i>`).join('')}</div><small>Palette colors shown at left.</small></aside></div><footer><span>Product study</span><span>Colour / material direction</span><span>Original ColorVerse concept</span></footer></div>`;
   const layouts = {
     landing: productPreview,
-    interface: `<div class="mockup context-kit product-kit">
-      <header class="product-kit-head"><b>Northstar</b><label aria-hidden="true">Search workspace <span>⌘ K</span></label><i class="product-avatar">AY</i></header>
-      <div class="product-kit-shell"><aside><strong>Overview</strong><span>Projects</span><span>Customers</span><span>Reports</span><small>Workspace</small><span>Team</span><span>Settings</span></aside>
-      <main><div class="product-title"><div><span class="kit-kicker">Monday, September 19</span><h4>Good morning.</h4></div><button type="button">New report <b>＋</b></button></div>
-      <div class="metric-row"><article><span>Active projects</span><strong>24</strong><small>+4 this month</small></article><article><span>Completion</span><strong>78%</strong><small>On target</small></article><article class="metric-accent"><span>Next milestone</span><strong>08d</strong><small>Brand handoff</small></article></div>
-      <div class="product-grid"><section class="product-chart"><header><div><span>Project momentum</span><strong>Last 8 weeks</strong></div><b>+18.4%</b></header><div class="chart-bars" aria-label="Illustrative project momentum chart"><i style="--h:34%"></i><i style="--h:48%"></i><i style="--h:43%"></i><i style="--h:61%"></i><i style="--h:56%"></i><i style="--h:74%"></i><i style="--h:82%"></i><i style="--h:92%"></i></div></section><section class="product-list"><header><span>Today</span><b>View all</b></header><p><i></i><span><strong>Review design system</strong><small>10:30 · Product</small></span></p><p><i></i><span><strong>Client workshop</strong><small>14:00 · Strategy</small></span></p><p><i></i><span><strong>Publish report</strong><small>16:45 · Research</small></span></p></section></div></main></div></div>`,
+    interface: reportPreview(),
     social: `<div class="mockup context-kit campaign-kit"><section class="campaign-poster"><span class="kit-kicker">A one-day gathering</span><div class="campaign-orbit"><i></i><i></i><i></i></div><h4>Common<br>Ground</h4><p>Ideas for kinder cities<br>19.09 — Berlin</p></section><section class="campaign-stack"><article class="campaign-story"><span>COMMON GROUND</span><div><b>19</b><i>SEP</i></div><p>Talks · workshops · food</p></article><article class="campaign-ticket"><span>ADMIT ONE</span><strong>CG / 026</strong><i></i><small>Berlin · 10:00—18:00</small></article><article class="campaign-caption"><b>One palette.<br>Three campaign formats.</b><span>Poster / story / ticket</span></article></section></div>`,
     presentation: `<div class="mockup context-kit report-kit"><header><span>North Region / Operations</span><b>Q3 REVIEW · 08 / 16</b></header><div class="report-body"><section class="report-copy"><span class="kit-kicker">Performance summary</span><h4>Strong demand.<br><em>Smarter pace.</em></h4><p>Revenue grew while delivery time fell across three core markets.</p><div class="report-stat"><strong>+24%</strong><span>Year-over-year<br>revenue growth</span></div></section><section class="report-data"><div class="report-legend"><span><i></i>Current period</span><span><i></i>Previous period</span></div><div class="report-numbers"><p><span>Conversion</span><strong>6.8%</strong><em class="trend-up">↑ 1.4%</em></p><p><span>Retention</span><strong>91%</strong><em class="trend-up">↑ 3.2%</em></p><p><span>Delivery</span><strong>4.2d</strong><em class="trend-down">↓ 0.6d</em></p></div><div class="report-lines" role="img" aria-label="Illustrative performance line chart"><svg viewBox="0 0 360 180" preserveAspectRatio="none" aria-hidden="true"><path d="M4 150 C58 142 72 116 112 121 S176 80 211 91 S267 50 356 24"/><path d="M4 164 C51 148 87 150 121 137 S187 124 218 113 S293 91 356 82"/></svg><span>Jan</span><span>Mar</span><span>May</span><span>Jul</span></div></section></div><footer><span>Internal working document</span><span>ColorVerse palette preview</span></footer></div>`,
     shop: packagingKit,
@@ -625,6 +648,7 @@ function renderProductPicker() {
   const picker = $('#productContextPicker');
   if (!picker) return;
   picker.hidden = context !== 'landing';
+  picker.closest('.mockup-stage')?.classList.toggle('has-product-rail', !picker.hidden);
   picker.querySelectorAll('[data-product-kind]').forEach(button => {
     const selected = button.dataset.productKind === productKind;
     button.setAttribute('aria-selected', String(selected));
@@ -654,9 +678,10 @@ function setupTabs(selector, callback) {
     button.addEventListener('keydown', event => {
       const available = tabs.filter(tab => !tab.hidden);
       const position = available.indexOf(button);
+      const vertical = button.parentElement?.getAttribute('aria-orientation') === 'vertical';
       let next;
-      if (event.key === 'ArrowRight') next = (position + 1) % available.length;
-      if (event.key === 'ArrowLeft') next = (position - 1 + available.length) % available.length;
+      if (event.key === 'ArrowRight' || (vertical && event.key === 'ArrowDown')) next = (position + 1) % available.length;
+      if (event.key === 'ArrowLeft' || (vertical && event.key === 'ArrowUp')) next = (position - 1 + available.length) % available.length;
       if (event.key === 'Home') next = 0;
       if (event.key === 'End') next = available.length - 1;
       if (next !== undefined) { event.preventDefault(); select(available[next]); available[next].focus(); }
@@ -741,9 +766,12 @@ if (paletteRoles) {
         activeColorIndex = index;
         replacePaletteColor(index, color, { keepShadeSource: true });
         track('color_edit', { method: 'inline-shade' });
+        paletteRoles.querySelector(`[data-role-select="${index}"]`)?.focus({ preventScroll: true });
       });
       return;
     }
+    // Clicks between the strip's tones stay inside the open strip.
+    if (event.target.closest('[data-shade-overlay]')) return;
     const edit = event.target.closest('[data-role-color]');
     if (edit) {
       activeColorIndex = Number(edit.dataset.roleColor);
@@ -787,16 +815,32 @@ if (paletteRoles) {
       announcePaletteOrder(current.colors[index], index);
     } else {
       activeColorIndex = index;
-      if (openShadeIndex === index) closeInlineShade(index, () => renderSelection());
-      else {
-        openShadeIndex = index;
-        renderSelection();
+      if (openShadeIndex === index) {
+        closeInlineShade(index, () => { renderActiveRole(); paletteRoles.querySelector(`[data-role-select="${index}"]`)?.focus({ preventScroll: true }); });
+        return;
       }
+      openShadeIndex = index;
+      renderActiveRole();
+      // Keyboard users land on the current tone; Escape returns them to the row.
+      paletteRoles.querySelector(`[data-inline-role-shade="${index}"][tabindex="0"]`)?.focus({ preventScroll: true });
+      return;
     }
     paletteRoles.querySelector(`[data-role-select="${index}"]`)?.focus({ preventScroll: true });
   });
 
   paletteRoles.addEventListener('keydown', event => {
+    const tone = event.target.closest('[data-inline-role-shade]');
+    if (tone) {
+      const tones = [...tone.parentElement.querySelectorAll('[data-inline-role-shade]')];
+      const position = tones.indexOf(tone);
+      const next = { ArrowLeft: position - 1, ArrowUp: position - 1, ArrowRight: position + 1, ArrowDown: position + 1, Home: 0, End: tones.length - 1 }[event.key];
+      if (next === undefined) return;
+      event.preventDefault();
+      const target = tones[Math.max(0, Math.min(tones.length - 1, next))];
+      tones.forEach(item => { item.tabIndex = item === target ? 0 : -1; });
+      target.focus();
+      return;
+    }
     const select = event.target.closest('[data-role-select]');
     if (!select) return;
     const index = Number(select.dataset.roleSelect);
@@ -847,6 +891,18 @@ if (paletteRoles) {
   };
   window.addEventListener('pointerup', finishRoleDrag);
   window.addEventListener('pointercancel', finishRoleDrag);
+
+  // An open strip closes without a color change: click anywhere outside the
+  // palette rows (rows switch or close it themselves), or press Escape.
+  document.addEventListener('click', event => {
+    if (openShadeIndex === null || event.target.closest?.('#paletteRoles [data-role-index]')) return;
+    dismissInlineShade();
+  }, true);
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape' || openShadeIndex === null || event.defaultPrevented || document.querySelector('dialog[open]')) return;
+    event.preventDefault();
+    dismissInlineShade({ restoreFocus: paletteRoles.contains(document.activeElement) || document.activeElement === document.body });
+  });
 }
 
 $('#colorLab')?.addEventListener('click', event => {
