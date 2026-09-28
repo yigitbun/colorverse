@@ -286,7 +286,7 @@ test('My palettes hands every color plus the chosen five positions to Studio', (
   assert.match(account, /openStudio\(choice, \[\.\.\.chosen\]\)/);
   assert.match(account, /studio\.disabled = item\.colors\.length < MIN_COLORS/);
   assert.doesNotMatch(account, /at least five colors/);
-  assert.match(app, /workspaceFromColors\(saved\.colors, saved\.roleIndex \|\| \(saved\.colors\.length === 5 \? undefined : null\)\)/);
+  assert.match(app, /workspaceFromColors\(saved\.colors, saved\.roleIndex \|\| \(saved\.colors\.length <= 5 \? undefined : null\)\)/);
   assert.doesNotMatch(app, /saved\?\.colors\.length === 5/);
   assert.match(app, /sanitizeDraft\(\{ \.\.\.snapshot, colors: \[\.\.\.current\.workspace\.members\]/);
 });
@@ -462,8 +462,8 @@ test('larger palettes get a compact two-column rail with a count and overflow cu
 });
 
 test('project, prototype and template paths save and restore the complete workspace', () => {
-  assert.match(app, /workspace: isCompact\(current\.workspace\) \?/);
-  assert.match(app, /const workspace = sanitizeWorkspace\(snapshot\.workspace, colors\) \|\| workspaceFromColors\(colors\);/);
+  assert.match(app, /workspace: current\.workspace\.members\.length !== 5 \?/);
+  assert.match(app, /const \{ workspace \} = withWorkspace\(\{ colors, workspace: snapshot\.workspace \}\);/);
   assert.equal(store.match(/editorStateFor\(snapshot\)/g)?.length, 3);
   assert.equal(store.match(/workspace: version\.editor_state\?\.workspace/g)?.length, 2);
   assert.match(store, /workspace: baseline\.editor_state\?\.workspace/);
@@ -472,7 +472,7 @@ test('project, prototype and template paths save and restore the complete worksp
   assert.equal(store.match(/p_colors: snapshot\.colors/g)?.length, 4);
   assert.match(store, /client\.rpc\('save_member_palette', \{\n        p_item_id: null,/);
   assert.match(store, /p_colors: members,/);
-  assert.match(store, /if \(members\?\.length > 5\)/);
+  assert.match(store, /if \(Array\.isArray\(members\) && members\.length !== 5\)/);
   assert.match(store, /productKind: 'skincare',\n      collection:/);
   assert.match(store, /select\('id,name,palette_id,colors,source_metadata,created_at,collections\(name\)'\)/);
 });
