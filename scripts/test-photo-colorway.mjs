@@ -198,3 +198,47 @@ test('decode failure and destroy-before-load leave the palette alone', async () 
   assert.equal(container.children.length, 0);
   assert.equal(early.bounds, null);
 });
+
+test('optional profiles reuse the mount with their source, hooks, note and stage ratio', async () => {
+  const container = fakeContainer(), calls = [];
+  container.ownerDocument.createElement = tag => {
+    const node = new FakeNode(tag);
+    node.style = { setProperty(name, value) { node.attributes[`style:${name}`] = value; } };
+    return node;
+  };
+  const profile = {
+    src: '/approved-source.png', aspectRatio: 1, note: 'Annotated paper and ink change; clear base stays unchanged',
+    sanitize(value) { calls.push('sanitize'); return sanitizePhotoColorway(value); },
+    prepare(pixels) { calls.push('prepare'); return preparePhotoModel(pixels, { regions: sceneRegions }); },
+    render(model, value, out) { calls.push('render'); return renderPhotoColorway(model, value, out); },
+  };
+  let loaded;
+  const preview = mountPhotoColorway(container, { profile, colorway: { colors: oat }, baseline: { colors: probe }, loadSource: async src => { loaded = src; return scene(); } });
+  assert.equal(await preview.ready, 'ready');
+  await settle();
+  assert.equal(loaded, profile.src);
+  assert.equal(calls.filter(call => call === 'prepare').length, 1);
+  assert.equal(calls.filter(call => call === 'render').length, 2);
+  assert.equal(find(preview.element, 'photo-colorway-note').textContent, profile.note);
+  assert.equal(preview.element.attributes['style:--photo-aspect'], '1');
+  const stages = find(preview.element, 'photo-colorway-stages').children;
+  for (const stage of stages) {
+    assert(stage.children[0].attributes['aria-label'].includes(profile.note));
+  }
+  preview.update({ colors: probe }); preview.setBaseline(null);
+  await settle();
+  assert.equal(calls.filter(call => call === 'prepare').length, 1, 'updates reuse the decoded model');
+  assert.equal(calls.filter(call => call === 'render').length, 3);
+  assert.equal(calls.filter(call => call === 'sanitize').length, 3, 'initial snapshots and current updates use the optional sanitizer');
+  preview.destroy();
+  const noStyle = mountPhotoColorway(fakeContainer(), { profile, src: '/override.png', loadSource: async src => { assert.equal(src, '/override.png'); return scene(); } });
+  assert.equal(await noStyle.ready, 'ready', 'legacy fake DOM has no style setter');
+  noStyle.destroy();
+  for (const invalid of [{}, { ...profile, prepare: null }, { ...profile, render: null }, { ...profile, sanitize: 2 }, { ...profile, aspectRatio: 0 }, { ...profile, note: '' }]) {
+    assert.throws(() => mountPhotoColorway(fakeContainer(), { profile: invalid }), TypeError);
+  }
+  const failed = mountPhotoColorway(fakeContainer(), { profile: { ...profile, prepare() { throw new Error('profile prepare'); } }, loadSource: async () => scene() });
+  assert.equal(await failed.ready, 'error');
+  assert.match(failed.error.message, /profile prepare/);
+  failed.destroy();
+});

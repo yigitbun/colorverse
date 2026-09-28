@@ -44,7 +44,7 @@ export function sanitizePhotoColorway(value) {
 }
 export const samePhotoColorway = (a, b) => Boolean(a && b) && a.colors.every((color, index) => color === b.colors[index]) && PHOTO_SURFACES.every(surface => a.assignment[surface] === b.assignment[surface]);
 
-const smoothstep = (low, high, value) => { const t = clamp((value - low) / (high - low)); return t * t * (3 - 2 * t); };
+export const smoothstep = (low, high, value) => { const t = clamp((value - low) / (high - low)); return t * t * (3 - 2 * t); };
 const LINEAR = Float32Array.from({ length: 256 }, (_, index) => { const channel = index / 255; return channel <= .04045 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4; });
 const STEPS = 8192;
 const ENCODE = Uint8ClampedArray.from({ length: STEPS + 1 }, (_, index) => { const value = index / STEPS; return Math.round(255 * (value <= .0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - .055)); });
@@ -126,7 +126,7 @@ export function rasterizePolygon(points, width, height, samples = 4) {
 }
 
 // Softens the inner edge only: weight never extends past the polygon (no halo).
-function featherInside(coverage, width, height) {
+export function featherInside(coverage, width, height) {
   const out = new Float32Array(coverage.length);
   for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
     const own = coverage[y * width + x];
@@ -288,18 +288,27 @@ const frameAPI = () => typeof globalThis.requestAnimationFrame === 'function'
 
 // Mounts current (and optional locked baseline) canvases into `container`.
 // `ready` resolves to 'ready' | 'error' | 'destroyed' and never rejects.
-export function mountPhotoColorway(container, { colorway = null, baseline = null, src = PHOTO_COLORWAY_SOURCE, regions = PHOTO_REGIONS, showMasks = false, loadSource = loadSameOriginPixels } = {}) {
+export function mountPhotoColorway(container, { colorway = null, baseline = null, src, regions = PHOTO_REGIONS, showMasks = false, loadSource = loadSameOriginPixels, profile = null } = {}) {
   if (!container || typeof container.append !== 'function') throw new TypeError('A container element is required.');
+  if (profile != null && (typeof profile !== 'object' || typeof profile.src !== 'string' || !profile.src || typeof profile.prepare !== 'function' || typeof profile.render !== 'function'
+    || (profile.sanitize !== undefined && typeof profile.sanitize !== 'function') || typeof profile.note !== 'string' || !profile.note
+    || !Number.isFinite(profile.aspectRatio) || profile.aspectRatio <= 0)) throw new TypeError('A valid photo colorway profile is required.');
+  const sanitize = profile?.sanitize ?? sanitizePhotoColorway;
+  const prepare = profile?.prepare ?? (pixels => preparePhotoModel(pixels, { regions }));
+  const render = profile?.render ?? renderPhotoColorway;
+  const note = profile?.note ?? PHOTO_COLORWAY_NOTE;
+  src ??= profile?.src ?? PHOTO_COLORWAY_SOURCE;
   const doc = container.ownerDocument ?? globalThis.document, [requestFrame, cancelFrame] = frameAPI();
   const element = (tag, className, text) => { const node = doc.createElement(tag); node.className = className; if (text) node.textContent = text; return node; };
   let state = 'loading', error = null, model = null, frame = 0;
-  let current = colorway == null ? null : sanitizePhotoColorway(colorway), locked = baseline == null ? null : sanitizePhotoColorway(baseline);
+  let current = colorway == null ? null : sanitize(colorway), locked = baseline == null ? null : sanitize(baseline);
   const dirty = { current: true, baseline: true };
   const root = element('figure', 'photo-colorway'), stages = element('div', 'photo-colorway-stages');
+  if (profile) root.style?.setProperty?.('--photo-aspect', String(profile.aspectRatio));
   const stage = (role, label) => {
     const node = element('div', 'photo-colorway-stage'), canvas = element('canvas', 'photo-colorway-canvas');
     node.setAttribute('data-role', role);
-    canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', `${label}. ${PHOTO_COLORWAY_NOTE}.`);
+    canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', `${label}. ${note}.`);
     node.append(canvas, element('span', 'photo-colorway-tag', label));
     return { node, canvas, context: null, image: null };
   };
@@ -308,7 +317,7 @@ export function mountPhotoColorway(container, { colorway = null, baseline = null
   status.setAttribute('role', 'status');
   baseStage.node.hidden = true;
   stages.append(baseStage.node, currentStage.node);
-  root.append(stages, element('figcaption', 'photo-colorway-note', `${PHOTO_COLORWAY_NOTE}. Only the annotated tube, bottle, jar and caps change.`), status);
+  root.append(stages, element('figcaption', 'photo-colorway-note', profile ? note : `${PHOTO_COLORWAY_NOTE}. Only the annotated tube, bottle, jar and caps change.`), status);
   root.setAttribute('data-state', state);
   container.append(root);
 
@@ -318,8 +327,9 @@ export function mountPhotoColorway(container, { colorway = null, baseline = null
     if (target.canvas.height !== model.height) target.canvas.height = model.height;
     target.context ??= target.canvas.getContext('2d');
     target.image ??= new globalThis.ImageData(model.width, model.height);
-    if (showMasks) renderPhotoMaskOverlay(model, target.image.data);
-    else if (value) renderPhotoColorway(model, value, target.image.data);
+    // The legacy overlay describes only the four legacy photograph masks.
+    if (showMasks && !profile) renderPhotoMaskOverlay(model, target.image.data);
+    else if (value) render(model, value, target.image.data);
     else target.image.data.set(model.source);
     target.context.putImageData(target.image, 0, 0);
   };
@@ -340,7 +350,7 @@ export function mountPhotoColorway(container, { colorway = null, baseline = null
     try {
       const pixels = await loadSource(src);
       if (state === 'destroyed') return state;
-      model = preparePhotoModel(pixels, { regions });
+      model = prepare(pixels);
       state = 'ready'; status.textContent = ''; status.hidden = true;
       root.setAttribute('data-state', state);
       schedule();
@@ -365,7 +375,7 @@ export function mountPhotoColorway(container, { colorway = null, baseline = null
     // Returns false (and keeps the last good render) for invalid input or after destroy.
     update(value) {
       if (state === 'destroyed' || state === 'error') return false;
-      const clean = sanitizePhotoColorway(value);
+      const clean = sanitize(value);
       if (!clean) return false;
       if (samePhotoColorway(clean, current)) return true;
       current = clean; dirty.current = true; schedule();
@@ -373,7 +383,7 @@ export function mountPhotoColorway(container, { colorway = null, baseline = null
     },
     setBaseline(value) {
       if (state === 'destroyed' || state === 'error') return false;
-      const clean = value == null ? null : sanitizePhotoColorway(value);
+      const clean = value == null ? null : sanitize(value);
       if (value != null && !clean) return false;
       if (clean === locked || samePhotoColorway(clean, locked)) return true;
       locked = clean; dirty.baseline = true; schedule();
