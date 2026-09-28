@@ -6,6 +6,24 @@ This block takes precedence over superseded decisions below. The dated entries
 are an audit trail, not instructions to reimplement every earlier experiment.
 Start a new session with [the handoff](handoff.md) and [open work](open-work.md).
 
+- Latest corpus responsibility change: the owner explicitly assigns academic/
+  reference research and traceable source-color collection to Claude. This
+  supersedes the external-team-only research restriction below; Codex remains
+  coordination/integration lead, not an independent corpus curator. First
+  delivery is a small source/rights audit with research-candidate colors only.
+  Final editorial approval, runtime import, schema and publication are not
+  automatically authorized by this research assignment.
+- The owner authorizes a newly designed, high-quality Studio product visual
+  candidate instead of treating the supplied Katre photo as the only option.
+  Generate a neutral, independently compositable product master for review;
+  preserve original palette HEX values and separate background adaptation
+  from product-color placement. Do not silently replace the live asset or
+  publish the generated candidate as approved corpus content.
+- Studio UX-05A: the owner approved moving the actionable UX recommendations
+  to Claude. Remove the duplicated right-side vertical shades strip, retaining
+  the left inline accordion, nearby selected-color alternatives, contrast and
+  color tray. This supersedes the older instruction to retain both shade paths.
+
 - Delivery direction: the owner wants an intensive release preparation with
   personal testing by 2026-09-28 (Europe/Berlin), not a multi-week prerequisite.
   Codex coordinates Claude and all integration; assignments live in open work.
@@ -39,11 +57,17 @@ Start a new session with [the handoff](handoff.md) and [open work](open-work.md)
   between existing points up to ten; numbered fields refer to image sample
   points. Member palettes still support 2–24 colors; do not pad smaller palettes.
 - Studio uses Products/Screens/Campaigns. Skincare/Footwear/Object controls sit
-  inside the middle preview. Katre uses the supplied photograph with Tube,
+  as small centered horizontal choices above the middle preview, not in a
+  reserved sidebar. Katre uses the supplied photograph with Tube,
   Bottle, Jar and Caps controls, frozen comparison and photo PNG export; no
   physical manufacturing-color guarantee. Screens is a native illustrative
   report, not a live Power BI connection. Campaigns (poster/story/ticket) stays
   pending the owner's keep / Print & Social / remove decision.
+- Sep28 follow-up: bound the photo display to a working size and tighten its
+  contours without modifying the source asset. New colorways map Jar to Accent;
+  preserve existing saved assignments. Project / palette / comparison actions
+  have distinct labels. Owner wants user-focused UX judgment, not technical
+  pass counts; palette-to-result clarity and believable visuals take priority.
 - Alternatives are explicitly for the selected color, not a full-palette
   recommender or a scientifically optimal harmony score.
 - Inspiration shows all eight supplied AI studies; Library shows four existing

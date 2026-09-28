@@ -24,6 +24,10 @@ korur. Tarih hedefi, geçilmemiş kontrolleri tamamlanmış saydırmaz.
 
 | İş | Sahip | Durum / sıradaki çıktı |
 | --- | --- | --- |
+| STUDIO-UX-05A — tek ton düzenleme yolu | Claude; inceleme/entegrasyon Codex | [Küçük görev](tasks/studio-ux-05a.md) hazır, henüz başlatılmadı. Sağdaki tekrar ton şeridini kaldır; inline seçim, Alternatives/Contrast/tray korunur. Ayrı worktree ve tek dosya sahibiyle başlatılacak |
+| CORPUS-RESEARCH-01A — akademik/kaynak araştırması ve kaynak renkleri | Claude; kapsam incelemesi Codex | [Küçük görev](tasks/corpus-research-01a.md) hazır, henüz başlatılmadı. Yeni owner talimatı araştırmayı Claude'a verir; küçük primary-source/rights audit ve varsa tek doğrulanabilir sayısal renk adayı. Approved IDs/runtime/DB değişmez |
+| STUDIO-VISUAL-01 — yeni ürün master'ı | Codex görsel yönü/üretimi; Claude sonraki renderer mühendisliği | Yüksek kaliteli, nötr ve ayrı arka planla birleştirilebilir yeni görsel adayı hazırlanacak. Palet HEX'leri değişmez; kaynak Katre görseli otomatik değiştirilmez. Görsel üretimi corpus onayı değildir |
+| STUDIO-UX-04 — kullanıcı gözüyle sadeleştirme ve fotoğraf kenarları | Codex tek yazar; Claude yalnız bağımsız okuma incelemesi | Yerel aday, henüz commit/yayın yok. Küçük yatay kategori seçimi; fotoğraf max 320px genişlik; daha dar/içe yumuşayan ürün konturları ve daha doğal açık kapak dokusu. Yeni workspace'te Jar → Accent; mevcut kayıt/baseline ataması korunur. Save project/Save palette ve anlaşılır comparison etiketleri. Sağ panel/Campaigns topluca değiştirilmedi; aşağıdaki kullanıcı değerlendirmesi sıradaki ürün kararını belirler |
 | STUDIO-UX-02 — Studio yerleşimi ve doğrudan renk düzenleme | Claude teslim; Codex inceleme/entegrasyon | İlk paket `c6a187d`, final `58ff1fe`: dışarı tıklama, padding hitbox, Globe aç/cancel ve 320/390 px PASS. Products/Katre/canlı report, SVG metin düzeltmesi hazır. Campaigns owner kararı bekler |
 | STUDIO-MEMBERS-01 — çok renkli kompakt workspace ve Extract + | Claude teslim; Codex inceleme/entegrasyon | `78617f6` + final `58ff1fe`. 8 renk insert → Undo → Studio → unassigned edit → Accent ataması → reload PASS; 10 sınırı/remove/reset PASS. Mobil kesilme düzeltildi: 10 tam row, 320/390 px PASS. My palettes rol haritası saklamaz (RPC alanı yok); projects/prototypes/templates saklar; gerçek authenticated kayıt testi açık |
 | PHOTO-COLORWAY-01 — mevcut Katre görselinde canlı renk | Ayrı Claude teslim; Codex entegrasyon | 10 hedefli test; `58ff1fe` ile gerçek fotoğraf Studio'ya bağlı. Tüp/şişe/kavanoz/kapaklar değişir, arka plan sabit. Baseline/renk ataması/aç-kapat ve 390px PASS. PNG blob/download isteği tamam; IAB download olayı gelmedi, cihaz dosyası NOT RUN. Koyu baskı/kenar sınırlaması, fiziksel renk doğruluğu yok |
@@ -41,6 +45,56 @@ korur. Tarih hedefi, geçilmemiş kontrolleri tamamlanmış saydırmaz.
 | AUTH-01/02/03 — gerçek inbox ve save/resume | Ürün sahibi; hazırlık Codex | En geç 28 Eylül kullanıcı testi hedefi. Gerçek giriş ve veri korunumu kanıtı açık |
 | CUR-01 / LEGAL-01 — içerik ve yayın metni kararları | Ürün sahibi; hazırlık Codex | Yayın öncesi açık. Onaylı ilk içerik veya açıkça boş Library kararı gerekli |
 | REL-01 / REL-02 — aday kontrolü ve yayın | Codex | Güncel UI `58ff1fe` public yayında; Pages `df233a75-da5b-4ac0-bd63-f8ee8b442a6c` completed/success. Yerel 171 test/audit ve canlı infrastructure + release-candidate PASS. Dört ilgili route + sekiz JS/CSS public byte-match; canlı photo ready/konsol temiz. Önceki auth `09bba40` korunur. Gerçek inbox/private save-resume ve cihaz PNG dosyası açık; tam MVP kabulü değildir |
+
+### Studio — kullanıcı gözüyle öncelikli değerlendirme, 28 Eylül
+
+Owner bu geri bildirimde teknik doğrulama değil, anlaşılabilirlik ve paletin
+bitmiş bir kompozisyon olarak ikna ediciliğini istedi. Kullanıcı açısından
+Studio bir renk düzenleyici olarak anlaşılır; iyi bir renk sistemini gösteren
+ürün olarak henüz yeterli değildir. Şu sırayla ele alınmalı:
+
+1. **Renk ile sonuç arasındaki bağ.** Başlangıçta Background seçiliyken photo
+   arka planı sabittir; kullanıcı değişikliğin çalışmadığını düşünebilir. Dört
+   yüzey ataması ve beş genel rol iki farklı mental modeldir. Eski default iki
+   ürüne Surface veriyor, Accent'i hiç göstermiyordu; yeni default bunu düzeltir
+   fakat bütün paletin görünür bir tasarım sistemi olması sorusunu çözmez.
+2. **Görselin inandırıcılığı.** Katre'nin taş/dal/doku dünyası her palete uygun
+   değildir. Çok açık/koyu hedefler ve sabit baskı, renkleri plastik veya okunmaz
+   gösterebilir. Kenar iyileştirmesi ürünü fiziksel proof yapmaz; fotoğraf tek
+   başına bütün paletin estetik başarısını kanıtlamaz.
+3. **Tekrarlanan düzenleme.** Soldaki inline tonlar ile sağdaki uzun ton strip'i
+   aynı işi yapar; Color Globe üçüncü giriş yoludur. Kullanıcının beğendiği inline
+   seçim kalsın; sağ alanın amacı seçilen renk yardımı mı tüm palet yönü mü net
+   kararlaştırılsın. Bu değerlendirme yeni öneri motoru kurma yetkisi değildir.
+4. **Sonuç vermeyen seçimler.** Footwear/Object genel palette yalnız Reference
+   image pending gösterir. Kontrol gibi görünür ama beklenen tasarım sonucu yok;
+   görsel hazır değilken nasıl gösterileceği owner kararıdır. Kategori alanının
+   geniş rail olması küçük yatay seçimle giderildi.
+5. **İşlemlerin hiyerarşisi.** Save project / Save palette farkı görünürleştirildi.
+   Copy palette ve alttaki format export hâlâ iki ayrı kopyalama girişi; kod,
+   tray, contrast ve bağlantılar aynı ağırlıkta görünür. Disclosure'ları yok
+   etmeden tek sonuç-odaklı akış ve ikincil araçlara daha az vurgu gerekir.
+6. **Anlamlı uygulama seçimi.** Campaigns'in afiş/story/bilet hali beş rengi bir
+   arada göstermekte yararlı; isim anlaşılmaz. Print & Social önerisi hâlâ owner
+   kararı bekler. Screens'in raporu faydalı ama palette değerlendirmesinde
+   örnek rakamlar ve dense küçük metinler görsel odağı dağıtabilir.
+
+Bu başlıklar yeni CMS, corpus üretimi, görsel üretimi veya genel redesign brief'i
+değildir. Bu tur yalnız dar yerleşim/kenar/kopya iyileştirmelerini uygular.
+
+UX-04 bağımsız inceleme: aynı Claude oturumu
+`bc13dca1-1dfe-4378-8c76-03fc1f889abe`, mevcut Studio worktree'sinden main'in
+`f93b4a5` üzerindeki uncommitted uygulama diff'ini yalnız okuyarak değerlendirir.
+Yazılabilir dosya yok; Read/Grep/Glob dışında araç verilmedi. Kabul ölçütü:
+rol/snapshot korunumu, comparison, fotoğraf sınırları ve mobil yerleşimde
+somut regresyonları raporla; browser kontrolü yaptığını iddia etme. Eski
+implementasyon görevi devam etmiyor; commit/stage/deploy yetkisi yok.
+Claude statik incelemede blocker bulmadı; comparison'ın orta genişlikte 2×2
+atama düzeni, eksik Jar fallback'i, swap hedefi ve geri-alma etiketi iyileştirildi.
+Explicit eski Jar ataması korunur. Fotoğraf üst üste gelen jar/bottle konturları
+gerçek örtüşme alanıdır; kenar doğruluğu yine yaklaşık. Yerel 978px comparison
+görünümü ve 320px renk listesi görüldü; telefonda uzun rol adları hâlâ kısalır.
+Son aday yerel `check:release` 109 static / 173 PASS; public sürüm değişmedi.
 
 ### QA-01 — Claude'a hazır ilk görev
 

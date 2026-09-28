@@ -64,7 +64,8 @@ if (candidate) {
   assert.match(studioHtml, /data-context="social"[^>]*>Campaigns/);
   assert.doesNotMatch(studioHtml, /data-context="(?:shop|material)"/);
   assert.doesNotMatch(studioHtml, /shadeStudio|openShadeStudio|shade-studio\.css/);
-  for (const label of ['Private workspace', 'Palette collections', 'Save palette', 'Prototype bench', 'Save to My palettes']) assert.ok(studioHtml.includes(label));
+  for (const label of ['Private workspace', 'Palette collections', 'Save palette', 'Prototype bench', 'Save project']) assert.ok(studioHtml.includes(label));
+  assert.match(studioHtml, /id="savePersonalPalette"[^>]*>Save palette/);
   assert.match(studioHtml, /project-store\.css/);
   assert.match(accountHtml, /My palettes/);
   assert.match(accountHtml, /Choose five colors/);

@@ -7,6 +7,33 @@ güncel yönlendirme sonraki görüşmeyi kaydeder.
 
 ## Güncel yönlendirme — 2026-09-28
 
+- Yeni owner talimatı: açık Studio işleri küçük Claude uygulama görevleriyle
+  başlatılsın; corpus akademik/kaynak araştırması ve renk toplama da Claude'a
+  verilsin. Dış ekip-only araştırma sınırı bu kapsam için değişti. Önce küçük
+  kaynak/lisans raporu ve research-candidate; import/DB/editorial approval için
+  önceki kapılar korunur. Yeni yüksek kaliteli ürün master'ı görsel adayı da
+  hazırlanabilir; kullanıcı paletini ve canlı Katre asset'ini otomatik değiştirme.
+
+- Owner çalışma yöntemi: küçük mühendislik düzeltmeleri de netleşir netleşmez
+  Claude'a devredilir; Codex işi önce kendi bitirip büyük paket halinde vermez.
+  Codex ürün kararı, dosya sahipliği, inceleme ve entegrasyonu tutar. Hazırlanan,
+  gerçekten başlatılan ve teslim edilen görevleri ayrı durumlar olarak bildir.
+
+- Son owner geri bildirimi: Studio renkleri bir arada iyi bir tasarım gibi
+  göstermiyor, kategori rail'i geniş, Katre kenarları yapay. Codex dar UX-04
+  düzeltmesini ve [kullanıcı önceliklerini](open-work.md) hazırladı: küçük yatay
+  kategori seçimleri, sınırlı photo boyutu, sıkı konturlar/yumuşak kenarlar,
+  yeni default Jar → Accent ve açık save/comparison etiketleri. Kaynak görsel,
+  kayıtlar ve eski snapshot atamaları korunur. Genel sağ-panel tasarımı,
+  Footwear/Object boş durumları ve Campaigns kararı hâlâ ürün değerlendirmesi;
+  UX kalitesini test/audit sayısıyla tamamlanmış göstermeme isteği geçerlidir.
+  UX-04 şu an yalnız yerel önizlemede; commit/push veya public yayın yapılmadı.
+  Codex tek yazar; aynı Claude oturumu yalnız bağımsız read-only inceleme için
+  yeniden çağrıldı, yeni implementasyon görevi verilmedi.
+  Statik incelemede blocker yok; küçük takip düzeltmeleri de okuma değerlendirmesi
+  aldı. Yerel aday 109 static / 173 test PASS. Bu bilgi kullanıcı-gözüyle UX
+  kabulü yerine geçmez; public hâlâ önceki yayın sürümüdür.
+
 - Son owner isteği Palette Studio/Extract/galeri iyileştirmeleridir; Corpus
   değerlendirmesini uygulama onayı sayma. İlk Studio paketi `c6a187d`, fotoğraf
   `ae27737`, galeri `103ae96`, çok renkli workspace `78617f6`; final entegrasyon

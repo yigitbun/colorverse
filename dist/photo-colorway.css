@@ -9,4 +9,14 @@
 .photo-colorway-status{margin:0;color:var(--muted);font-size:11px}
 .photo-colorway-status[hidden]{display:none}
 .photo-colorway[data-state="loading"] .photo-colorway-canvas,.photo-colorway[data-state="error"] .photo-colorway-canvas{visibility:hidden}
+/* Keep the result at a working size, even when its column becomes wider. */
+.photo-preview-kit .photo-colorway-stages{justify-items:center;align-items:start}
+.photo-preview-kit .photo-colorway-stage{width:100%;max-width:320px}
+.photo-preview-kit .care-preview-body{grid-template-columns:minmax(0,1fr);min-height:0;padding:10px 0;gap:10px}
+.photo-preview-kit .care-map{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px;border:0;background:var(--surface-2)}
+.photo-preview-kit .care-map>.kit-kicker{grid-column:1/-1}
+.photo-preview-kit .product-preview-meta{display:none}
+.photo-preview-kit>footer{border:0;padding-top:0;justify-content:center}
+.photo-preview-kit>footer>span:first-child{display:none}
+.photo-preview-kit.is-comparing .care-map{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media (max-width:520px){.photo-colorway.is-comparing .photo-colorway-stages{grid-template-columns:minmax(0,1fr)}}

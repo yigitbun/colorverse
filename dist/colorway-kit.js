@@ -1,5 +1,5 @@
 import { textOn } from './color.js?v=2';
-const parts = { backdrop: 0, bottle: 2, cap: 4, label: 1, carton: 1 };
+const parts = { backdrop: 0, bottle: 2, cap: 4, label: 1, carton: 3 };
 export function sanitizeColorway(value) {
   if (!value || !Array.isArray(value.colors) || value.colors.length !== 5 || !value.colors.every(color => /^#[0-9a-f]{6}$/i.test(color))) return null;
   return { colors: value.colors.map(color => color.toUpperCase()), assignment: Object.fromEntries(Object.entries(parts).map(([part, fallback]) => [part, Number.isInteger(value.assignment?.[part]) && value.assignment[part] >= 0 && value.assignment[part] < 5 ? value.assignment[part] : fallback])) };

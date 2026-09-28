@@ -42,6 +42,8 @@ test('baseline is a validated deep-frozen copy, not a pointer to active colors',
   assert.throws(() => { frozen.colors[0]='#FFFFFF'; }, TypeError);
   assert.equal(sanitizeColorway({ colors:['invalid'] }),null);
   assert.equal(sanitizeColorway({ colors, assignment:{cap:-1} }).assignment.cap,4);
+  assert.equal(sanitizeColorway({ colors }).assignment.carton,3);
+  assert.equal(sanitizeColorway({ colors, assignment:{carton:1} }).assignment.carton,1);
 });
 test('PNG source is self-contained vector work, escapes names, and uses each mapped surface', () => {
   const svg = colorwaySVG({colors,assignment:{carton:3}}, '<script>&test');

@@ -19,12 +19,12 @@ export const DEFAULT_PHOTO_ASSIGNMENT = Object.freeze({ tube: 1, bottle: 2, jar:
 const region = (id, surface, tone, protectInk, points) => Object.freeze({ id, surface, tone, protectInk, points: Object.freeze(points.map(point => Object.freeze(point))) });
 export const PHOTO_REGIONS = Object.freeze([
   region('tube-crimp', 'tube', 'light', false, [[226, 483], [540, 483], [541, 516], [227, 516]]),
-  region('tube-body', 'tube', 'light', true, [[227, 514], [540, 514], [536, 600], [527, 720], [516, 850], [503, 980], [490, 1090], [484, 1142], [286, 1142], [278, 1090], [265, 980], [252, 850], [240, 720], [231, 600]]),
+  region('tube-body', 'tube', 'light', true, [[227, 515], [537, 515], [530, 550], [523, 600], [516, 680], [509, 760], [502, 840], [496, 920], [490, 1000], [485, 1080], [481, 1118], [478, 1133], [467, 1139], [438, 1142], [382, 1144], [329, 1142], [304, 1139], [291, 1135], [285, 1129], [281, 1116], [277, 1080], [271, 1000], [265, 920], [259, 840], [252, 760], [246, 680], [239, 600], [232, 550]]),
   region('tube-cap', 'cap', 'dark', false, [[289, 1141], [475, 1141], [476, 1250], [469, 1257], [440, 1262], [382, 1264], [324, 1262], [295, 1257], [289, 1250]]),
-  region('bottle-cap', 'cap', 'dark', false, [[986, 203], [1133, 203], [1140, 212], [1140, 394], [1100, 399], [1060, 400], [1020, 399], [979, 394], [979, 212]]),
-  region('bottle-body', 'bottle', 'light', true, [[957, 402], [1159, 402], [1169, 418], [1171, 440], [1171, 1045], [1164, 1059], [1130, 1065], [1057, 1067], [985, 1065], [951, 1059], [944, 1045], [943, 440], [945, 418]]),
-  region('jar-lid', 'cap', 'dark', false, [[545, 974], [962, 974], [977, 985], [980, 1000], [980, 1050], [974, 1059], [900, 1067], [754, 1071], [610, 1067], [534, 1059], [528, 1050], [528, 1000], [531, 985]]),
-  region('jar-body', 'jar', 'light', true, [[521, 1064], [985, 1064], [989, 1080], [991, 1100], [990, 1270], [984, 1291], [960, 1304], [870, 1313], [754, 1317], [640, 1313], [549, 1304], [523, 1291], [515, 1270], [514, 1100], [517, 1080]]),
+  region('bottle-cap', 'cap', 'dark', false, [[980, 212], [987, 205], [1010, 202], [1059, 201], [1107, 203], [1134, 208], [1138, 215], [1138, 393], [1130, 396], [1095, 398], [1057, 399], [1005, 397], [981, 394]]),
+  region('bottle-body', 'bottle', 'light', true, [[961, 411], [983, 407], [1059, 406], [1128, 407], [1152, 411], [1164, 417], [1169, 427], [1170, 442], [1170, 1027], [1168, 1046], [1162, 1056], [1145, 1064], [1110, 1068], [1058, 1070], [1008, 1068], [974, 1065], [955, 1059], [948, 1050], [946, 1037], [946, 439], [948, 425], [953, 417]]),
+  region('jar-lid', 'cap', 'dark', false, [[534, 987], [543, 981], [569, 975], [631, 969], [703, 967], [754, 966], [823, 968], [904, 973], [955, 979], [970, 986], [976, 995], [976, 1053], [972, 1063], [956, 1071], [908, 1079], [840, 1084], [754, 1087], [666, 1084], [598, 1080], [549, 1074], [534, 1067], [531, 1057], [531, 998]]),
+  region('jar-body', 'jar', 'light', true, [[532, 1080], [560, 1086], [638, 1093], [754, 1097], [872, 1093], [950, 1086], [979, 1079], [984, 1090], [988, 1105], [988, 1259], [985, 1279], [976, 1292], [949, 1302], [870, 1311], [754, 1315], [640, 1311], [550, 1302], [528, 1291], [521, 1279], [518, 1261], [518, 1107], [520, 1093], [524, 1085]]),
 ]);
 
 const HEX = /^#[0-9a-f]{6}$/i;
@@ -83,7 +83,10 @@ export function oklabToRgb(L, a, b, out = new Uint8ClampedArray(3)) {
 // keeping its offset in lightness (shading, speckle) and residual chroma.
 export function transferLab(L, a, b, reference, target, out = new Float64Array(3)) {
   const [L0, a0, b0] = reference, [Lt, at, bt] = target;
-  const scale = clamp(Lt / Math.max(L0, 1e-3), .55, 1.5);
+  // Compress highlight variation when lifting a dark material, rather than
+  // amplifying its speckle into metallic-looking white clipping.
+  const scale = Lt <= L0 ? clamp(Lt / Math.max(L0, 1e-3), .35, 1)
+    : clamp((1 - Lt) / Math.max(1 - L0, 1e-3), .2, 1);
   const next = clamp(Lt + (L - L0) * scale);
   const shade = clamp(next / Math.max(Lt, 1e-3), .4, 1.15), sourceShade = clamp(L / Math.max(L0, 1e-3), .4, 1.15);
   out[0] = next;
@@ -129,11 +132,11 @@ function featherInside(coverage, width, height) {
     const own = coverage[y * width + x];
     if (!own) continue;
     let sum = 0;
-    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+    for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
       const nx = x + dx, ny = y + dy;
       if (nx >= 0 && ny >= 0 && nx < width && ny < height) sum += coverage[ny * width + nx];
     }
-    out[y * width + x] = own * sum / 9;
+    out[y * width + x] = own * smoothstep(.45, .98, sum / 25);
   }
   return out;
 }
@@ -160,7 +163,10 @@ export function preparePhotoModel(image, { regions = PHOTO_REGIONS } = {}) {
       if (!feather[local]) continue;
       const p = ((y0 + y) * width + x0 + x) * 4, L = rgbToOklab(source[p], source[p + 1], source[p + 2], lab)[0];
       lightness[local] = L;
-      mask[local] = feather[local] * (item.tone === 'light' ? smoothstep(.46, .58, L) : 1 - smoothstep(.5, .62, L));
+      // Bright grains belong to the dark cap too: excluding them would invert
+      // its texture when a lighter color is applied. The tight contour bounds
+      // the cap; this gate only excludes near-white adjoining packaging.
+      mask[local] = feather[local] * (item.tone === 'light' ? smoothstep(.46, .58, L) : 1 - smoothstep(.74, .9, L));
     }
     if (item.protectInk) protectInk(mask, lightness, w, h);
     const surface = PHOTO_SURFACES.indexOf(item.surface) + 1;
@@ -297,7 +303,7 @@ export function mountPhotoColorway(container, { colorway = null, baseline = null
     node.append(canvas, element('span', 'photo-colorway-tag', label));
     return { node, canvas, context: null, image: null };
   };
-  const baseStage = stage('baseline', 'Baseline · locked'), currentStage = stage('current', 'Current colorway');
+  const baseStage = stage('baseline', 'Comparison'), currentStage = stage('current', 'Current');
   const status = element('p', 'photo-colorway-status', 'Loading photo preview…');
   status.setAttribute('role', 'status');
   baseStage.node.hidden = true;

@@ -63,6 +63,7 @@ test('transfer keeps source shading order and is identity for the reference colo
   }
   const target = oklab('#1F4E79'), lightness = [.7, .76, .82, .88, .94].map(L => transferLab(L, 0, 0, reference, target)[0]);
   lightness.slice(1).forEach((value, index) => assert(value > lightness[index]));
+  assert(transferLab(.64, 0, 0, [.4, 0, 0], [.86, 0, 0])[0] < .98, 'lifting dark cap grains does not turn them into clipped white glare');
 });
 
 test('polygon coverage is anti-aliased, exact in area and bounded to the polygon box', () => {
@@ -122,7 +123,7 @@ test('Katre annotations stay on product surfaces and never tint the whole photog
   assert(light.count > 0 && light.count < total * .3, `masked share ${light.count / total}`);
   const masked = new Uint8Array(total);
   light.index.forEach(pixel => { masked[pixel] = 1; });
-  for (const [x, y, place] of [[60, 60, 'wall'], [300, 230, 'headline'], [140, 950, 'side copy'], [700, 500, 'branch'], [300, 1450, 'stone'], [1215, 700, 'right stone'], [760, 1400, 'ledge']]) assert.equal(masked[y * PHOTO_COLORWAY_WIDTH + x], 0, place);
+  for (const [x, y, place] of [[60, 60, 'wall'], [300, 230, 'headline'], [140, 950, 'side copy'], [700, 500, 'branch'], [300, 1450, 'stone'], [1215, 700, 'right stone'], [760, 1400, 'ledge'], [524, 720, 'outside tube right'], [243, 800, 'outside tube left'], [519, 1070, 'stone above jar shoulder']]) assert.equal(masked[y * PHOTO_COLORWAY_WIDTH + x], 0, place);
   const out = renderPhotoColorway(light, { colors: probe, assignment: { tube: 0, bottle: 0, jar: 0 } });
   for (let pixel = 0; pixel < total; pixel++) if (!masked[pixel]) assert(out[pixel * 4] === 230 && out[pixel * 4 + 1] === 225 && out[pixel * 4 + 2] === 215);
   assert.equal(light.reference.cap, null);
@@ -132,7 +133,7 @@ test('Katre annotations stay on product surfaces and never tint the whole photog
   assert(jar.y >= 1064 && jar.y + jar.height <= 1318);
   const dark = preparePhotoModel(image(PHOTO_COLORWAY_WIDTH, PHOTO_COLORWAY_HEIGHT, () => [48, 46, 44]));
   assert.equal(dark.reference.tube, null); assert.equal(dark.reference.jar, null);
-  assert(dark.bounds.cap.y >= 203 && dark.bounds.cap.y + dark.bounds.cap.height <= 1265);
+  assert(dark.bounds.cap.y >= 201 && dark.bounds.cap.y + dark.bounds.cap.height <= 1265);
 });
 
 test('module stays local: imports only color helpers and makes no remote calls', async () => {

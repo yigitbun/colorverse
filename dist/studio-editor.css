@@ -25,7 +25,7 @@
 .palette-inspector .role-color-control:hover>span{transform:scale(1.06);box-shadow:0 5px 12px color-mix(in srgb,var(--swatch) 30%,transparent)}
 .palette-inspector .role-color-control:focus-within>span{outline:2px solid var(--accent);outline-offset:2px}
 .palette-inspector .role-select{grid-column:3;grid-row:1;display:grid;grid-template-columns:1fr;grid-template-rows:auto auto;min-width:0;min-height:0;padding:2px 0;gap:2px}
-.palette-inspector .role-select>.role-name{grid-column:1;font-size:13px;font-weight:700;color:var(--ink);line-height:1.2}
+.palette-inspector .role-select>.role-name{grid-column:1;font-size:13px;font-weight:700;color:var(--ink);line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .palette-inspector .role-select code{grid-column:1;font-size:10.5px;line-height:1.2}
 .palette-inspector .role-action{grid-column:4;grid-row:1;width:30px;height:30px}
 /* More than five colors: two-column member cells. 8–10 fit the five-row height; longer palettes scroll here. */
@@ -42,14 +42,14 @@
 .member-cell:not(.is-assigned) .member-role{color:var(--muted);font-weight:500}
 .palette-inspector .member-cell .role-select{grid-column:2;grid-row:2;min-width:0;padding:0;text-align:left}
 .palette-inspector .member-cell .role-select code{font-size:10px}
-/* Product directions live inside the preview, as a compact rail at its left edge. */
-.mockup-stage.has-product-rail{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:14px;padding:18px 20px 18px 14px}
+/* Small centered choices above the preview: no reserved sidebar. */
+.mockup-stage.has-product-rail{display:grid;grid-template-columns:minmax(0,1fr);align-items:start;gap:8px;padding:12px 18px}
 .mockup-stage.has-product-rail>#mockup{width:100%}
-.product-context-picker{display:flex;flex-direction:column;gap:4px;min-width:84px;padding:0}
+.product-context-picker{display:flex;flex-direction:row;justify-content:center;flex-wrap:wrap;gap:3px;min-width:0;padding:0}
 .product-context-picker[hidden]{display:none}
-.product-context-picker button{min-height:34px;padding:7px 10px;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--muted);font-size:11px;font-weight:600;text-align:left}
+.product-context-picker button{min-height:30px;padding:5px 9px;border:1px solid transparent;border-radius:5px;background:transparent;color:var(--muted);font-size:11px;font-weight:600;text-align:center}
 .product-context-picker button:hover{color:var(--ink);background:color-mix(in srgb,var(--surface) 60%,transparent)}
-.product-context-picker button[aria-selected="true"]{border-color:var(--line-strong);background:var(--surface);color:var(--ink);box-shadow:inset 2px 0 var(--accent)}
+.product-context-picker button[aria-selected="true"]{border-color:var(--line);background:var(--surface);color:var(--ink)}
 .product-context-picker button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .role-shade-overlay{position:absolute;inset:-1px;z-index:5;display:flex;align-items:stretch;padding:0;background:var(--surface);border:1px solid var(--accent);border-radius:7px;box-shadow:0 10px 22px #00000010;overflow:hidden;transform-origin:right center;animation:role-shade-in .2s ease-out both}
 .role-shade-overlay.is-closing{pointer-events:none;animation:role-shade-out .18s ease-in both}
@@ -135,6 +135,14 @@
   .palette-inspector .role-color-control{width:34px;height:34px}
   .palette-inspector .role-select code{font-size:9.5px}
   .palette-inspector .role-action{width:28px;height:28px;font-size:.75rem}
+  /* No grip competing with color, label and swap in a narrow two-column row. */
+  .palette-inspector .role-swatch{grid-template-columns:28px minmax(0,1fr) 28px}
+  .palette-inspector .role-grip{display:none}
+  .palette-inspector .role-swatch .role-color-control{grid-column:1;width:28px;height:28px}
+  .palette-inspector .role-swatch .role-select{grid-column:2}
+  .palette-inspector .role-swatch .role-select>.role-name{font-size:11px}
+  .palette-inspector .role-swatch .role-select code{font-size:9px;white-space:nowrap}
+  .palette-inspector .role-swatch .role-action{grid-column:3;width:28px;height:28px}
   .mockup-stage.has-product-rail{grid-template-columns:minmax(0,1fr);gap:10px;padding:12px}
   .product-context-picker{flex-direction:row;flex-wrap:wrap;min-width:0}
   .product-context-picker button{min-height:36px;text-align:center}

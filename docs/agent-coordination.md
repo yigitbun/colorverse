@@ -13,6 +13,14 @@ Each implementation assignment records its ID, owner, acceptance criteria,
 allowed files, branch/worktree, and base commit before editing starts.
 A prepared brief is not evidence that an agent has started or completed it.
 
+Delegate engineering to Claude as small, bounded tasks as soon as they are
+clear, including minor fixes; do not accumulate a large package or implement
+most of it in Codex before handing it over. Each task needs a concrete outcome,
+allowed files and a quick acceptance check. Codex retains product decisions,
+file ownership, review and integration. Sequence tasks that share a file;
+independent tasks may proceed in parallel. Report prepared, started and
+delivered as distinct states, based on actual execution and output.
+
 ## Prevent overlapping edits
 
 - Codex coordinates writes to the main checkout and shared planning documents.

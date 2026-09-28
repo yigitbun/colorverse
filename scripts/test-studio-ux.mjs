@@ -12,12 +12,12 @@ test('Studio is modestly wider on its own page only', () => {
   assert.doesNotMatch(studioStyles, /(^|\})\.section-wrap\{/);
 });
 
-test('product directions sit inside the preview stage, left of the preview, not in a full-width bar', () => {
+test('product directions are centered above the preview without a reserved sidebar', () => {
   const stage = studio.match(/<div class="mockup-stage has-product-rail"><div class="product-context-picker" id="productContextPicker"[^>]*>(.*?)<\/div><div id="mockup"/);
   assert.ok(stage, 'picker is the first child of the preview stage, before #mockup');
   assert.deepEqual([...stage[1].matchAll(/data-product-kind="([^"]+)"/g)].map(match => match[1]), ['skincare', 'footwear', 'object']);
   assert.equal([...stage[1].matchAll(/aria-controls="mockup"/g)].length, 3);
-  assert.match(studio, /id="productContextPicker" role="tablist" aria-label="Product direction" aria-orientation="vertical"/);
+  assert.match(studio, /id="productContextPicker" role="tablist" aria-label="Product direction" aria-orientation="horizontal"/);
   // Not in "Your palette", not between the tabs and the stage, and never rebuilt by renderMockup.
   const inspector = studio.slice(studio.indexOf('<aside class="palette-inspector">'), studio.indexOf('</aside>'));
   assert.doesNotMatch(inspector, /productContextPicker/);
@@ -25,8 +25,8 @@ test('product directions sit inside the preview stage, left of the preview, not 
   assert.doesNotMatch(app, /data-product-kind="/);
   assert.match(functionBody('renderProductPicker'), /classList\.toggle\('has-product-rail', !picker\.hidden\)/);
   assert.match(functionBody('renderSelection'), /renderProductPicker\(\);/);
-  assert.match(studioStyles, /\.mockup-stage\.has-product-rail\{display:grid;grid-template-columns:auto minmax\(0,1fr\)/);
-  assert.match(studioStyles, /\.product-context-picker\{display:flex;flex-direction:column/);
+  assert.match(studioStyles, /\.mockup-stage\.has-product-rail\{display:grid;grid-template-columns:minmax\(0,1fr\)/);
+  assert.match(studioStyles, /\.product-context-picker\{display:flex;flex-direction:row;justify-content:center/);
   assert.match(studioStyles, /\.product-context-picker\{flex-direction:row;flex-wrap:wrap/);
   assert.doesNotMatch(studioStyles, /\.product-context-picker\{[^}]*border-bottom/);
   assert.match(app, /vertical && event\.key === 'ArrowDown'/);
@@ -75,7 +75,7 @@ test('visible Studio skincare branding reads Katre; stable IDs remain', () => {
   assert.match(app, /<h4>Katre<\/h4>/);
   assert.match(app, /Katre is a design concept/);
   assert.match(app, /current\.id === 'skincare-system-01'/);
-  assert.match(app, /import \{ freezeColorway \} from '\.\/colorway-kit\.js\?v=2'/);
+  assert.match(app, /import \{ freezeColorway \} from '\.\/colorway-kit\.js\?v=3'/);
   assert.match(app, /exportPhotoPreview\(current\.name\)/);
 });
 
@@ -118,8 +118,8 @@ test('Alternatives state their single-color scope and use the neutral-safe gener
 });
 
 test('Studio assets are cache-busted', () => {
-  assert.match(studio, /\/app\.js\?v=96/);
-  assert.match(studio, /\/studio-editor\.css\?v=9/);
+  assert.match(studio, /\/app\.js\?v=98/);
+  assert.match(studio, /\/studio-editor\.css\?v=11/);
   assert.match(studio, /\/report-preview\.css\?v=2/);
   assert.match(app, /'\.\/color-alternatives\.js\?v=1'/);
 });

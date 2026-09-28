@@ -12,8 +12,8 @@ import { createColorGlobe, toHsl, fromHsl } from './color-globe.js?v=3';
 import { SUPPORTED_IMAGE_TYPES, validateImageFile } from './image-file.js?v=1';
 import { imagePoint, sampleImageColor } from './image-sampling.js?v=1';
 import { initCommunity } from './community-feed.js?v=1';
-import { freezeColorway } from './colorway-kit.js?v=2';
-import { mountPhotoColorway, PHOTO_COLORWAY_NOTE } from './photo-colorway.js?v=1';
+import { freezeColorway } from './colorway-kit.js?v=3';
+import { mountPhotoColorway, PHOTO_COLORWAY_NOTE } from './photo-colorway.js?v=2';
 import { colorAlternatives, NEUTRAL_CHROMA } from './color-alternatives.js?v=1';
 import { reportPreview } from './report-preview.js?v=1';
 import { withWorkspace, workspaceFromColors, sanitizeWorkspace, roleColors, roleOfMember, memberLabel, isCompact, setMember, assignRole, swapRoles, insertMember, removeMember, COMPACT_MEMBERS, EXTRACT_MAX_MEMBERS } from './studio-members.js?v=2';
@@ -89,7 +89,7 @@ if (page === 'studio' && params.get('saved') === '1') {
 current = withWorkspace(current) || withWorkspace(workingDraft);
 let context = 'landing';
 let productKind = params.get('tool') === 'colorway' ? 'skincare' : current.id === 'drift-field-01' ? 'footwear' : 'skincare';
-const careAssignment = { backdrop: 0, bottle: 2, cap: 4, label: 1, carton: 1 };
+const careAssignment = { backdrop: 0, bottle: 2, cap: 4, label: 1, carton: 3 };
 let colorwayBaseline = freezeColorway(current.colorwayBaseline);
 if (current.careAssignment) for (const part of Object.keys(careAssignment)) {
   const value = current.careAssignment[part];
@@ -294,7 +294,7 @@ function loadStudioSnapshot(snapshot) {
   context = ['landing', 'interface', 'social', 'presentation'].includes(snapshot.context) ? snapshot.context : 'landing';
   productKind = snapshot.productKind && ['footwear', 'skincare', 'object'].includes(snapshot.productKind) ? snapshot.productKind : 'skincare';
   colorwayBaseline = freezeColorway(snapshot.colorwayBaseline);
-  for (const [part, defaultIndex] of Object.entries({ backdrop: 0, bottle: 2, cap: 4, label: 1, carton: 1 })) {
+  for (const [part, defaultIndex] of Object.entries({ backdrop: 0, bottle: 2, cap: 4, label: 1, carton: 3 })) {
     const value = snapshot.careAssignment?.[part];
     careAssignment[part] = Number.isInteger(value) && value >= 0 && value < 5 ? value : defaultIndex;
   }
@@ -665,7 +665,7 @@ function renderMockup() {
   // and survives re-renders. Only its four annotated surfaces are offered.
   const carePreview = `<div class="mockup context-kit care-preview-kit photo-preview-kit${colorwayBaseline ? ' is-comparing' : ''}">
     <header><div><span class="kit-kicker">Skincare concept · photo</span><h4>Katre</h4></div><span class="product-preview-meta">Live color application</span></header>
-    <div class="colorway-toolbar"><button type="button" data-colorway="lock">${colorwayBaseline ? 'Replace baseline' : 'Lock baseline'}</button>${colorwayBaseline ? '<button type="button" data-colorway="restore">Use baseline colors</button><button type="button" data-colorway="clear">Clear comparison</button>' : ''}<button type="button" data-colorway="retry" hidden>Reload photo</button><button type="button" data-colorway="export" disabled>Export PNG ↗</button></div>
+    <div class="colorway-toolbar"><button type="button" data-colorway="lock">${colorwayBaseline ? 'Update comparison' : 'Keep for comparison'}</button>${colorwayBaseline ? '<button type="button" data-colorway="restore">Use comparison colors</button><button type="button" data-colorway="clear">Clear comparison</button>' : ''}<button type="button" data-colorway="retry" hidden>Reload photo</button><button type="button" data-colorway="export" disabled>Export PNG ↗</button></div>
     <div class="care-preview-body">
       <div class="care-photo-host" data-photo-host></div>
       <div class="care-map"><span class="kit-kicker">Apply palette colors</span>${PHOTO_SURFACE_CONTROLS.map(([part, title]) => `<label>${title}<select data-care-part="${part}" aria-label="${title} color">${careOptions(careAssignment[part])}</select></label>`).join('')}</div>

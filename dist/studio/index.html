@@ -12,16 +12,16 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/styles.css?v=25">
   <link rel="stylesheet" href="/design-system.css?v=29">
-  <link rel="stylesheet" href="/studio-editor.css?v=9">
+  <link rel="stylesheet" href="/studio-editor.css?v=11">
   <link rel="stylesheet" href="/project-store.css?v=8">
   <link rel="stylesheet" href="/email-entry.css?v=1">
   <link rel="stylesheet" href="/color-globe.css?v=1">
   <link rel="stylesheet" href="/context-kits.css?v=11">
   <link rel="stylesheet" href="/report-preview.css?v=2">
-  <link rel="stylesheet" href="/photo-colorway.css?v=1">
+  <link rel="stylesheet" href="/photo-colorway.css?v=3">
   <link rel="stylesheet" href="/privacy.css?v=2">
   <link rel="stylesheet" href="/header-controls.css?v=2" data-header-controls>
-  <script type="module" src="/app.js?v=96"></script>
+  <script type="module" src="/app.js?v=98"></script>
   <script type="module" src="/analytics.js?v=6"></script>
 </head>
 <body>
@@ -33,7 +33,7 @@
   </header>
   <main id="main">
     <section class="studio studio-page section-wrap" id="studio" aria-labelledby="studioTitle">
-      <div class="studio-compact-head reveal"><div><span class="eyebrow">Tool / Palette</span><h1 id="studioTitle">Palette Studio</h1></div><div class="project-bar"><span class="project-sync" id="projectSyncLabel">Local draft</span><button class="small-button" id="openProjects" type="button">Projects</button><button class="button primary" id="saveProject" type="button">Save</button></div></div>
+      <div class="studio-compact-head reveal"><div><span class="eyebrow">Tool / Palette</span><h1 id="studioTitle">Palette Studio</h1></div><div class="project-bar"><span class="project-sync" id="projectSyncLabel">Local draft</span><button class="small-button" id="openProjects" type="button">Projects</button><button class="button primary" id="saveProject" type="button">Save project</button></div></div>
       <div class="studio-workspace reveal">
         <aside class="palette-inspector">
           <div class="inspector-top"><span class="eyebrow">Your palette</span><span class="palette-order-hint">Tap swatch</span></div>
@@ -42,12 +42,12 @@
           <p class="sr-only" id="paletteOrderStatus" aria-live="polite"></p>
           <div class="contrast-note"><span>Aa</span><div><strong id="contrastRatio"></strong><small id="contrastVerdict">Text on background</small></div></div>
           <button class="button full-button" id="copyPalette">Copy palette <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="12" rx="2"/><path d="M15 8V4H4v12h4"/></svg></button>
-          <button class="button full-button" id="savePersonalPalette" type="button">Save to My palettes</button>
+          <button class="button full-button" id="savePersonalPalette" type="button">Save palette</button>
         </aside>
         <div class="context-area">
           <div class="context-tabs" role="tablist" aria-label="Apply palette to"><button role="tab" id="tab-landing" aria-selected="true" aria-controls="mockup" data-context="landing">Products</button><button role="tab" id="tab-interface" aria-selected="false" aria-controls="mockup" tabindex="-1" data-context="interface">Screens</button><button role="tab" id="tab-social" aria-selected="false" aria-controls="mockup" tabindex="-1" data-context="social">Campaigns</button><button role="tab" id="tab-presentation" aria-selected="false" aria-controls="mockup" tabindex="-1" data-context="presentation" hidden>Report (legacy)</button><span class="context-live">Live preview</span></div>
-          <div class="mockup-stage has-product-rail"><div class="product-context-picker" id="productContextPicker" role="tablist" aria-label="Product direction" aria-orientation="vertical"><button type="button" role="tab" data-product-kind="skincare" aria-selected="true" aria-controls="mockup">Skincare</button><button type="button" role="tab" data-product-kind="footwear" aria-selected="false" aria-controls="mockup" tabindex="-1">Footwear</button><button type="button" role="tab" data-product-kind="object" aria-selected="false" aria-controls="mockup" tabindex="-1">Object</button></div><div id="mockup" role="tabpanel" aria-labelledby="tab-landing" tabindex="0"></div></div>
-          <div class="context-caption"><span id="contextCaptionLabel">Skincare product preview</span><span>Five preview roles update live.</span></div>
+          <div class="mockup-stage has-product-rail"><div class="product-context-picker" id="productContextPicker" role="tablist" aria-label="Product direction" aria-orientation="horizontal"><button type="button" role="tab" data-product-kind="skincare" aria-selected="true" aria-controls="mockup">Skincare</button><button type="button" role="tab" data-product-kind="footwear" aria-selected="false" aria-controls="mockup" tabindex="-1">Footwear</button><button type="button" role="tab" data-product-kind="object" aria-selected="false" aria-controls="mockup" tabindex="-1">Object</button></div><div id="mockup" role="tabpanel" aria-labelledby="tab-landing" tabindex="0"></div></div>
+          <div class="context-caption"><span id="contextCaptionLabel">Skincare product preview</span></div>
         </div>
         <aside class="color-lab" id="colorLab" aria-labelledby="colorLabTitle">
           <header class="shade-panel-head"><h3 id="colorLabTitle">Shades</h3><span id="shadeRoleNameInline">Background</span></header>
