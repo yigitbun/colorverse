@@ -13,7 +13,8 @@ import { SUPPORTED_IMAGE_TYPES, validateImageFile } from './image-file.js?v=1';
 import { imagePoint, sampleImageColor } from './image-sampling.js?v=1';
 import { initCommunity } from './community-feed.js?v=1';
 import { freezeColorway } from './colorway-kit.js?v=3';
-import { mountPhotoColorway, PHOTO_COLORWAY_NOTE } from './photo-colorway.js?v=2';
+import { mountPhotoColorway, PHOTO_COLORWAY_NOTE } from './photo-colorway.js?v=3';
+import { KATRE_SERUM_PROFILE } from './katre-serum.js?v=1';
 import { colorAlternatives, NEUTRAL_CHROMA } from './color-alternatives.js?v=1';
 import { reportPreview } from './report-preview.js?v=1';
 import { withWorkspace, workspaceFromColors, sanitizeWorkspace, roleColors, roleOfMember, memberLabel, isCompact, setMember, assignRole, swapRoles, insertMember, removeMember, COMPACT_MEMBERS, EXTRACT_MAX_MEMBERS } from './studio-members.js?v=2';
@@ -89,7 +90,8 @@ if (page === 'studio' && params.get('saved') === '1') {
 current = withWorkspace(current) || withWorkspace(workingDraft);
 let context = 'landing';
 let productKind = params.get('tool') === 'colorway' ? 'skincare' : current.id === 'drift-field-01' ? 'footwear' : 'skincare';
-const careAssignment = { backdrop: 0, bottle: 2, cap: 4, label: 1, carton: 3 };
+const DEFAULT_CARE_ASSIGNMENT = Object.freeze({ backdrop: 0, bottle: 2, cap: 1, label: 0, carton: 3 });
+const careAssignment = { ...DEFAULT_CARE_ASSIGNMENT };
 let colorwayBaseline = freezeColorway(current.colorwayBaseline);
 if (current.careAssignment) for (const part of Object.keys(careAssignment)) {
   const value = current.careAssignment[part];
@@ -294,7 +296,7 @@ function loadStudioSnapshot(snapshot) {
   context = ['landing', 'interface', 'social', 'presentation'].includes(snapshot.context) ? snapshot.context : 'landing';
   productKind = snapshot.productKind && ['footwear', 'skincare', 'object'].includes(snapshot.productKind) ? snapshot.productKind : 'skincare';
   colorwayBaseline = freezeColorway(snapshot.colorwayBaseline);
-  for (const [part, defaultIndex] of Object.entries({ backdrop: 0, bottle: 2, cap: 4, label: 1, carton: 3 })) {
+  for (const [part, defaultIndex] of Object.entries(DEFAULT_CARE_ASSIGNMENT)) {
     const value = snapshot.careAssignment?.[part];
     careAssignment[part] = Number.isInteger(value) && value >= 0 && value < 5 ? value : defaultIndex;
   }
@@ -506,9 +508,10 @@ function renderColorUseHint() {
     ? `${label} isn't one of the five preview colors, so the photo doesn't use it. Give it a role above to apply it.`
     : (() => {
       const surfaces = PHOTO_SURFACE_CONTROLS.filter(([part]) => careAssignment[part] === role).map(([, title]) => title);
+      if (role === 4) surfaces.push('Print');
       return surfaces.length
-        ? `Colors ${surfaces.join(' & ')} in the photo. Background and printed lettering stay fixed.`
-        : `Not applied to the photo. Choose ${label} for Tube, Bottle, Jar or Caps above.`;
+        ? `Colors ${surfaces.join(' & ')} in the photo. Background and clear glass base stay fixed.`
+        : `Not applied to the photo. Choose ${label} for Label, Body, Accent or Cap above.`;
     })();
   hint.hidden = false;
   hint.textContent = text;
@@ -682,15 +685,15 @@ function renderMockup() {
     object: { label: 'Object / Material study', title: 'Everyday object', detail: 'A useful object with a considered surface.', specs: 'Ceramic · dry glaze · tactile form' },
   }[productKind] || { label: 'Footwear / Field study', title: 'Field 01', detail: 'One silhouette. Three directions.', specs: 'Mesh · suede · modular rubber' };
   const careOptions = selected => current.colors.map((color, index) => `<option value="${index}"${index === selected ? ' selected' : ''}>${roles[index]} · ${color}</option>`).join('');
-  // The supplied Katre photograph: the mounted renderer lives in [data-photo-host]
-  // and survives re-renders. Only its four annotated surfaces are offered.
+  // One approved Katre serum design: four surface assignments plus print from
+  // the Text role. The mounted photo renderer survives ordinary palette edits.
   const carePreview = `<div class="mockup context-kit care-preview-kit photo-preview-kit${colorwayBaseline ? ' is-comparing' : ''}">
-    <header><div><span class="kit-kicker">Skincare concept · photo</span><h4>Katre</h4></div><span class="product-preview-meta">Live color application</span></header>
+    <header><div><span class="kit-kicker">Skincare concept · glass serum</span><h4>Katre</h4></div><span class="product-preview-meta">Live color application</span></header>
     <div class="colorway-toolbar"><button type="button" data-colorway="lock">${colorwayBaseline ? 'Update comparison' : 'Keep for comparison'}</button>${colorwayBaseline ? '<button type="button" data-colorway="restore">Use comparison colors</button><button type="button" data-colorway="clear">Clear comparison</button>' : ''}<button type="button" data-colorway="retry" hidden>Reload photo</button><button type="button" data-colorway="export" disabled>Export PNG ↗</button></div>
     <div class="care-preview-body">
       <div class="care-photo-host" data-photo-host></div>
-      <div class="care-map"><span class="kit-kicker">Apply palette colors</span>${PHOTO_SURFACE_CONTROLS.map(([part, title]) => `<label>${title}<select data-care-part="${part}" aria-label="${title} color">${careOptions(careAssignment[part])}</select></label>`).join('')}</div>
-    </div><footer><span>Tube / bottle / jar / caps</span><span>Katre is a design concept · approximate digital preview</span></footer></div>`;
+      <div class="care-map"><span class="kit-kicker">Apply palette colors</span>${PHOTO_SURFACE_CONTROLS.map(([part, title]) => `<label>${title}<select data-care-part="${part}" aria-label="${title} color">${careOptions(careAssignment[part])}</select></label>`).join('')}<small class="care-print-note">Print follows Text · background stays fixed</small></div>
+    </div><footer><span>Label / body / accent / cap / print</span><span>Katre is a design concept · approximate digital preview</span></footer></div>`;
   const productPreview = productKind === 'skincare' ? carePreview : `<div class="mockup context-kit product-preview-kit"><header><div><span class="kit-kicker">${escape(productConfig.label)}</span><h4>${escape(productConfig.title)}</h4></div><span class="product-preview-meta">ColorVerse / product direction</span></header><div class="product-preview-stage"><div class="product-preview-image visual-pending"><span>Reference image pending</span></div><aside><strong>${escape(productConfig.detail)}</strong><p>${escape(productConfig.specs)}</p><div class="product-preview-swatches" aria-label="Applied product colors">${current.colors.slice(0, 5).map((color, index) => `<i style="--swatch:${color}" title="${roles[index]} ${color}"></i>`).join('')}</div><small>Palette colors shown at left.</small></aside></div><footer><span>Product study</span><span>Colour / material direction</span><span>Original ColorVerse concept</span></footer></div>`;
   const layouts = {
     landing: productPreview,
@@ -714,10 +717,10 @@ function renderMockup() {
   syncPhotoPreview();
 }
 
-// Existing careAssignment fields map to the photographed surfaces, so saved
-// snapshots and locked baselines keep working: label → tube, bottle → bottle,
-// carton → jar, cap → caps. `backdrop` stays as legacy data only.
-const PHOTO_SURFACE_CONTROLS = [['label', 'Tube'], ['bottle', 'Bottle'], ['carton', 'Jar'], ['cap', 'Caps']];
+// Saved careAssignment field names/indexes remain intact. The serum profile
+// maps their old renderer keys onto this bottle's physical surfaces; print
+// follows Text (role 4), and backdrop remains stored compatibility data only.
+const PHOTO_SURFACE_CONTROLS = [['label', 'Label'], ['bottle', 'Body'], ['carton', 'Accent'], ['cap', 'Cap']];
 const photoColorwayFor = (colors, assignment) => ({ colors: colors.slice(0, 5), assignment: { tube: assignment.label, bottle: assignment.bottle, jar: assignment.carton, cap: assignment.cap } });
 let photoPreview = null;
 
@@ -745,7 +748,7 @@ function syncPhotoPreview(previewColors = current.colors) {
   const colorway = photoColorwayFor(previewColors, careAssignment);
   const baseline = colorwayBaseline ? photoColorwayFor(colorwayBaseline.colors, colorwayBaseline.assignment) : null;
   if (!photoPreview) {
-    const mounted = mountPhotoColorway(host, { colorway, baseline });
+    const mounted = mountPhotoColorway(host, { profile: KATRE_SERUM_PROFILE, colorway, baseline });
     photoPreview = mounted;
     mounted.ready.then(() => { if (photoPreview === mounted) syncPhotoControls(); });
   } else {

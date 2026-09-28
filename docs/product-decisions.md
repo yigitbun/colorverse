@@ -19,6 +19,12 @@ Start a new session with [the handoff](handoff.md) and [open work](open-work.md)
   preserve original palette HEX values and separate background adaptation
   from product-color placement. Do not silently replace the live asset or
   publish the generated candidate as approved corpus content.
+- Latest visual decision: the owner approves starting with the refined v3
+  single Katre glass-serum bottle. Implement its local interactive Studio
+  preview now; no extra product variants or automatic public release.
+  The same five colors appear on label/body/cap/accent/print; the scene backdrop
+  and clear glass base stay separate. Preserve saved assignment indices and
+  original palette HEX/order; this is not corpus editorial approval.
 - Studio UX-05A: the owner approved moving the actionable UX recommendations
   to Claude. Remove the duplicated right-side vertical shades strip, retaining
   the left inline accordion, nearby selected-color alternatives, contrast and

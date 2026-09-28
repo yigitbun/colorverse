@@ -239,5 +239,6 @@ test('serum profile imports local reusable math and keeps the photo engine indep
   assert.doesNotMatch(photo, /katre-serum/);
   assert(new URL(SERUM_SOURCE).pathname.endsWith('/dist/assets/studies/katre-serum-v3.png'));
   assert.match(SERUM_NOTE, /AI-concept/); assert.match(SERUM_NOTE, /not a physical color proof/);
+  assert(SERUM_NOTE.length <= 100, 'keep the visible disclosure compact');
   assert.equal(KATRE_SERUM_PROFILE.aspectRatio, 1); assert(Object.isFrozen(KATRE_SERUM_PROFILE));
 });

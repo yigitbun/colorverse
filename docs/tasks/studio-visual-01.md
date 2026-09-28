@@ -1,9 +1,10 @@
 # STUDIO-VISUAL-01 — purpose-designed product master
 
-Status: v1's generic package rejected by the owner; v3 is the new visual
-direction candidate, not a live replacement or approved corpus record.
-Codex owns art direction and the generated candidate. Claude owns separately
-assigned renderer implementation after asset review; no renderer task started.
+Status: v1's generic package rejected by the owner; v3 approved as the starting
+Studio design. Local renderer integration complete, not public or a corpus record.
+Codex owns art direction and the generated candidate. Claude's renderer call
+hit its quota without edits; a separately scoped Codex worker delivered the
+implementation. Lead reviewed/integrated it; see SERUM-RENDERER-01A / 01B.
 
 ## Design direction
 
@@ -124,9 +125,10 @@ narrower ochre collar, intact five-color mapping and readable KATRE / SERUM /
 50 ml text. Those words describe a fictional packaging concept, not product
 efficacy, certification or geographical provenance. No new palette record.
 
-Owner approval of this revised form is pending. It is a finished illustrative
-photo only: no transparent master, editable surface layers or live renderer
-replacement has been created from it. Materials and perspective need to be
+Owner approved this revised form with "Bununla başlayalım". It began as a finished
+illustrative photo; a scoped local surface renderer is now integrated and browser
+checked (SERUM-RENDERER-01A / SERUM-STUDIO-01B), not publicly published. No
+transparent master or other product variant is approved. Materials and perspective need to be
 preserved in later surface-mask work; do not flat-tint transparent glass or
 promise pixel-exact/physical color reproduction. Existing assets are retained.
 

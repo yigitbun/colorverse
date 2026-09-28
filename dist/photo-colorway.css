@@ -1,7 +1,7 @@
 .photo-colorway{display:flex;flex-direction:column;gap:8px;margin:0;min-width:0;color:var(--ink)}
 .photo-colorway-stages{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
 .photo-colorway.is-comparing .photo-colorway-stages{grid-template-columns:repeat(2,minmax(0,1fr))}
-.photo-colorway-stage{position:relative;overflow:hidden;aspect-ratio:4/5;border:1px solid var(--line);border-radius:5px;background:var(--surface-2)}
+.photo-colorway-stage{position:relative;overflow:hidden;aspect-ratio:var(--photo-aspect,4/5);border:1px solid var(--line);border-radius:5px;background:var(--surface-2)}
 .photo-colorway-stage[hidden]{display:none}
 .photo-colorway-canvas{display:block;width:100%;height:100%;object-fit:contain}
 .photo-colorway-tag{position:absolute;left:8px;bottom:8px;padding:3px 6px;border-radius:3px;background:#17171bcc;color:#fff;font:9px var(--mono);letter-spacing:.06em;text-transform:uppercase}
@@ -15,6 +15,7 @@
 .photo-preview-kit .care-preview-body{grid-template-columns:minmax(0,1fr);min-height:0;padding:10px 0;gap:10px}
 .photo-preview-kit .care-map{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px;border:0;background:var(--surface-2)}
 .photo-preview-kit .care-map>.kit-kicker{grid-column:1/-1}
+.photo-preview-kit .care-print-note{grid-column:1/-1;color:var(--muted);font:10px/1.4 var(--mono)}
 .photo-preview-kit .product-preview-meta{display:none}
 .photo-preview-kit>footer{border:0;padding-top:0;justify-content:center}
 .photo-preview-kit>footer>span:first-child{display:none}

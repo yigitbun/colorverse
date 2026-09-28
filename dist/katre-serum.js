@@ -7,7 +7,7 @@ export const SERUM_SOURCE = new URL('./assets/studies/katre-serum-v3.png', impor
 export const SERUM_SOURCE_COLORS = Object.freeze(['#C8D8A7', '#BBA2D1', '#E9947B', '#EAC843', '#253B25']);
 export const DEFAULT_SERUM_ASSIGNMENT = Object.freeze({ tube: 0, bottle: 2, jar: 3, cap: 1 });
 export const SERUM_SURFACES = Object.freeze(['tube', 'bottle', 'jar', 'cap', 'ink']);
-export const SERUM_NOTE = 'Digital AI-concept color preview · approximate, not a physical color proof. Annotated label paper, glass body, cap, ochre collar/rule and printed ink change; background, contact shadow and clear base stay unchanged';
+export const SERUM_NOTE = 'AI-concept · approximate digital color preview, not a physical color proof';
 
 const region = (id, surface, points, classify = null) => Object.freeze({ id, surface, classify, points: Object.freeze(points.map(point => Object.freeze(point))) });
 // Source coordinates, slightly inside the silhouette. The lower body contour

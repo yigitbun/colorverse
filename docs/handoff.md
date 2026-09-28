@@ -7,6 +7,34 @@ güncel yönlendirme sonraki görüşmeyi kaydeder.
 
 ## Güncel yönlendirme — 2026-09-28
 
+- Owner yerel v3 şişeyi ve karşılaştırmayı beğendi. Yeni ürün sorusu: soldaki
+  Background/Surface/Primary/Accent/Text isimleri Skincare kullanımını yanlış
+  anlatıyor. Öneri henüz onaylı değil: palet üyelerine nötr Color 1…N isimleri;
+  bağlama özgü Label/Body/Cap/Accent/Print atamaları ayrı. Eski kayıt/rol kimlikleri
+  yerinde kalmalı; bu soru adına kod/adlandırma değiştirilmedi. Owner Claude
+  kotasının 10–15 dakika içinde yenilenmesini bekliyor; sonraki küçük görevden
+  önce gerçek limit doğrulanmalı. Yeni Claude görevi/hatırlatma başlatılmadı.
+
+- Owner v3'ü açıkça onayladı: "Bununla başlayalım". Dar local Studio renderer
+  ve entegrasyon işi tamamlandı; yeni varyasyon/push/yayın yetkisi değil.
+  Claude'a SERUM-RENDERER-01A verildi fakat oturum
+  `678a9c81-9fff-4f46-82c0-842f87ac4b86` %100 five-hour sınırında hiç dosya
+  değiştirmeden bitti (reset 28 Eylül 13:50 Europe/Berlin). Bu bir Claude
+  teslimi değildir. Kullanıcıya açıklandı; Codex fallback worker aynı izole
+  `codex/claude-serum` / `.local/worktrees/claude-serum`, base `06f78e4`
+  üzerinde yalnız renderer/profil/test dosyalarının yazarlığını aldı; teslim
+  `f4eff775` tamamen incelenip yerel main'e `903f9ea` olarak alındı. Worker
+  durdu, Codex lead ayrı app/CSS/entegrasyonu tamamladı. Görev kayıtları
+  [renderer](tasks/serum-renderer-01a.md) / [Studio](tasks/serum-studio-01b.md).
+  V3 PNG aynen korunur; beş yüzey label/body/cap/accent/print renk alır, arka
+  plan ve clear base değişmez. Eski kayıtların açık rol indeksleri korunur.
+  Son release check 185 PASS / 0 FAIL; 4201 izole browser'da gerçek renk/atama,
+  Text baskı, comparison/restore/clear ve Screens/Products geçişi kontrol edildi,
+  console temiz. Başlangıç renkleri geri getirildi. Yerel preview
+  `http://127.0.0.1:4201/studio/?p=custom-concept-piera`; 4200 account/4197 draft
+  dokunulmadı. Current mobil browser/cihaz PNG/authenticated save NOT RUN;
+  corpus/hosted işlem/push/yayın yok. Arkada aktif Claude veya worker yok.
+
 - Son görsel geri bildirimi: owner v1 ürün formunu standart boş DM tüpü gibi
   buldu, daha nitelikli Fransız kozmetik ambalajı karakteri istedi. Built-in
   imagegen ile yeni form ve bir material/closure refinement yapıldı;
@@ -14,8 +42,8 @@ güncel yönlendirme sonraki görüşmeyi kaydeder.
   alçak kapak, küçük serif etiket ve ince boyun halkası kullanır. Aynı beş
   Citrus Muse rengi korunur; gerçek marka kopyası veya coğrafi üretim iddiası
   yok. [Promptlar ve değerlendirme](tasks/studio-visual-01.md) kaydedildi.
-  Owner revised form onayı bekler; sadece opak fotoğraf, uygulamaya alınmadı.
-  Yeni renderer/Claude görevi, corpus kaydı, hosted işlem veya yayın yok.
+  Owner revised form'u sonraki mesajında onayladı; güncel renderer/entegrasyon
+  durumu yukarıdadır. Corpus kaydı, hosted işlem veya yayın yok.
 
 - Son uygulama turu **yerel**: UX-04 checkpoint `21c10e7`; Claude'un üç
   küçük mühendislik teslimi main'e incelenerek alındı: UX-05A `2e9352c`,

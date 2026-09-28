@@ -149,8 +149,9 @@ test('Selected color states where it is used on the Skincare photo, and only the
   assert.match(hint, /role < 0\s*\n\s*\? `\$\{label\} isn't one of the five preview colors, so the photo doesn't use it\. Give it a role above to apply it\.`/);
   // Assigned members are checked against the live careAssignment map, not a fixed guess.
   assert.match(hint, /const surfaces = PHOTO_SURFACE_CONTROLS\.filter\(\(\[part\]\) => careAssignment\[part\] === role\)\.map\(\(\[, title\]\) => title\);/);
-  assert.match(hint, /Colors \$\{surfaces\.join\(' & '\)\} in the photo\. Background and printed lettering stay fixed\./);
-  assert.match(hint, /Not applied to the photo\. Choose \$\{label\} for Tube, Bottle, Jar or Caps above\./);
+  assert.match(hint, /if \(role === 4\) surfaces\.push\('Print'\)/);
+  assert.match(hint, /Colors \$\{surfaces\.join\(' & '\)\} in the photo\. Background and clear glass base stay fixed\./);
+  assert.match(hint, /Not applied to the photo\. Choose \$\{label\} for Label, Body, Accent or Cap above\./);
   // Updated on member/color selection, and on context, product-kind and care-assignment changes.
   assert.match(functionBody('renderColorLab'), /renderColorUseHint\(\);/);
   assert.match(app, /setupTabs\('\[data-context\]', button => \{ context = button\.dataset\.context;.*renderColorUseHint\(\);/);
@@ -159,7 +160,7 @@ test('Selected color states where it is used on the Skincare photo, and only the
 });
 
 test('Studio assets are cache-busted', () => {
-  assert.match(studio, /\/app\.js\?v=99/);
+  assert.match(studio, /\/app\.js\?v=100/);
   assert.match(studio, /\/studio-editor\.css\?v=12/);
   assert.match(studio, /\/report-preview\.css\?v=2/);
   assert.match(app, /'\.\/color-alternatives\.js\?v=1'/);
