@@ -146,7 +146,7 @@ test('Selected color states where it is used on the Skincare photo, and only the
   assert.match(hint, /if \(context !== 'landing' \|\| productKind !== 'skincare'\) \{\n    hint\.hidden = true;\n    hint\.textContent = '';\n    return;\n  \}/);
   // An unassigned extra member (role < 0) is not one of the five colors the photo can use.
   assert.match(hint, /const role = roleOfMember\(current\.workspace, activeColorIndex\);/);
-  assert.match(hint, /role < 0\s*\n\s*\? `\$\{label\} isn't one of the five preview colors, so the photo doesn't use it\. Give it a role above to apply it\.`/);
+  assert.match(hint, /role < 0\s*\n\s*\? `\$\{label\} isn't in the preview\. Choose a preview slot in its dropdown on the left to apply it\.`/);
   // Assigned members are checked against the live careAssignment map, not a fixed guess.
   assert.match(hint, /const surfaces = PHOTO_SURFACE_CONTROLS\.filter\(\(\[part\]\) => careAssignment\[part\] === role\)\.map\(\(\[, title\]\) => title\);/);
   assert.match(hint, /if \(role === 4\) surfaces\.push\('Print'\)/);
@@ -160,8 +160,37 @@ test('Selected color states where it is used on the Skincare photo, and only the
 });
 
 test('Studio assets are cache-busted', () => {
-  assert.match(studio, /\/app\.js\?v=100/);
-  assert.match(studio, /\/studio-editor\.css\?v=12/);
+  assert.match(studio, /\/app\.js\?v=101/);
+  assert.match(studio, /\/studio-editor\.css\?v=13/);
   assert.match(studio, /\/report-preview\.css\?v=2/);
   assert.match(app, /'\.\/color-alternatives\.js\?v=1'/);
+});
+
+test('Studio color names are neutral and application dropdowns identify mapped members', () => {
+  const palette = functionBody('renderPaletteRoles');
+  assert.match(palette, /<span class="role-name">\$\{previewLabel\(index\)\}<\/span>/);
+  assert.doesNotMatch(palette, /roles\[index\]|\$\{name\}/);
+  assert.match(palette, /aria-label="Preview slot for \$\{label\}"/);
+  assert.match(app, /const previewLabel = role => previewColorLabel\(current\.workspace, role\)/);
+  assert.match(app, /const careOptions = selected => current\.colors\.map\(\(color, index\) => .*\$\{previewLabel\(index\)\} · \$\{color\}/);
+  assert.match(app, /Print: \$\{previewLabel\(4\)\} · background stays fixed/);
+  assert.match(app, /verdict\.textContent = `\$\{previewLabel\(4\)\} on \$\{previewLabel\(0\)\}`/);
+  assert.match(functionBody('renderColorLab'), /`vs \$\{previewLabel\(pairIndex\)\}`/);
+  assert.doesNotMatch(functionBody('renderColorLab'), /roles\[pairIndex\]/);
+  assert.match(app, /Choose another color to swap with \$\{previewLabel\(index\)\}/);
+  assert.doesNotMatch(studio, /Text on background|id="globeRole">Background/);
+  assert.match(app, /<small>Color \$\{sample\}<\/small>/);
+  assert.doesNotMatch(app, /<small>\$\{role >= 0 \? roles\[role\]/);
+});
+
+test('initial shade anchors use ordered members, not the five mapped preview colors', () => {
+  assert.match(app, /let shadeSourceColors = \[\.\.\.current\.workspace\.members\];/);
+  assert.doesNotMatch(app, /let shadeSourceColors = current\.colors/);
+});
+
+test('small-screen neutral labels keep room for their number and HEX without taller rows', () => {
+  assert.match(studioStyles, /\.palette-inspector \.role-swatch\{grid-template-columns:28px minmax\(0,1fr\)\}/);
+  assert.match(studioStyles, /\.role-swatch \.role-select\{grid-column:2;padding-right:22px\}/);
+  assert.match(studioStyles, /\.role-swatch \.role-action\{position:absolute;right:3px;top:5px;width:28px;height:28px\}/);
+  assert.match(studioStyles, /\.member-cell\{grid-template-columns:26px minmax\(0,1fr\);gap:1px 4px;padding:5px\}/);
 });

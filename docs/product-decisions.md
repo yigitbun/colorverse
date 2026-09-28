@@ -6,6 +6,12 @@ This block takes precedence over superseded decisions below. The dated entries
 are an audit trail, not instructions to reimplement every earlier experiment.
 Start a new session with [the handoff](handoff.md) and [open work](open-work.md).
 
+- Studio/Extract separate palette identity from application: neutral Color 1…N
+  display names, with actual product surfaces on the right. This narrow local
+  implementation follows the owner's request to continue ordinary work after
+  the naming proposal; visual acceptance is still pending. Member order/HEX,
+  persisted five-role keys/indices and legacy exports are unchanged. No custom
+  member-name editor or new semantic role model is introduced.
 - Latest corpus responsibility change: the owner explicitly assigns academic/
   reference research and traceable source-color collection to Claude. This
   supersedes the external-team-only research restriction below; Codex remains
@@ -64,14 +70,18 @@ Start a new session with [the handoff](handoff.md) and [open work](open-work.md)
   points. Member palettes still support 2–24 colors; do not pad smaller palettes.
 - Studio uses Products/Screens/Campaigns. Skincare/Footwear/Object controls sit
   as small centered horizontal choices above the middle preview, not in a
-  reserved sidebar. Katre uses the supplied photograph with Tube,
-  Bottle, Jar and Caps controls, frozen comparison and photo PNG export; no
+  reserved sidebar. Katre now uses the approved v3 serum with Label, Body,
+  Accent and Cap controls; Print follows the fifth preview slot (showing its
+  actual member number). The original photograph and its renderer remain for
+  compatibility, not as the current Skincare visual. Frozen comparison and
+  photo PNG export remain; no
   physical manufacturing-color guarantee. Screens is a native illustrative
   report, not a live Power BI connection. Campaigns (poster/story/ticket) stays
   pending the owner's keep / Print & Social / remove decision.
 - Sep28 follow-up: bound the photo display to a working size and tighten its
-  contours without modifying the source asset. New colorways map Jar to Accent;
-  preserve existing saved assignments. Project / palette / comparison actions
+  contours without modifying the source asset. The older Jar→Accent default
+  is retained in legacy mapping; the approved serum uses the distinct surfaces
+  above. Preserve existing saved assignments. Project / palette / comparison actions
   have distinct labels. Owner wants user-focused UX judgment, not technical
   pass counts; palette-to-result clarity and believable visuals take priority.
 - Alternatives are explicitly for the selected color, not a full-palette

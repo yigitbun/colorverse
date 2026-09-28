@@ -46,10 +46,10 @@ export function sanitizeWorkspace(value, expectedRoleColors = null) {
 export const roleColors = workspace => workspace.roleIndex.map(index => workspace.members[index]);
 export const roleOfMember = (workspace, index) => workspace.roleIndex.indexOf(index);
 export const isCompact = workspace => workspace.members.length > 5;
-export const memberLabel = (workspace, index) => {
-  const role = roleOfMember(workspace, index);
-  return role >= 0 ? roles[role] : `Color ${index + 1}`;
-};
+// Member identity is independent of its application. The persisted five-role
+// mapping and legacy export keys remain unchanged.
+export const memberLabel = (_workspace, index) => `Color ${index + 1}`;
+export const previewColorLabel = (workspace, role) => memberLabel(workspace, workspace.roleIndex[role]);
 
 // Normalise any palette entering Studio: 5–24 colors survive; five role colors
 // derive from the mapping. Anything outside that range is rejected (null), never cut.

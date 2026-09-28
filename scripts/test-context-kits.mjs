@@ -37,7 +37,7 @@ test('Skincare uses the approved serum profile with four surface controls and Te
   assert.match(app, /tube: assignment\.label, bottle: assignment\.bottle, jar: assignment\.carton, cap: assignment\.cap/);
   assert.match(app, /data-photo-host/);
   assert.match(app, /mountPhotoColorway\(host, \{ profile: KATRE_SERUM_PROFILE, colorway, baseline \}\)/);
-  assert.match(app, /Print follows Text · background stays fixed/);
+  assert.match(app, /Print: \$\{previewLabel\(4\)\} · background stays fixed/);
   assert.doesNotMatch(app, /class="care-bottle"|const careStage/);
   assert.match(studio, /photo-colorway\.css/);
 });

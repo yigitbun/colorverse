@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import {
-  workspaceFromColors, sanitizeWorkspace, withWorkspace, roleColors, roleOfMember, memberLabel, isCompact,
+  workspaceFromColors, sanitizeWorkspace, withWorkspace, roleColors, roleOfMember, memberLabel, previewColorLabel, isCompact,
   setMember, assignRole, swapRoles, insertMember, removeMember, previewMapping, EXTRACT_MAX_MEMBERS,
 } from '../dist/studio-members.js';
 import { exportPalette } from '../dist/color.js';
@@ -60,7 +60,7 @@ test('explicit role assignment trades or releases members; swaps keep member ord
   assert.deepEqual(accentFromExtra.roleIndex, [0, 1, 2, 8, 4]);
   assert.equal(roleOfMember(accentFromExtra, 3), -1);
   assert.equal(memberLabel(accentFromExtra, 3), 'Color 4');
-  assert.equal(memberLabel(accentFromExtra, 8), 'Accent');
+  assert.equal(memberLabel(accentFromExtra, 8), 'Color 9');
   const traded = assignRole(accentFromExtra, 0, 8);
   assert.deepEqual(traded.roleIndex, [8, 1, 2, 0, 4]);
   const swapped = swapRoles(workspace, 0, 4);
@@ -86,6 +86,23 @@ test('insert and remove keep each role attached to its original member, up to te
   while (reduced.members.length > 5) reduced = removeMember(reduced, reduced.members.findIndex((_, index) => roleOfMember(reduced, index) < 0));
   assert.deepEqual(reduced, workspaceFromColors(five));
   assert.equal(removeMember(reduced, 0), null, 'never below five');
+});
+
+test('neutral color labels track member positions, never their application roles', () => {
+  for (const members of [five, ten, many]) {
+    const workspace = workspaceFromColors(members);
+    const before = JSON.stringify(workspace);
+    assert.deepEqual(workspace.members.map((_, index) => memberLabel(workspace, index)), members.map((_, index) => `Color ${index + 1}`));
+    assert.deepEqual(workspace.roleIndex.map((_, role) => previewColorLabel(workspace, role)), ['Color 1', 'Color 2', 'Color 3', 'Color 4', 'Color 5']);
+    assert.equal(JSON.stringify(workspace), before, 'display labels do not change colors or mapping');
+  }
+  const mapped = workspaceFromColors(ten, [7, 0, 3, 5, 1]);
+  assert.deepEqual(mapped.roleIndex.map((_, role) => previewColorLabel(mapped, role)), ['Color 8', 'Color 1', 'Color 4', 'Color 6', 'Color 2']);
+  const assigned = assignRole(mapped, 4, 9);
+  assert.equal(previewColorLabel(assigned, 4), 'Color 10', 'Print labels the actual mapped member');
+  assert.equal(memberLabel(assigned, 1), 'Color 2', 'released member keeps its name');
+  assert.deepEqual(assigned.members, ten);
+  assert.deepEqual(sanitizeWorkspace(assigned, roleColors(assigned)), assigned, 'existing persistence contract still accepts it');
 });
 
 test('exports keep every member with explicit preview-role mapping; five-color output is unchanged', () => {
@@ -143,9 +160,10 @@ test('project, prototype and template paths save and restore the complete worksp
 test('Studio shows larger palettes as compact member cells with explicit role selects', () => {
   assert.match(app, /container\.classList\.toggle\('is-compact', compact\)/);
   assert.match(app, /container\.classList\.toggle\('is-scrolling', workspace\.members\.length > COMPACT_MEMBERS\)/);
-  assert.match(app, /<select class="member-role" data-member-role="\$\{index\}" aria-label="Preview role for color \$\{index \+ 1\}">/);
-  assert.match(app, /data-role-color="\$\{index\}"[^>]*aria-label="Change color \$\{index \+ 1\}/);
-  assert.match(app, /aria-label="Show shades for color \$\{index \+ 1\}/);
+  assert.match(app, /<select class="member-role" data-member-role="\$\{index\}" aria-label="Preview slot for \$\{label\}"/);
+  assert.match(app, /data-role-color="\$\{index\}"[^>]*aria-label="Change \$\{label\} in Color Globe/);
+  assert.match(app, /aria-label="Show shades for \$\{label\}"/);
+  assert.match(app, /\$\{label\} · Slot \$\{position \+ 1\}/);
   assert.match(app, /assignPreviewRole\(member, role\)/);
   assert.match(app, /copy\(members\.join\(', '\), `All \$\{members\.length\} colors copied\.`\)/);
   assert.doesNotMatch(app, /All five colors copied/);
@@ -188,6 +206,6 @@ test('Extract inserts between rows up to ten, keeps points, and hands the full p
   assert.match(app, /const workspace = workspaceFromColors\(extracted\.colors, extracted\.roleIndex\);/);
   assert.match(app, /colors: roleColors\(workspace\), workspace \}\)\)/);
   assert.doesNotMatch(extractHtml, /Five draggable/);
-  assert.match(extractHtml, /\/app\.js\?v=100/);
+  assert.match(extractHtml, /\/app\.js\?v=101/);
   assert.match(extractStyles, /\.extract-page \.extracted-swatches \.extract-insert\{position:absolute;/);
 });

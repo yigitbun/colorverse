@@ -4,6 +4,13 @@ Güncelleme: 2026-09-28. Kanonik backlog; yeni bir ajan önce
 [devir paketini](handoff.md) okumalı. Kaynaklar: sahibin kapanan sohbetteki
 istekleri, mevcut repo, ürün kararları ve MVP denetimi. Claude projesi okunmadı.
 
+## Güncel çalışma modu
+
+Owner son talimatıyla Claude kapasitesini başka işe ayırdı: normal dar işleri
+Codex sürdürsün; şimdilik yeni Claude görevi verilmesin. STUDIO-NAMING-06
+turunda Claude veya başka ajan çağrılmadı. Aşağıdaki erken yayın/delegasyon
+hedefleri tarihsel bağlamdır, güncel kaynak tercihinin yerine geçmez.
+
 ## Aktif yayın hazırlığı — 27–28 Eylül 2026
 
 28 Eylül 02:04 Europe/Berlin: kullanıcı **bir saatlik yoğun yayın hazırlığı**
@@ -24,9 +31,9 @@ korur. Tarih hedefi, geçilmemiş kontrolleri tamamlanmış saydırmaz.
 
 | İş | Sahip | Durum / sıradaki çıktı |
 | --- | --- | --- |
-| STUDIO-NAMING-06 — palet rengi ile uygulama yüzeyini ayır | Ürün sahibi karar; Codex öneri, sonra küçük Claude işi | Owner v3 ve karşılaştırmayı beğendi; Background etiketinin yanlışlığını işaret etti. Sol tarafta nötr Color 1…N, sağda bağlama özgü gerçek yüzeyler öneriliyor. Henüz karar/uygulama yok; internal rol/kayıt kimlikleri korunmalı. Claude reset sonrası fresh quota kontrolü ile dar görev verilebilir |
+| STUDIO-NAMING-06 — palet rengi ile uygulama yüzeyini ayır | Codex tek yazar | [Yerel teslim](tasks/studio-naming-06.md): Studio/Extract Color 1…N; ürün yüzeyleri ve Print gerçek üyeyi gösterir. Kayıt/rol/HEX/sıra korunur; başlangıç shade anchor ve 320px kesilme düzeltildi. 189 PASS, 4202 gerçek 5/10 renk/atama/reload/comparison/mobil yolu ve temiz console. Owner görsel kabulü henüz yok; Claude/ajan çağrılmadı, yayın yok |
 | SERUM-RENDERER-01A — onaylı şişenin beş yüzeyli renk uygulaması | Codex fallback worker teslim; Codex lead inceleme | Claude quota %100 ile durdu, hiç dosya değiştirmedi. Base `06f78e4` → `f4eff775`, tam inceleme sonrası yerel main `903f9ea`; worker durdu. [Dar scope](tasks/serum-renderer-01a.md); beş yüzey, exact source identity, arka plan/clear base sabit; eski photo API korunur |
-| SERUM-STUDIO-01B — v3'ü Studio'ya bağla | Codex lead | [Entegrasyon](tasks/serum-studio-01b.md) yerelde tamam. Açık kayıt indeksleri/karşılaştırma korunur; Label/Body/Accent/Cap ve Text→Print. 185 test PASS; 4201 browser renk/atama/restore/clear/context kontrolü ve console temiz. Başlangıç renkleri geri getirildi; cihaz PNG/current mobil/authenticated save NOT RUN; yayın yok |
+| SERUM-STUDIO-01B — v3'ü Studio'ya bağla | Codex lead | [Entegrasyon](tasks/serum-studio-01b.md) yerelde tamam. Açık kayıt indeksleri/karşılaştırma korunur; Label/Body/Accent/Cap ve beşinci slot→Print. İlk teslim 185 PASS; 4201 browser renk/atama/restore/clear/context ve temiz console. Sonraki NAMING-06 320px ürün/comparison kontrolünü tamamladı. Cihaz PNG/authenticated save NOT RUN; yayın yok |
 | STUDIO-UX-05A — tek ton düzenleme yolu | Claude teslim; inceleme/entegrasyon Codex | `21c10e7` → `9b25e08`, dört izinli dosya; main `2e9352c`. Sağdaki tekrar ton şeridi kaldırıldı; inline seçim, Alternatives/Contrast/tray korunur. Browser/cache pass yerelde tamam; yayın yok. 05A içinde bulunan çok-renkli tray hatası 05B'ye ayrıldı |
 | STUDIO-TRAY-05B — seçilen workspace rengini tepsiye ekle | Claude teslim; inceleme/entegrasyon Codex | `9b25e08` → `bc9d6bf`, üç izinli dosya. `activeColor()` ile preview-role/member index karışıklığı giderildi; 8 üyeli regresyon eklendi. İncelenip main'e alındı; yayın yok |
 | STUDIO-ROLE-USE-05C — seçilen rengin fotoğraftaki kullanımını açıkla | Claude teslim; Codex inceleme/entegrasyon | `bc9d6bf` → `5e74ccc`, üç izinli dosya; main `83aa555`. Actual role/surface mapping'e göre kısa kullanım bilgisi; kullanılmayan renk ve sabit arka plan/baskı açık. Tube ataması değiştirilince açıklama değişir, Screens'te gizlenir: izole local browser kontrolü. Yeni rol/palet veya kontrol yok; yayın yok |

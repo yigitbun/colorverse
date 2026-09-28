@@ -17,7 +17,7 @@ import { mountPhotoColorway, PHOTO_COLORWAY_NOTE } from './photo-colorway.js?v=3
 import { KATRE_SERUM_PROFILE } from './katre-serum.js?v=1';
 import { colorAlternatives, NEUTRAL_CHROMA } from './color-alternatives.js?v=1';
 import { reportPreview } from './report-preview.js?v=1';
-import { withWorkspace, workspaceFromColors, sanitizeWorkspace, roleColors, roleOfMember, memberLabel, isCompact, setMember, assignRole, swapRoles, insertMember, removeMember, COMPACT_MEMBERS, EXTRACT_MAX_MEMBERS } from './studio-members.js?v=2';
+import { withWorkspace, workspaceFromColors, sanitizeWorkspace, roleColors, roleOfMember, memberLabel, previewColorLabel, isCompact, setMember, assignRole, swapRoles, insertMember, removeMember, COMPACT_MEMBERS, EXTRACT_MAX_MEMBERS } from './studio-members.js?v=3';
 import { initAccountNavigation } from './account-client.js?v=4';
 import { DRAFT_KEY, STUDIO_HANDOFF_KEY, readDraft, sanitizeDraft } from './member-palette.js?v=2';
 
@@ -191,7 +191,7 @@ function renderSelection(updateURL = false) {
     const value = contrast(current.colors[0], current.colors[4]);
     ratio.textContent = `${value.toFixed(2)}:1 · ${value >= 7 ? 'AAA contrast' : value >= 4.5 ? 'AA contrast' : value >= 3 ? 'Large text only' : 'Low contrast'}`;
   }
-  if (verdict) verdict.textContent = 'Text on background';
+  if (verdict) verdict.textContent = `${previewLabel(4)} on ${previewLabel(0)}`;
   // Opening a palette can change the product direction; keep the rail in step.
   renderProductPicker();
   renderContextCaption();
@@ -254,7 +254,7 @@ function assignPreviewRole(member, role) {
   const before = current.workspace.roleIndex[role];
   commitWorkspace(assignRole(current.workspace, role, member));
   const status = $('#paletteOrderStatus');
-  if (status) status.textContent = `Color ${member + 1} is now ${roles[role]}${current.workspace.roleIndex.includes(before) ? '' : `; color ${before + 1} is no longer in the preview`}.`;
+  if (status) status.textContent = `Color ${member + 1} now fills preview slot ${role + 1}${current.workspace.roleIndex.includes(before) ? '' : `; Color ${before + 1} is no longer in the preview`}.`;
   track('color_edit', { method: 'assign-role' });
 }
 
@@ -322,7 +322,7 @@ window.colorverseStudio = { getSnapshot: studioSnapshot, loadSnapshot: loadStudi
 
 function announcePaletteOrder(color, index) {
   const status = $('#paletteOrderStatus');
-  if (status) status.textContent = `${color} is now ${roles[index]}.`;
+  if (status) status.textContent = `${color} is now ${previewLabel(index)}.`;
 }
 
 let colorTray = [];
@@ -359,7 +359,7 @@ function colorCoordinates(hex) {
 }
 
 // Keep the tonal scale anchored while trying its shades.
-let shadeSourceColors = current.colors.slice(0, 5);
+let shadeSourceColors = [...current.workspace.members];
 const trashIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7"/></svg>';
 
 function inlineShadeValues(index) {
@@ -370,6 +370,7 @@ function inlineShadeValues(index) {
 
 const activeColor = () => current.workspace.members[activeColorIndex] || current.colors[0];
 const activeLabel = () => memberLabel(current.workspace, activeColorIndex);
+const previewLabel = role => previewColorLabel(current.workspace, role);
 
 function shadeOverlay(index, color, label) {
   if (openShadeIndex !== index) return '';
@@ -378,7 +379,7 @@ function shadeOverlay(index, color, label) {
   return `<div class="role-shade-overlay" data-shade-overlay="${index}"><div class="inline-shade-strip" id="roleShades${index}" role="listbox" aria-label="Choose a shade for ${label}. Escape closes without changing it.">${shades.map(value => `<button type="button" role="option" data-inline-role-shade="${index}" data-inline-shade="${value}" aria-selected="${value === color}" tabindex="${value === focusShade ? 0 : -1}" title="${value}" style="--tone:${value};--tone-ink:${textOn(value)}"><span class="sr-only">${value}</span></button>`).join('')}</div></div>`;
 }
 
-// Five colors: one row per preview role. More colors: compact two-column member
+// Five colors: one row per member. More colors: compact two-column member
 // cells (8–10 fit the five-row height; longer palettes scroll inside the panel).
 function renderPaletteRoles() {
   const container = $('#paletteRoles');
@@ -387,29 +388,29 @@ function renderPaletteRoles() {
   const compact = isCompact(workspace);
   container.classList.toggle('is-compact', compact);
   container.classList.toggle('is-scrolling', workspace.members.length > COMPACT_MEMBERS);
-  container.setAttribute('aria-label', compact ? `${workspace.members.length} palette colors; five fill the preview roles` : 'Palette roles');
+  container.setAttribute('aria-label', compact ? `${workspace.members.length} palette colors; five fill the preview slots` : 'Palette colors');
   const hint = $('.palette-order-hint');
   if (hint) hint.textContent = compact ? `${workspace.members.length} colors · 5 in preview` : 'Tap swatch';
   if (compact) {
     container.innerHTML = workspace.members.map((color, index) => {
       const role = roleOfMember(workspace, index), label = memberLabel(workspace, index), open = openShadeIndex === index;
       return `<div class="member-cell${activeColorIndex === index ? ' is-selected' : ''}${role >= 0 ? ' is-assigned' : ''}${open ? ' is-shade-open' : ''}" data-role-index="${index}">
-    <button class="role-color-control" type="button" data-role-color="${index}" style="--swatch:${color};--on:${textOn(color)}" title="Explore color ${index + 1} in Color Globe" aria-label="Change color ${index + 1}${role >= 0 ? ` (${label})` : ''} in Color Globe" aria-haspopup="dialog" aria-controls="colorGlobe"><span aria-hidden="true">${index + 1}</span></button>
-    <select class="member-role" data-member-role="${index}" aria-label="Preview role for color ${index + 1}"><option value="none"${role < 0 ? ' selected' : ' disabled'}>Color ${index + 1}</option>${roles.map((name, position) => `<option value="${position}"${position === role ? ' selected' : ''}>${name}</option>`).join('')}</select>
-    <button class="role-select" type="button" data-role-select="${index}" aria-expanded="${open}"${open ? ` aria-controls="roleShades${index}"` : ''} aria-label="Show shades for color ${index + 1}${role >= 0 ? `, ${label}` : ''}"><code>${color}</code></button>
-    ${shadeOverlay(index, color, `color ${index + 1}`)}
+    <button class="role-color-control" type="button" data-role-color="${index}" style="--swatch:${color};--on:${textOn(color)}" title="Explore ${label} in Color Globe" aria-label="Change ${label} in Color Globe" aria-haspopup="dialog" aria-controls="colorGlobe"><span aria-hidden="true">${index + 1}</span></button>
+    <select class="member-role" data-member-role="${index}" aria-label="Preview slot for ${label}" title="Choose which of the five preview slots uses ${label}"><option value="none"${role < 0 ? ' selected' : ' disabled'}>${label} · Not in preview</option>${roles.map((_, position) => `<option value="${position}"${position === role ? ' selected' : ''}>${label} · Slot ${position + 1}</option>`).join('')}</select>
+    <button class="role-select" type="button" data-role-select="${index}" aria-expanded="${open}"${open ? ` aria-controls="roleShades${index}"` : ''} aria-label="Show shades for ${label}"><code>${color}</code></button>
+    ${shadeOverlay(index, color, label)}
   </div>`;
     }).join('');
     return;
   }
   container.innerHTML = current.colors.slice(0, 5).map((color, index) => `<div class="role-swatch${activeColorIndex === index ? ' is-selected' : ''}${pendingSwapIndex === index ? ' is-swap-source' : ''}${openShadeIndex === index ? ' is-shade-open' : ''}" data-role-index="${index}">
     <span class="role-grip" aria-hidden="true" title="Drag onto another color to swap"><svg viewBox="0 0 10 16"><circle cx="2" cy="3" r="1.2"/><circle cx="8" cy="3" r="1.2"/><circle cx="2" cy="8" r="1.2"/><circle cx="8" cy="8" r="1.2"/><circle cx="2" cy="13" r="1.2"/><circle cx="8" cy="13" r="1.2"/></svg></span>
-    <button class="role-color-control" type="button" data-role-color="${index}" style="--swatch:${color}" title="Explore ${roles[index]} in Color Globe" aria-label="Change ${roles[index]} color in Color Globe" aria-haspopup="dialog" aria-controls="colorGlobe"><span aria-hidden="true"></span></button>
-    <button class="role-select" type="button" data-role-select="${index}" aria-expanded="${openShadeIndex === index}"${openShadeIndex === index ? ` aria-controls="roleShades${index}"` : ''} aria-label="${pendingSwapIndex !== null && pendingSwapIndex !== index ? `Swap with ${roles[index]}` : `Show shades for ${roles[index]}`}">
-      <span class="role-name">${roles[index]}</span><code>${color}</code>
+    <button class="role-color-control" type="button" data-role-color="${index}" style="--swatch:${color}" title="Explore ${previewLabel(index)} in Color Globe" aria-label="Change ${previewLabel(index)} in Color Globe" aria-haspopup="dialog" aria-controls="colorGlobe"><span aria-hidden="true"></span></button>
+    <button class="role-select" type="button" data-role-select="${index}" aria-expanded="${openShadeIndex === index}"${openShadeIndex === index ? ` aria-controls="roleShades${index}"` : ''} aria-label="${pendingSwapIndex !== null && pendingSwapIndex !== index ? `Swap with ${previewLabel(index)}` : `Show shades for ${previewLabel(index)}`}">
+      <span class="role-name">${previewLabel(index)}</span><code>${color}</code>
     </button>
-    <button class="role-action" type="button" data-role-swap="${index}" aria-label="${pendingSwapIndex === index ? 'Cancel swap' : `Swap ${roles[index]} with another role`}" title="Swap colors">↔</button>
-    ${shadeOverlay(index, color, roles[index])}
+    <button class="role-action" type="button" data-role-swap="${index}" aria-label="${pendingSwapIndex === index ? 'Cancel swap' : `Swap ${previewLabel(index)} with another color`}" title="Swap colors">↔</button>
+    ${shadeOverlay(index, color, previewLabel(index))}
   </div>`).join('');
 }
 
@@ -478,7 +479,7 @@ function renderColorLab() {
   const activeRole = roleOfMember(current.workspace, activeColorIndex);
   const pairIndex = activeRole === 0 ? 4 : 0;
   const pair = current.colors[pairIndex];
-  $('#colorContrastPair').textContent = `vs ${roles[pairIndex].toLowerCase()}`;
+  $('#colorContrastPair').textContent = `vs ${previewLabel(pairIndex)}`;
   const candidates = [...new Set([...[.15, .3, .45, .6, .8, .92, .98].flatMap(lightness =>
     [0, 180].map(offset => oklch(lightness, Math.min(coordinates.chroma, .08), coordinates.hue + offset))), '#000000', '#FFFFFF'])]
     .filter(value => contrast(value, pair) >= 4.5)
@@ -486,7 +487,7 @@ function renderColorLab() {
   const contrastColors = [candidates[0], candidates.find(value => oklabDistance(value, candidates[0]) > .08) || candidates[1]].filter(Boolean);
   $('#colorContrastGrid').innerHTML = contrastColors.map(value => {
     const ratio = contrast(value, pair).toFixed(2);
-    return `<button type="button" class="contrast-choice" data-use-color="${value}" title="${value} against ${pair}" aria-label="Use ${value}, contrast ${ratio} to 1 against ${roles[pairIndex]}"><span style="background:${activeRole === 0 ? value : pair};color:${activeRole === 0 ? pair : value}" aria-hidden="true">Aa</span><code>${ratio}:1</code></button>`;
+    return `<button type="button" class="contrast-choice" data-use-color="${value}" title="${value} against ${pair}" aria-label="Use ${value}, contrast ${ratio} to 1 against ${previewLabel(pairIndex)}"><span style="background:${activeRole === 0 ? value : pair};color:${activeRole === 0 ? pair : value}" aria-hidden="true">Aa</span><code>${ratio}:1</code></button>`;
   }).join('');
   renderColorTray();
   renderColorUseHint();
@@ -505,7 +506,7 @@ function renderColorUseHint() {
   const role = roleOfMember(current.workspace, activeColorIndex);
   const label = activeLabel();
   const text = role < 0
-    ? `${label} isn't one of the five preview colors, so the photo doesn't use it. Give it a role above to apply it.`
+    ? `${label} isn't in the preview. Choose a preview slot in its dropdown on the left to apply it.`
     : (() => {
       const surfaces = PHOTO_SURFACE_CONTROLS.filter(([part]) => careAssignment[part] === role).map(([, title]) => title);
       if (role === 4) surfaces.push('Print');
@@ -684,7 +685,7 @@ function renderMockup() {
     skincare: { label: 'Skincare / Series study', title: 'Soft Structure', detail: 'Five objects. One quiet system.', specs: 'Matte polymer · ribbed cap · mono print' },
     object: { label: 'Object / Material study', title: 'Everyday object', detail: 'A useful object with a considered surface.', specs: 'Ceramic · dry glaze · tactile form' },
   }[productKind] || { label: 'Footwear / Field study', title: 'Field 01', detail: 'One silhouette. Three directions.', specs: 'Mesh · suede · modular rubber' };
-  const careOptions = selected => current.colors.map((color, index) => `<option value="${index}"${index === selected ? ' selected' : ''}>${roles[index]} · ${color}</option>`).join('');
+  const careOptions = selected => current.colors.map((color, index) => `<option value="${index}"${index === selected ? ' selected' : ''}>${previewLabel(index)} · ${color}</option>`).join('');
   // One approved Katre serum design: four surface assignments plus print from
   // the Text role. The mounted photo renderer survives ordinary palette edits.
   const carePreview = `<div class="mockup context-kit care-preview-kit photo-preview-kit${colorwayBaseline ? ' is-comparing' : ''}">
@@ -692,7 +693,7 @@ function renderMockup() {
     <div class="colorway-toolbar"><button type="button" data-colorway="lock">${colorwayBaseline ? 'Update comparison' : 'Keep for comparison'}</button>${colorwayBaseline ? '<button type="button" data-colorway="restore">Use comparison colors</button><button type="button" data-colorway="clear">Clear comparison</button>' : ''}<button type="button" data-colorway="retry" hidden>Reload photo</button><button type="button" data-colorway="export" disabled>Export PNG ↗</button></div>
     <div class="care-preview-body">
       <div class="care-photo-host" data-photo-host></div>
-      <div class="care-map"><span class="kit-kicker">Apply palette colors</span>${PHOTO_SURFACE_CONTROLS.map(([part, title]) => `<label>${title}<select data-care-part="${part}" aria-label="${title} color">${careOptions(careAssignment[part])}</select></label>`).join('')}<small class="care-print-note">Print follows Text · background stays fixed</small></div>
+      <div class="care-map"><span class="kit-kicker">Apply palette colors</span>${PHOTO_SURFACE_CONTROLS.map(([part, title]) => `<label>${title}<select data-care-part="${part}" aria-label="${title} color">${careOptions(careAssignment[part])}</select></label>`).join('')}<small class="care-print-note">Print: ${previewLabel(4)} · background stays fixed</small></div>
     </div><footer><span>Label / body / accent / cap / print</span><span>Katre is a design concept · approximate digital preview</span></footer></div>`;
   const productPreview = productKind === 'skincare' ? carePreview : `<div class="mockup context-kit product-preview-kit"><header><div><span class="kit-kicker">${escape(productConfig.label)}</span><h4>${escape(productConfig.title)}</h4></div><span class="product-preview-meta">ColorVerse / product direction</span></header><div class="product-preview-stage"><div class="product-preview-image visual-pending"><span>Reference image pending</span></div><aside><strong>${escape(productConfig.detail)}</strong><p>${escape(productConfig.specs)}</p><div class="product-preview-swatches" aria-label="Applied product colors">${current.colors.slice(0, 5).map((color, index) => `<i style="--swatch:${color}" title="${roles[index]} ${color}"></i>`).join('')}</div><small>Palette colors shown at left.</small></aside></div><footer><span>Product study</span><span>Colour / material direction</span><span>Original ColorVerse concept</span></footer></div>`;
   const layouts = {
@@ -910,7 +911,7 @@ if (copyPalette) copyPalette.addEventListener('click', () => {
   copy(members.join(', '), `All ${members.length} colors copied.`);
 });
 const paletteRoles = $('#paletteRoles');
-// The Globe edits one palette member; labels name its role when it has one.
+// The Globe edits one palette member; labels keep its neutral palette identity.
 const colorGlobe = createColorGlobe({
   getPalette: () => ({ ...current, members: current.workspace.members, labels: current.workspace.members.map((_, index) => memberLabel(current.workspace, index)) }),
   onPreview(index, color) {
@@ -965,7 +966,7 @@ if (paletteRoles) {
         activeColorIndex = index;
         openShadeIndex = null;
         renderSelection();
-        toast(`Choose another role to swap with ${roles[index]}.`);
+        toast(`Choose another color to swap with ${previewLabel(index)}.`);
       } else if (pendingSwapIndex === index) {
         pendingSwapIndex = null;
         renderSelection();
@@ -1591,7 +1592,7 @@ if (input && dropzone) {
     container.setAttribute('aria-label', `${colors.length} extracted palette colors`);
     container.innerHTML = colors.map((color, index) => {
       const role = variant.roleIndex.indexOf(index), sample = index + 1;
-      return `<div class="extract-color-row${role < 0 ? ' is-extra' : ''}" style="--swatch:${color};--on:${textOn(color)}"><button type="button" class="extract-color-copy" data-copy="${color}" aria-label="Copy HEX ${color}, sample ${sample}"><code>${color}</code><small>${role >= 0 ? roles[role] : 'Extra color'}</small></button><span class="extract-color-tools">${role < 0 ? `<button type="button" class="extract-remove" data-extract-remove="${index}" aria-label="Remove extra color, sample ${sample}" title="Remove this extra color">×</button>` : ''}<label class="extract-color-edit"><span aria-hidden="true" title="Image point ${sample}">${sample}</span><input type="color" value="${color}" data-extract-color="${index}" aria-label="Edit color of sample ${sample} (image point ${sample})"></label></span>${canInsert && index < colors.length - 1 ? `<button type="button" class="extract-insert" data-extract-insert="${index + 1}" aria-label="Insert a color between samples ${sample} and ${sample + 1}" title="Insert a color here">+</button>` : ''}</div>`;
+      return `<div class="extract-color-row${role < 0 ? ' is-extra' : ''}" style="--swatch:${color};--on:${textOn(color)}"><button type="button" class="extract-color-copy" data-copy="${color}" aria-label="Copy HEX ${color}, sample ${sample}"><code>${color}</code><small>Color ${sample}</small></button><span class="extract-color-tools">${role < 0 ? `<button type="button" class="extract-remove" data-extract-remove="${index}" aria-label="Remove extra color, sample ${sample}" title="Remove this extra color">×</button>` : ''}<label class="extract-color-edit"><span aria-hidden="true" title="Image point ${sample}">${sample}</span><input type="color" value="${color}" data-extract-color="${index}" aria-label="Edit color of sample ${sample} (image point ${sample})"></label></span>${canInsert && index < colors.length - 1 ? `<button type="button" class="extract-insert" data-extract-insert="${index + 1}" aria-label="Insert a color between samples ${sample} and ${sample + 1}" title="Insert a color here">+</button>` : ''}</div>`;
     }).join('');
   }
   // Existing points stay where the user left them; only the inserted/removed point changes.

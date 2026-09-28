@@ -7,13 +7,24 @@ güncel yönlendirme sonraki görüşmeyi kaydeder.
 
 ## Güncel yönlendirme — 2026-09-28
 
-- Owner yerel v3 şişeyi ve karşılaştırmayı beğendi. Yeni ürün sorusu: soldaki
-  Background/Surface/Primary/Accent/Text isimleri Skincare kullanımını yanlış
-  anlatıyor. Öneri henüz onaylı değil: palet üyelerine nötr Color 1…N isimleri;
-  bağlama özgü Label/Body/Cap/Accent/Print atamaları ayrı. Eski kayıt/rol kimlikleri
-  yerinde kalmalı; bu soru adına kod/adlandırma değiştirilmedi. Owner Claude
-  kotasının 10–15 dakika içinde yenilenmesini bekliyor; sonraki küçük görevden
-  önce gerçek limit doğrulanmalı. Yeni Claude görevi/hatırlatma başlatılmadı.
+- En son owner talimatı: normal işleri sürdür, Claude kapasitesini başka iş
+  için ayır; şimdilik yeni görev verme. Bu turda Claude/başka ajan hiç
+  çağrılmadı. Alttaki yoğun delegasyon talimatları tarihsel; bu kaynak tercihi
+  onların önüne geçer. Aktif worker/hatırlatma yok.
+- Owner'ın Background/Surface/Primary/Accent/Text sorusuna verilen nötr isim
+  önerisi, normal işe devam yönlendirmesiyle dar yerel
+  [STUDIO-NAMING-06](tasks/studio-naming-06.md) olarak uygulandı. Studio ve
+  Extract üyeleri Color 1…N; sağdaki Label/Body/Accent/Cap ve Print gerçek
+  üye numarasını gösterir. Persisted rol/indeks/HEX/sıra ve legacy export
+  anahtarları değişmedi; özel renk ismi editörü eklenmedi. Çok renkli kaydın
+  ilk açılışındaki yanlış shade anchor düzeltildi, 320px numara/HEX kesilmesi
+  giderildi. App v101/member v3/Studio CSS v13; 189 PASS / 0 FAIL. 4202 izole
+  browser'da 5/10 renk, Extract→Studio, boş üye düzenleme/atama/reload,
+  Globe/shades, comparison/restore ve 320px ürün/karşılaştırma kontrol edildi;
+  console temiz. Owner'ın 4201 tab/draftı işletilmedi. Yerel teslim
+  `http://127.0.0.1:4202/studio/?p=concept-piera`; ilk beş renk geri getirildi,
+  geçici karşılaştırma temizlendi. Yeni isimlerin owner görsel kabulü henüz
+  yok; cihaz PNG/inbox/authenticated save NOT RUN, hosted işlem/push/yayın yok.
 
 - Owner v3'ü açıkça onayladı: "Bununla başlayalım". Dar local Studio renderer
   ve entegrasyon işi tamamlandı; yeni varyasyon/push/yayın yetkisi değil.
@@ -32,7 +43,8 @@ güncel yönlendirme sonraki görüşmeyi kaydeder.
   Text baskı, comparison/restore/clear ve Screens/Products geçişi kontrol edildi,
   console temiz. Başlangıç renkleri geri getirildi. Yerel preview
   `http://127.0.0.1:4201/studio/?p=custom-concept-piera`; 4200 account/4197 draft
-  dokunulmadı. Current mobil browser/cihaz PNG/authenticated save NOT RUN;
+  dokunulmadı. Bu teslimde mobil browser/cihaz PNG/authenticated save NOT RUN;
+  mobil browser kontrolü sonraki STUDIO-NAMING-06 turunda tamamlandı.
   corpus/hosted işlem/push/yayın yok. Arkada aktif Claude veya worker yok.
 
 - Son görsel geri bildirimi: owner v1 ürün formunu standart boş DM tüpü gibi
