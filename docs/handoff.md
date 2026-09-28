@@ -8,16 +8,32 @@ güncel yönlendirme sonraki görüşmeyi kaydeder.
 ## Güncel yönlendirme — 2026-09-28
 
 - Son owner isteği Palette Studio/Extract/galeri iyileştirmeleridir; Corpus
-  değerlendirmesini uygulama onayı sayma. İlk Studio paketi main `c6a187d`'de
-  (yerel, henüz yayın değil). Fotoğraf modülü `ae27737`, supplied çalışma
-  galerisi `103ae96` eklendi; shared test/app bağlantıları final entegrasyon
-  bekler. Aktif `STUDIO-MEMBERS-01` aynı Studio Claude yazarıyla sürer;
-  ardından [dar entegrasyon follow-up](tasks/studio-integration-03.md) hazırdır.
-  Dosya sahipliğini open-work'ten doğrula. Katre gerçek fotoğraf prototipi
-  açık/koyu/maske görünümünde kontrol edildi; yeni bitmap/palet üretilmedi.
+  değerlendirmesini uygulama onayı sayma. İlk Studio paketi `c6a187d`, fotoğraf
+  `ae27737`, galeri `103ae96`, çok renkli workspace `78617f6`; final entegrasyon
+  main `58ff1fe`. `npm run check:release`: 109 statik dosya, 171 PASS / 0 FAIL;
+  audit: 0 açık. 8–10 üyeli palet, atama/Undo/reload, fotoğraf aç/kapat ve
+  320/390 px kesilmeden Extract → Studio yolu izole origin'de kontrol edildi.
+  Yeni bitmap/palet üretilmedi; verilen Katre görseli yalnız tarayıcıda değişir.
+- Claude Studio oturumu `bc13dca1-1dfe-4378-8c76-03fc1f889abe` 429 kullanım
+  sınırında durdu (reset: 28 Eylül 06:50 Europe/Berlin). Teslimleri korunarak
+  final entegrasyon dosyalarının tek yazarlığı Codex'e geçti; aktif Claude
+  implementasyonu yok. Kotayı sıfırlanmış veya yeni iş başlamış gibi gösterme.
+  Codex yarım fotoğraf bağlantısını, mobil kesilmeyi ve ortak test/cache
+  sözleşmelerini tamamladı. Bir saatlik 03:04 hedefi aşıldı; gate atlanmadı.
+- Fotoğraf PNG blob'u oluşturulup indirme istendi, fakat IAB download olayı
+  gelmedi: cihazdaki dosya doğrulaması NOT RUN. Fotoğraf maske kenarları ve koyu
+  baskı kontrastı yaklaşık dijital concept sınırlamasıdır. My palettes tüm
+  renkleri saklar fakat RPC rol haritasını saklamaz; yeniden Studio'ya açarken
+  beş rol tekrar seçilir. Projects/prototypes/templates haritayı saklar;
+  authenticated gerçek save/resume henüz denenmedi.
 - Campaigns: aynı paletin afiş/story/bilet uygulaması, kampanya yönetimi değil.
   Owner'a tut/Print & Social adıyla tut/kaldır seçimi soruldu; henüz karar yok.
   Extract 1–5 kontrolleri görseldeki numaralı örnek noktalarına karşılık gelir.
+- Güncel UI yayını `58ff1fe`: Cloudflare Pages `df233a75-da5b-4ac0-bd63-f8ee8b442a6c`
+  completed/success. `npm run test:live` ve `npm run test:live:release` PASS;
+  dört ilgili HTML route ve sekiz JS/CSS asset public içerikle byte-eşleşti.
+  Public Studio fotoğrafı ready, export etkin ve konsolda error/warn yok.
+  Bu UI/infrastructure kanıtıdır; gerçek inbox/private save-resume kabulü değil.
 - İlk somut öncelik dış ekipten gelecek Color Corpus entegrasyonudur.
   `CORPUS-INTEGRATION-01` üç read-only Claude alt ajanıyla incelendi;
   [A–G raporu](color-corpus-integration-assessment.md) Codex incelemesiyle hazır.
@@ -104,14 +120,14 @@ gibi doldurmaz; canlı kullanıcı/veri silmek önceki bir onayın devamı deği
 | Yüzey | Koddaki durum | Kanıt sınırı / kalan iş |
 | --- | --- | --- |
 | Explore `/` | Globe + solda beş slotlu Mini Studio; kısa altı dünya menüsü; dört AI kartı | Son dünya menüsü beğenildi. Büyük homepage instrument deneyi geri alındı. Yeni Apply/default seçim/globe coupling otomatik eklenmeyecek |
-| Studio `/studio/` | Beş rol, Color Globe dialogu, inline shades, tray, export, Objects/Screens/Campaigns, private Projects | Sahnenin fiziksel ürün rengi doğruluğu iddiası yok. Authenticated gerçek resume kanıtı açık |
+| Studio `/studio/` | 5–24 üyeli workspace, beş preview rolü, Color Globe, inline shades, Products/Screens/Campaigns, Katre canlı photo, private Projects | Fiziksel renk doğruluğu yok. PNG cihaz dosyası ve authenticated resume kanıtı açık |
 | Account `/account/` | Email + OK → sekiz haneli email code; yeni/mevcut üye aynı yol; private 2–24 renkli paletler | Mock test geçti; gerçek mail ve tüketim/saklama yolculuğu ayrı kapı |
-| Image to palette `/extract/` | Oran koruyan image/points + beş renk workspace; undo, reset, isim, Studio handoff | Original-pixel manuel sampling var; otomatik analiz ayrı downsample. Hosted/orientation/browser kalite regresyonu izlenecek |
-| Library `/explore/` | Local text/alias/filter + Oklab eşleme engine'i | `approvedPaletteIds=[]`; içerik boş. SQL editorial engine yalnız review draft |
-| Inspiration `/inspiration/` | Kompakt palette-first shelf; Edition/RoomKit yönleri | Eski görseller kaldırıldı; final handpicked görsel seçkisi yok |
+| Image to palette `/extract/` | Oran koruyan image/points, 5–10 renk arası +; undo, reset, isim, tam Studio handoff | Numara görsel örnek noktasına bağlı. Original-pixel sampling; otomatik analiz ayrı downsample. Orientation regresyonu açık |
+| Library `/explore/` | Local text/alias/filter + Oklab eşleme; ayrı rafta dört supplied AI concept | `approvedPaletteIds=[]`; concept görüntüleme corpus onayı değildir. SQL editorial engine yalnız review draft |
+| Inspiration `/inspiration/` | Sekiz mevcut supplied AI study; aile gruplaması; ayrı RoomKit Lab linki | Provisional concept disclosure; dış corpus veya nihai editoryal onay yok |
 | Community `/community/` | Palette/work/question + inline comments prototipi | Device-local draftlar; örnek yorumlar reload'da gider. Public feed/post/moderation/backend yok |
 | Lab `/lab/` | RoomKit browser-local deneyi korunuyor | Gerçek semantic photo recolor değil; yeni ürün fikirleri değerlendirme aşamasında |
-| ColorwayKit | Studio/Sandbox'ta body/cap/label/carton/backdrop ataması, frozen baseline, PNG export | Çalışan code-native concept. AI fotoğrafı yeniden renklendirilmiyor |
+| ColorwayKit | Legacy/Sandbox code-native body/cap/label/carton/backdrop; Studio Katre'de ayrı maskeli photo renderer | Eski snapshot alanları tube/bottle/jar/caps'e eşlenir; fotoğraf arka planı sabit, fiziksel doğruluk iddiası yok |
 | Sandbox `/sandbox/` | Açık, şifresiz, ayrı local state; deneyler ve One Shape player | Public URL ile erişilebilir; noindex erişim kontrolü değildir. Otomatik ana ürüne taşıma yok |
 | Home test `/home-test/` | Geri alma sırasında eski deney yeniden tutuldu; kopya modüller var | Silme isteği ile restore arasında tarihsel çakışma. Kaldırma/taşıma kararını sor; canonical ürün değil |
 | Worlds / Editions / About / Privacy | Adresler korunuyor; retired referanslar bozulmuyor | Tarihsel metin/placeholder tutarlılığı ayrıca denetlenecek; hazır curated yayın sayılmaz |

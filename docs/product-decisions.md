@@ -1,6 +1,6 @@
 # ColorVerse product decisions
 
-## Current state — 2026-09-27
+## Current state — 2026-09-28
 
 This block takes precedence over superseded decisions below. The dated entries
 are an audit trail, not instructions to reimplement every earlier experiment.
@@ -29,12 +29,27 @@ Start a new session with [the handoff](handoff.md) and [open work](open-work.md)
   review records for compatibility, not as approved curated content. External
   photos are outside `dist/` in local backups; do not restore them automatically.
 - Never generate new images without a new explicit request. Owner-supplied AI
-  images are allowed; source photos are not recolored by palette-role changes.
+  images are allowed. The owner's Sep28 Studio request permits local digital
+  recoloring of annotated surfaces in the supplied Katre cosmetics photograph;
+  preserve the source file, background and approximate AI-concept disclosure.
 - New unnamed drafts get editable short ASCII suggestions. Stable database IDs
   and existing member names, including non-ASCII names, stay untouched.
-- Studio keeps five preview roles and Objects/Screens/Campaigns trials; member
-  palettes support 2–24 colors. ColorwayKit is code-native surface mapping, not
-  AI photo recoloring or a physical manufacturing-color guarantee.
+- Studio keeps five preview roles separately from all 5–24 palette members;
+  compact member cells support explicit role assignment. Extract adds samples
+  between existing points up to ten; numbered fields refer to image sample
+  points. Member palettes still support 2–24 colors; do not pad smaller palettes.
+- Studio uses Products/Screens/Campaigns. Skincare/Footwear/Object controls sit
+  inside the middle preview. Katre uses the supplied photograph with Tube,
+  Bottle, Jar and Caps controls, frozen comparison and photo PNG export; no
+  physical manufacturing-color guarantee. Screens is a native illustrative
+  report, not a live Power BI connection. Campaigns (poster/story/ticket) stays
+  pending the owner's keep / Print & Social / remove decision.
+- Alternatives are explicitly for the selected color, not a full-palette
+  recommender or a scientifically optimal harmony score.
+- Inspiration shows all eight supplied AI studies; Library shows four existing
+  homeStudies in a separate provisional concept shelf. Neither display approves
+  corpus records or changes the empty approved manifest. Corpus implementation
+  remains stopped after the engineering assessment, pending owner approval.
 - Sandbox is open/unpassworded and browser-local. Keep RoomKit unchanged.
   Home-test was restored during rollback and is a separate, noncanonical trial.
   Community is a local prototype; no public posting/moderation backend exists.

@@ -1,5 +1,14 @@
 # STUDIO-INTEGRATION-03 — finish delivered modules, no new product platform
 
+Final status, 2026-09-28: Claude session `bc13dca1-1dfe-4378-8c76-03fc1f889abe`
+stopped on its 429 usage limit (06:50 Europe/Berlin reset). Codex explicitly took
+sole ownership of the remaining integration files and completed main `58ff1fe`.
+171/171 local checks, static validation, audit and diff checks passed. Isolated
+browser QA covered 8–10 colors, 320/390 px, photo assignment/comparison and
+view destruction/reopening. PNG blob/download request succeeded but the IAB
+download event did not arrive; actual downloaded file remains unverified.
+No corpus production, source asset edits, hosted settings or real-user writes.
+
 Prepared for the SAME Studio Claude writer after STUDIO-MEMBERS-01 delivery.
 Codex transfers the exact reviewed Gallery and Photo commits before activation.
 No simultaneous writer on app.js/tests/package.json; no commit/push/deploy,
