@@ -7,6 +7,11 @@ güncel yönlendirme sonraki görüşmeyi kaydeder.
 
 ## Güncel yönlendirme — 2026-09-28
 
+- Owner'ın son talimatı Claude'u yeniden tüm mühendislik işlerinde kullanmak;
+  eski kapasite rezervasyonu aşağıda tarihsel kalır. İlk öncelik >5 palet renginin
+  Studio'da kaybolması: [STUDIO-COLORS-08](tasks/studio-colors-08.md) dar görevi
+  hazır, ayrı branch/worktree tahsis edilecek. Codex kapsamı/entegrasyonu yönetir,
+  Claude uygulama yazarıdır. Hazır brief henüz çalışmış Claude kanıtı değildir.
 - Owner yeni Studio UX yönünü açıkça istedi; [STUDIO-FOCUS-07](tasks/studio-focus-07.md)
   yerelde tamamlandı. Bu karar UX-05A'nın solda inline shade tercihini değiştirir:
   sol yalnız renk seçimi, sağda görünür tonlar ve tek tıklık ayarlar. Yeni Studio
