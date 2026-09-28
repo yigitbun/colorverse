@@ -5,7 +5,13 @@ docs/agent-coordination.md and this brief. The owner points to Adobe Color's
 bottom “Do more with color” tool catalog as an interaction reference, not a
 design to copy. Our shelf should feel unmistakably ColorVerse.
 
-## Deliverable
+## Original deliverable (historical)
+
+The initial five-destination shelf was implemented at `e8965c9`. The owner
+reviewed it and asked for a distinct ColorVerse message instead of a generic
+tool catalog. That feedback supersedes the layout below: use the current
+product decision in `docs/product-decisions.md` and implementation recorded in
+`docs/open-work.md`.
 
 On all primary public pages, add one shared, responsive five-card tool shelf
 immediately before the footer. Five real destinations: Explore globe (`/`),

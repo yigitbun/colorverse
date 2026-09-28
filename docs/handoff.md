@@ -16,6 +16,13 @@ güncel yönlendirme sonraki görüşmeyi kaydeder.
   artık ilk rengi body, ikinciyi label yüzeyinde gösteriyor; önizleme destek
   nötrleri yine authored palette dahil değil. Yerel testler geçti; bu satır
   hosted yayın veya gerçek inbox/private save kanıtı değildir.
+- Owner, sayfa sonundaki “ColorVerse tools / Keep working with color” rafını
+  yavan ve kopya buldu. Codex yerel arayüzü ColorVerse'in kendi mesajına göre
+  yeniden kurdu: “Color is a decision, not a swatch.” Üç görsel adım globe →
+  image reading → design preview; Inspiration ve Library örnek/start noktası
+  olarak ikincil bağlantılara taşındı. Eski generic five-card raf artık ürün
+  yönü değildir. Görsel check Inspiration'da masaüstünde yapıldı; mobil ve
+  Account/Privacy ekranları bu son değişiklikte ayrı kontrol edilmedi.
 - Owner ana sayfanın kürede tek seçili renk ile açılmasını istedi.
   [HOME-GLOBE-SEED-09](tasks/home-globe-seed-09.md) Claude Opus 5.5 tarafından
   ayrı worktree'de `553f72c` + `ed21c97` olarak teslim edildi, Codex inceleyip

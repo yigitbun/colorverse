@@ -14,6 +14,13 @@ Start a new session with [the handoff](handoff.md) and [open work](open-work.md)
   A fresh Studio draft starts with existing colorful serum source colors;
   requested/resumable palettes and the homepage default remain unchanged.
   Local implementation complete; owner visual acceptance still pending.
+- The shared page-end shelf follows a ColorVerse-specific story: **find a
+  direction → read a reference → see the palette in a design**. Inspiration
+  and Library remain available as examples and starting palettes, not as two
+  more equivalent tool tiles. Its message is “Color is a decision, not a
+  swatch.” Keep the product preview visual and the page-end shelf restrained on
+  Account and Privacy. This supersedes the generic “Keep working with color”
+  five-card catalog direction.
 - Studio COLORS-08A makes larger palettes visibly complete: 8–10 members fit
   in two compact columns in the expanded rail; counts/scroll or swipe cues
   explain longer lists. Collapsed remains a narrow swatch strip. The legacy

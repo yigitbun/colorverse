@@ -25,25 +25,31 @@ test('shelf lists exactly the five real destinations', () => {
   for (const tool of TOOLS) {
     const target = tool.href === '/' ? 'index.html' : `${tool.href.slice(1)}index.html`;
     assert.ok(existsSync(new URL(target, dist)), `${tool.href} exists in dist`);
-    assert.ok(tool.title && tool.outcome && tool.action, `${tool.id} has label, outcome and action`);
+    assert.ok(tool.title && tool.action, `${tool.id} has a label and action`);
   }
 });
 
-test('every card has one action and a decorative CSS thumbnail', () => {
+test('the footer tells a distinct find → read → apply story, with examples as secondary destinations', () => {
   const html = catalogMarkup();
-  assert.equal(html.match(/<li class="tool-card"/g).length, 5);
-  assert.equal(html.match(/<a /g).length, 5);
-  assert.equal(html.match(/class="tool-thumb tool-thumb-[a-z]+" aria-hidden="true"/g).length, 5);
-  assert.doesNotMatch(html, /<img|<svg|url\(/);
+  assert.match(html, /Color is a decision, not a swatch\./);
+  assert.match(html, /From color to context/);
+  assert.equal(html.match(/class="journey-step"/g).length, 3);
+  assert.equal(html.match(/class="journey-step-link"/g).length, 3);
+  assert.match(html, /journey-visual-globe/);
+  assert.match(html, /journey-visual-read/);
+  assert.match(html, /assets\/studies\/katre-serum-v3\.png/);
+  assert.match(html, /See applied studies/);
+  assert.match(html, /Browse palettes/);
+  assert.match(html, /From a color direction to a finished design/);
 });
 
-test('current tool is de-emphasised instead of linking to itself', () => {
+test('the current destination is identified without sending the user to the same page again', () => {
   for (const tool of TOOLS) {
     const html = catalogMarkup(tool.id);
-    assert.equal(html.match(/aria-current="page"/g).length, 1);
+    assert.equal(html.match(/aria-current="(?:page|step)"/g).length, 1);
     assert.doesNotMatch(html, new RegExp(`href="${tool.href}"`), `${tool.id} does not self-link`);
-    assert.match(html, /href="#main">Back to top/);
-    assert.equal(html.match(/class="tool-card-link"/g).length, 4);
+    assert.match(html, /You are here/);
+    assert.equal(html.match(/class="journey-step-link"/g).length, tool.id === 'globe' || tool.id === 'extract' || tool.id === 'studio' ? 2 : 3);
   }
 });
 
@@ -51,7 +57,7 @@ test('primary routes mount one shelf immediately before the footer', async () =>
   for (const [route, { current, tone }] of Object.entries(ROUTES)) {
     const html = await read(route);
     assert.equal(html.match(/data-tool-catalog/g)?.length, 1, `${route} has one shelf`);
-    assert.match(html, /<link rel="stylesheet" href="\/tool-catalog\.css\?v=\d+">/, `${route} loads the stylesheet`);
+    assert.match(html, /<link rel="stylesheet" href="\/tool-catalog\.css\?v=4">/, `${route} loads the stylesheet`);
     assert.match(html, /<script type="module" src="\/tool-catalog\.js\?v=\d+"><\/script>/, `${route} loads the module`);
     const shelf = html.match(/<section class="tool-catalog section-wrap" data-tool-catalog([^>]*)><\/section>\n\s*<footer class="footer/);
     assert.ok(shelf, `${route} shelf sits directly before the footer`);
@@ -62,8 +68,8 @@ test('primary routes mount one shelf immediately before the footer', async () =>
 
 test('stylesheet keeps mobile readable and account/legal quiet', async () => {
   const css = await read('tool-catalog.css');
-  assert.match(css, /grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
-  assert.match(css, /@media\(max-width:640px\)\{[^@]*\.tool-catalog-list\{grid-template-columns:1fr/);
+  assert.match(css, /grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+  assert.match(css, /@media\(max-width:560px\)\{[^@]*\.color-journey\{grid-template-columns:1fr/);
   assert.match(css, /\.tool-catalog\[data-tone=quiet\]/);
   assert.match(css, /\.tool-catalog:empty\{display:none\}/);
 });
