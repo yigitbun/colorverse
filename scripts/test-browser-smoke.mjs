@@ -112,6 +112,8 @@ async function handOffFromLibrary(page) {
   assert.equal(await page.locator('#homeExploreGrid').count(), 0, 'homepage no longer repeats Library examples');
   await Promise.all([page.waitForURL(url => url.pathname === '/explore/'), page.locator('.hero-actions a[href="/explore/"]').click()]);
   const card = page.locator('[data-study-shelf="library"] .study-card').first();
+  await card.waitFor({ state: 'visible' });
+  assert.equal(await page.locator('#libraryCurationHold').isVisible(), false, 'Library concept studies are not buried under an empty approved-list notice');
   await card.scrollIntoViewIfNeeded();
   const link = card.locator('a[href^="/studio/?p="]');
   await assert.doesNotReject(link.waitFor({ state: 'visible' }), 'Library shows a concept study with a visible Studio link');

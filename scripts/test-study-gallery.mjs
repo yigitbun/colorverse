@@ -109,11 +109,11 @@ test('Library markup keeps the concept shelf separate from the approved rail', (
   assert.match(explore, /<div class="palette-rail palette-library-grid" id="paletteRail" aria-label="Palette library" aria-live="polite"><\/div>/);
   const shelf = explore.match(/<section class="study-concept-shelf" data-study-shelf="library"[\s\S]*?<\/section>/)[0];
   assert.match(shelf, / hidden>/);
-  assert.match(shelf, /Supplied studies · AI concepts/);
-  assert.match(shelf, /Provisional AI-generated concepts[^<]*Not approved Library palettes/);
+  assert.match(shelf, /Palette studies · AI concepts/);
+  assert.match(shelf, /Fictional AI-generated concepts[^<]*Not approved Library palettes/);
   assert.doesNotMatch(shelf, /id="paletteRail"|palette-library-grid|collectionIndex/);
   assert.match(explore, /<script type="module" src="\/study-gallery\.js\?v=2"><\/script>/);
-  assert.match(explore, /href="\/palette-library\.css\?v=5"/);
+  assert.match(explore, /href="\/palette-library\.css\?v=6"/);
   assert.match(explore, /No approved palettes yet\./);
 });
 
@@ -181,6 +181,7 @@ test('matching the current palette explains when no stored palette exists', () =
 
 test('concept-only Library hides Feeling filters but keeps them for an approved Library', async () => {
   const css = (await read('dist/palette-library.css')).replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.match(css, /body\.is-curation-hold\.has-study-shelf \.library-curation-hold\{display:none\}/, 'the empty approved-list notice does not bury the visible concept studies');
   // app.js's hold rule hides the Feeling row; the concept shelf must not re-show it.
   assert.match(css, /body\.is-curation-hold [^{]*\.palette-filter-row[^{]*\{display:none\}/);
   const shelfRules = css.match(/[^{}]*has-study-shelf[^{}]*\{[^}]*\}/g);
