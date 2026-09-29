@@ -53,6 +53,24 @@ files. Commit only assigned files; no push.
 Status: delivered for Codex review on the task branch (base `2130f1f`); not
 pushed or deployed.
 
+## Owner correction — STU-14A (2026-09-29)
+
+The owner rejects the new full-width Shuffle block: “shuffle sadece minik bir
+icon olsa yeterdi, blok ekleyip durma.” Claude should revise the locally
+integrated STU-14 UI on a separate branch `codex/claude-studio-shuffle-icon-14a`
+from current main. Remove the extra Shuffle row entirely. Keep a compact
+icon-only Shuffle control **on the same line as the palette name (e.g. Citrus
+Muse), right-aligned**, above Color 1, without adding vertical layout height
+or changing the “Your palette” top line. Give it `aria-label` and `title` that
+plainly say it mixes the current colors' order without generating new ones.
+Keep Undo as an equally compact icon-only peer if feasible; do not introduce
+another row, toolbar or block. In collapsed mode, it may be hidden until the
+rail is expanded if two icon controls cannot fit safely. Preserve the tested
+shuffle/undo logic and all other controls. Update only Studio HTML/CSS and the
+focused tests whose old large-button placement assumptions change; `dist/app.js`
+should not change unless strictly necessary. Use the original allowed-file and
+test/safety constraints. Codex reviews/merges exact revision; no push/deploy.
+
 - A labelled `Shuffle` button (recognizable crossing-arrows icon, visible
   label, `title="Mix order · keep colors"`) sits in a new row between the
   palette title/count and the member rail, styled distinctly from the dashed
