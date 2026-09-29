@@ -220,6 +220,7 @@ function choosePalette(palette, notify = true) {
   else if (palette.id === 'drift-field-01') productKind = 'footwear';
   activeColorIndex = 0;
   shadeSourceColors = [...current.workspace.members];
+  shuffleUndo = null;
   persistPalette(current);
   renderSelection(true);
   track('palette_open', { source: page === 'community' ? 'community' : 'library' });
@@ -227,7 +228,10 @@ function choosePalette(palette, notify = true) {
 }
 
 // All edits go through the workspace; `current.colors` is re-derived as the five role colors.
-function commitWorkspace(workspace, extra = {}) {
+// Shuffle is the only writer that keeps its pre-shuffle snapshot alive past this call.
+let shuffleUndo = null;
+function commitWorkspace(workspace, extra = {}, { keepShuffleUndo = false } = {}) {
+  if (!keepShuffleUndo) shuffleUndo = null;
   current = { ...current, ...extra, id: current.id.startsWith('custom-') ? current.id : `custom-${current.id}`, workspace, colors: roleColors(workspace) };
   persistPalette(current);
   renderSelection(true);
@@ -265,6 +269,53 @@ function swapPaletteMembers(from, to) {
   const status = $('#paletteOrderStatus');
   if (status) status.textContent = `Swapped Color ${from + 1} and Color ${to + 1}.`;
   track('color_edit', { method: 'palette-member-swap' });
+}
+
+// A uniformly random permutation of `count` positions, retried if it lands back
+// on the original order (always possible for count >= 2) so one click always
+// visibly reorders the rail. crypto.getRandomValues is preferred; Math.random
+// is a safe fallback where it is unavailable.
+function randomPaletteOrder(count) {
+  const rollDigits = () => {
+    if (window.crypto?.getRandomValues) return window.crypto.getRandomValues(new Uint32Array(count));
+    return Array.from({ length: count }, () => Math.floor(Math.random() * 2 ** 32));
+  };
+  for (let attempt = 0; attempt < 40; attempt++) {
+    const order = Array.from({ length: count }, (_, index) => index);
+    const rolls = rollDigits();
+    for (let index = count - 1; index > 0; index--) {
+      const swapWith = rolls[index] % (index + 1);
+      [order[index], order[swapWith]] = [order[swapWith], order[index]];
+    }
+    if (order.some((value, index) => value !== index)) return order;
+  }
+  // Astronomically unlikely with real randomness; adjust deterministically rather than loop forever.
+  const order = Array.from({ length: count }, (_, index) => index);
+  [order[0], order[1]] = [order[1], order[0]];
+  return order;
+}
+
+// Mixes the visible member order only: no HEX is created, edited or removed.
+// Five-member palettes keep the historic identity role map, so the preview
+// follows the new positions, same as a single member drag; other sizes keep
+// each role attached to its color by remapping which member now holds it,
+// exactly as swapPaletteMembers does for one pair, generalised to the whole permutation.
+function shufflePalette() {
+  const workspace = current.workspace, count = workspace.members.length;
+  if (count < 2) return;
+  const order = randomPaletteOrder(count);
+  const members = order.map(index => workspace.members[index]);
+  const previousShadeSource = [...shadeSourceColors];
+  const previousActiveColorIndex = activeColorIndex;
+  shadeSourceColors = order.map(index => previousShadeSource[index] ?? workspace.members[index]);
+  activeColorIndex = order.indexOf(activeColorIndex);
+  const next = { ...workspace, members };
+  if (count !== 5) next.roleIndex = workspace.roleIndex.map(index => index === SUPPORT_ROLE ? SUPPORT_ROLE : order.indexOf(index));
+  shuffleUndo = { workspace, shadeSourceColors: previousShadeSource, activeColorIndex: previousActiveColorIndex };
+  commitWorkspace(next, {}, { keepShuffleUndo: true });
+  const status = $('#paletteOrderStatus');
+  if (status) status.textContent = `Shuffled ${count} colors into a new order. Colors are unchanged.`;
+  track('color_edit', { method: 'shuffle' });
 }
 
 // `index` is a palette member; the preview changes only if that member holds a role.
@@ -333,6 +384,7 @@ function loadStudioSnapshot(snapshot) {
   }
   activeColorIndex = 0;
   shadeSourceColors = [...workspace.members];
+  shuffleUndo = null;
   const legacyReport = $('#tab-presentation');
   if (legacyReport) legacyReport.hidden = context !== 'presentation';
   $$('[data-context]').forEach(button => {
@@ -427,6 +479,8 @@ function renderPaletteRoles() {
   support.innerHTML = note;
   renderPaletteAdd();
   updatePaletteOverflow();
+  const shuffleUndoButton = $('#paletteShuffleUndo');
+  if (shuffleUndoButton) shuffleUndoButton.hidden = !shuffleUndo;
 }
 
 // The plus below the rail names the member it will create and says when the palette is full.
@@ -1000,6 +1054,7 @@ $('#mockup')?.addEventListener('click', async event => {
     current = { ...current, workspace, colors: roleColors(workspace) };
     Object.assign(careAssignment, colorwayBaseline.assignment);
     shadeSourceColors = [...workspace.members];
+    shuffleUndo = null;
   }
   persistPalette(current);
   renderSelection();
@@ -1219,6 +1274,18 @@ $('#togglePaletteRail')?.addEventListener('click', event => {
   button.title = collapsed ? 'Expand palette' : 'Collapse palette';
   if (collapsed) closePaletteAdd();
   updatePaletteOverflow();
+});
+$('#paletteShuffle')?.addEventListener('click', () => shufflePalette());
+$('#paletteShuffleUndo')?.addEventListener('click', () => {
+  if (!shuffleUndo) return;
+  const restore = shuffleUndo;
+  shadeSourceColors = restore.shadeSourceColors;
+  activeColorIndex = restore.activeColorIndex;
+  commitWorkspace(restore.workspace);
+  const status = $('#paletteOrderStatus');
+  if (status) status.textContent = 'Shuffle undone. Order restored.';
+  track('color_edit', { method: 'shuffle-undo' });
+  $('#paletteShuffle')?.focus({ preventScroll: true });
 });
 $('#paletteAddToggle')?.addEventListener('click', () => {
   if ($('#paletteAddForm').hidden) openPaletteAdd();

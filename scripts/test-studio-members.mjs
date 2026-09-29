@@ -440,7 +440,7 @@ test('legacy five-slot edits update the matching full workspace, keeping extras,
 });
 
 test('larger palettes get a compact two-column rail with a count and overflow cue; collapsed stays swatch-only', () => {
-  assert.match(studioHtml, /<p class="palette-count" id="paletteCount" hidden><\/p>\n\s*<div class="palette-roles" id="paletteRoles" role="group"><\/div>/);
+  assert.match(studioHtml, /<p class="palette-count" id="paletteCount" hidden><\/p>\n\s*<div class="palette-shuffle-row">.*?<\/div>\n\s*<div class="palette-roles" id="paletteRoles" role="group"><\/div>/);
   assert.match(app, /container\.classList\.toggle\('is-compact-grid', workspace\.members\.length > 5\)/);
   assert.match(app, /count\.hidden = workspace\.members\.length <= 5;/);
   assert.match(app, /container\.classList\.toggle\('has-more-down', down && !across && !atEnd\)/);
