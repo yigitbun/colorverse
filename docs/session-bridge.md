@@ -14,7 +14,7 @@ eksik kalan bir karar/kanıt varsa o görevin ilgili son bölümünü oku.
 - Public yayın hâlâ `14d7a38`. Yerel `main`: hareketli Studio drag kartı
   `b03c953`, renk ekleme `3812fdc`, karttan Globe açma `b8d4911`, zengin
   Screens raporu `1bd6f95` + asset pin `0fbddea`, görünür Studio Shuffle
-  `6f291d2` entegre; public'e gönderilmedi. Son release 234/234 PASS.
+  `6f291d2` entegre; public'e gönderilmedi. Son release 236/236 PASS.
   Shuffle 13/13, ilgili Studio browser regresyon 14/14 PASS. Rapor ve
   Shuffle 1280/390px yerel tarayıcıda
   görsel olarak incelendi, yatay taşma yok. Gerçek inbox/private save kanıtı açık.
@@ -24,6 +24,12 @@ eksik kalan bir karar/kanıt varsa o görevin ilgili son bölümünü oku.
 - Yerel ana sayfa world-menu/zoom çalışması ile ilgili dosyalar dirty:
   `dist/app.js`, `dist/index.html`, `dist/world-picker.css`; ilgili backlog ve
   ürün kararlarında da yerel düzenlemeler var. Başka görevin kapsamına katma.
+- HOME-JOURNEY-17: owner yönüyle ana sayfadaki örnek palet bölümü kaldırıldı;
+  globe hero'yu doğrudan “Color is a decision, not a swatch.” rafı izliyor.
+  Hero'nun ikincil bağlantısı Library'ye gidiyor; Library konsept rafı ve
+  onay durumu değişmedi. Yerel main `782ae13`, release 236/236 ve izole
+  browser smoke 2/2 PASS; public'e gönderilmedi. Claude dar worktree görevinde
+  dosya üretmeden beklediği için durduruldu; Codex uyguladı.
 - Claude STU-10/12/13/14 revizyonları Codex tarafından incelenip entegre edildi;
   aktif ikinci yazar yok. Ayrı worktree'ler duruyor; yeni kapsam vermeden
   üzerinde çalışma başlatma.
