@@ -26,10 +26,18 @@ eksik kalan bir karar/kanıt varsa o görevin ilgili son bölümünü oku.
   ürün kararlarında da yerel düzenlemeler var. Başka görevin kapsamına katma.
 - HOME-JOURNEY-17: owner yönüyle ana sayfadaki örnek palet bölümü kaldırıldı;
   globe hero'yu doğrudan “Color is a decision, not a swatch.” rafı izliyor.
-  Hero'nun ikincil bağlantısı Library'ye gidiyor; Library konsept rafı ve
-  onay durumu değişmedi. Yerel main `782ae13`, release 236/236 ve izole
+  Hero'nun ikincil bağlantısı Library'ye gidiyor; Library'deki dört konsept
+  artık ilk ekranda (`799d688`), onay durumu değişmedi. Yerel main `782ae13`,
+  release 236/236 ve izole
   browser smoke 2/2 PASS; public'e gönderilmedi. Claude dar worktree görevinde
   dosya üretmeden beklediği için durduruldu; Codex uyguladı.
+- SITE-TOOL-CATALOG-18: owner'ın Color Globe ekran görüntüsü, gerçek Piera
+  kaynak görseli + beş renk ve mevcut Katre ürün görseliyle ortak raf daha
+  basık/footer tarzı şerit oldu (`95cd0b4`). “Find a direction” yerine
+  “Explore a color”; Account/Privacy sakin sürümü korundu. 114 statik dosya,
+  236/236 test, 2/2 izole browser smoke ve masaüstü/390px görsel kontrol PASS;
+  public'e gönderilmedi. Studio'nun ayrıca ürün/görsel güncellemesi owner
+  değerlendirmesine açık; bu turda mevcut Katre preview'u korunarak bırakıldı.
 - Claude STU-10/12/13/14 revizyonları Codex tarafından incelenip entegre edildi;
   aktif ikinci yazar yok. Ayrı worktree'ler duruyor; yeni kapsam vermeden
   üzerinde çalışma başlatma.
