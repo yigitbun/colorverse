@@ -2,10 +2,10 @@
 
 Updated: 2026-09-27
 
-Read [the handoff](handoff.md) and [open work](open-work.md) for the current
-owner decisions, unfinished requests, rejected experiments and next-session
-priorities. The evidence below distinguishes a fresh local check from historical
-hosted checks; this session has not pushed or deployed.
+Follow [AGENTS.md](../AGENTS.md) for task-based reading; use this dated audit
+when assessing MVP or release gates. The evidence below distinguishes a fresh
+local check from historical hosted checks; this session has not pushed or
+deployed.
 
 ## MVP verdict
 

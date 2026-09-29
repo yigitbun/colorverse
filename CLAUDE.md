@@ -2,7 +2,8 @@
 
 # Claude entry point
 
-Read [coordination](docs/agent-coordination.md), then the active assignment in
+Follow the task-based reading order in `AGENTS.md`. For implementation, read
+[coordination](docs/agent-coordination.md) and your assigned section in
 [open work](docs/open-work.md). Shared instructions come from `AGENTS.md`;
 do not maintain a separate roadmap or duplicate those rules here.
 

@@ -77,9 +77,12 @@ credential rules, and remaining backend work.
 For the current MVP verdict and release gates, see
 [the MVP gap audit](docs/mvp-gap-audit.md).
 
-To continue without the original conversation, read [the session handoff](docs/handoff.md)
-and [the canonical open-work queue](docs/open-work.md). The current-state block
-in [product decisions](docs/product-decisions.md) overrides superseded history.
+To continue in a fresh chat, start with [AGENTS.md](AGENTS.md) and the short
+[session bridge](docs/session-bridge.md), then follow the task-based reading
+order. [The session handoff](docs/handoff.md) is historical context;
+[open work](docs/open-work.md) is the canonical task queue. The current-state
+block in [product decisions](docs/product-decisions.md) overrides superseded
+history.
 Private transcripts, external-photo backups, the old local workspace and the
 founder playbook are deliberately excluded from this public repository.
 
