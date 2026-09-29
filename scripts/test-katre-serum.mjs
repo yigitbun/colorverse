@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { inflateSync } from 'node:zlib';
 import test from 'node:test';
+import { contrast } from '../dist/color.js';
 import { mountPhotoColorway, rgbToOklab, sanitizePhotoColorway } from '../dist/photo-colorway.js?v=3';
 import {
   DEFAULT_SERUM_ASSIGNMENT, KATRE_SERUM_PROFILE, SERUM_HEIGHT, SERUM_NOTE, SERUM_REGIONS, SERUM_SOURCE, SERUM_SOURCE_COLORS, SERUM_SURFACES, SERUM_WIDTH,
-  prepareSerumModel, renderSerumColorway,
+  prepareSerumModel, renderSerumColorway, resolveSerumInk,
 } from '../dist/katre-serum.js';
 
 const colorway = (colors = SERUM_SOURCE_COLORS, assignment = DEFAULT_SERUM_ASSIGNMENT) => ({ colors, assignment });
@@ -58,14 +59,15 @@ test('each palette slot independently recolors its surface; ink always follows T
   for (let k = 0; k < 5; k++) {
     const colors = [...SERUM_SOURCE_COLORS]; colors[slotFor[k]] = '#306BA5';
     const result = renderSerumColorway(model, colorway(colors));
+    const adjustedInk = resolveSerumInk(colorway(colors)).adjusted;
     assert.notDeepEqual(at(result, model.width, ...probes[k]), at(model.source, model.width, ...probes[k]), SERUM_SURFACES[k]);
-    for (let other = 0; other < 5; other++) if (other !== k) assert.deepEqual(at(result, model.width, ...probes[other]), at(model.source, model.width, ...probes[other]), `${SERUM_SURFACES[k]} leaves ${SERUM_SURFACES[other]} alone`);
+    for (let other = 0; other < 5; other++) if (other !== k && !(other === 4 && adjustedInk)) assert.deepEqual(at(result, model.width, ...probes[other]), at(model.source, model.width, ...probes[other]), `${SERUM_SURFACES[k]} leaves ${SERUM_SURFACES[other]} alone`);
     let changed = 0;
     for (let pixel = 0; pixel < model.width * model.height; pixel++) {
       const p = pixel * 4;
       if (result[p] !== model.source[p] || result[p + 1] !== model.source[p + 1] || result[p + 2] !== model.source[p + 2]) {
         changed++;
-        assert(weights[pixel * 5 + k] > 0, `slot ${slotFor[k]} escaped its mask at ${pixel}`);
+        assert(weights[pixel * 5 + k] > 0 || (adjustedInk && weights[pixel * 5 + 4] > 0), `slot ${slotFor[k]} escaped its mask at ${pixel}`);
       }
       assert.equal(result[p + 3], model.source[p + 3], 'source alpha is unchanged');
     }
@@ -90,6 +92,27 @@ test('paper and print share antialiased edges without recoloring text windows as
   assert.notDeepEqual(at(renderSerumColorway(model, colorway(paper)), model.width, 24, 33), at(model.source, model.width, 24, 33));
   assert.notDeepEqual(at(renderSerumColorway(model, colorway(ink)), model.width, 24, 33), at(model.source, model.width, 24, 33));
   for (let pixel = 0; pixel < model.width * model.height; pixel++) assert(weights.slice(pixel * 5, pixel * 5 + 5).reduce((sum, value) => sum + value, 0) <= 1.000001, 'constituent coverages do not exceed the pixel');
+});
+
+test('low-contrast label lettering is adjusted only in the preview, using the assigned label color', () => {
+  for (const [label, print] of [['#F8F7F4', '#F2F0EC'], ['#17171B', '#243025']]) {
+    const colors = Object.freeze([label, '#BBA2D1', '#E9947B', '#EAC843', print]);
+    const input = Object.freeze({ colors, assignment: Object.freeze({ ...DEFAULT_SERUM_ASSIGNMENT }) });
+    const result = resolveSerumInk(input);
+    assert.equal(result.adjusted, true);
+    assert.match(result.color, /^#[0-9A-F]{6}$/);
+    assert(contrast(label, result.color) >= 4.5);
+    assert.equal(colors[4], print, 'authored Text HEX is untouched');
+  }
+  assert.deepEqual(resolveSerumInk(colorway()), { color: SERUM_SOURCE_COLORS[4], adjusted: false, ratio: contrast(SERUM_SOURCE_COLORS[0], SERUM_SOURCE_COLORS[4]) });
+  const colors = ['#17171B', '#F8F7F4', '#E9947B', '#EAC843', '#243025'];
+  const reassigned = { ...DEFAULT_SERUM_ASSIGNMENT, tube: 1 };
+  assert.equal(resolveSerumInk(colorway(colors)).adjusted, true, 'dark Color 1 needs lighter lettering');
+  assert.equal(resolveSerumInk(colorway(colors, reassigned)).adjusted, false, 'moving Label to light Color 2 keeps the authored dark lettering');
+  const model = modelFor(), before = renderSerumColorway(model, colorway());
+  const changed = renderSerumColorway(model, colorway(['#F8F7F4', '#BBA2D1', '#E9947B', '#EAC843', '#F2F0EC']));
+  assert.notDeepEqual(at(changed, model.width, 25, 33), at(before, model.width, 25, 33), 'actual glyph pixels change');
+  assert.deepEqual(at(changed, model.width, 12, 71), at(before, model.width, 12, 71), 'scene outside the product stays unchanged');
 });
 
 test('unmasked pixels, inward edges, optical reflections and shading are preserved', () => {
@@ -173,11 +196,12 @@ test('actual approved image has tight bounded masks, exact identity and invarian
   for (const k of [0, 1, 2, 3, 4]) {
     const only = [...SERUM_SOURCE_COLORS]; only[[0, 2, 3, 1, 4][k]] = '#396795';
     const result = renderSerumColorway(model, colorway(only));
+    const adjustedInk = resolveSerumInk(colorway(only)).adjusted;
     let changes = 0;
     for (let pixel = 0; pixel < source.width * source.height; pixel++) {
       const p = pixel * 4;
       if (result[p] !== source.data[p] || result[p + 1] !== source.data[p + 1] || result[p + 2] !== source.data[p + 2]) {
-        changes++; assert(weights[pixel * 5 + k] > 0, `${SERUM_SURFACES[k]} escaped its actual mask`);
+        changes++; assert(weights[pixel * 5 + k] > 0 || (adjustedInk && weights[pixel * 5 + 4] > 0), `${SERUM_SURFACES[k]} escaped its actual mask`);
       }
     }
     assert(changes > 100);
@@ -234,7 +258,7 @@ test('serum optional mount has honest notes, square stages and frozen comparison
 
 test('serum profile imports local reusable math and keeps the photo engine independent', async () => {
   const [serum, photo] = await Promise.all([readFile(new URL('../dist/katre-serum.js', import.meta.url), 'utf8'), readFile(new URL('../dist/photo-colorway.js', import.meta.url), 'utf8')]);
-  assert.deepEqual([...serum.matchAll(/^import .* from '([^']+)';$/gm)].map(match => match[1]), ['./photo-colorway.js?v=3']);
+  assert.deepEqual([...serum.matchAll(/^import .* from '([^']+)';$/gm)].map(match => match[1]), ['./photo-colorway.js?v=3', './color.js?v=3']);
   assert.doesNotMatch(serum, /https?:\/\/|fetch\(|XMLHttpRequest|import\(|mountPhotoColorway/);
   assert.doesNotMatch(photo, /katre-serum/);
   assert(new URL(SERUM_SOURCE).pathname.endsWith('/dist/assets/studies/katre-serum-v3.png'));

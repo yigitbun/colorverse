@@ -1,4 +1,5 @@
 import { featherInside, oklabToRgb, rasterizePolygon, rgbToOklab, sanitizePhotoColorway, smoothstep, transferLab } from './photo-colorway.js?v=3';
+import { contrast, toHex } from './color.js?v=3';
 
 // One approved image, not a palette corpus entry or general segmentation engine.
 export const SERUM_WIDTH = 1254;
@@ -27,6 +28,42 @@ export const SERUM_REGIONS = Object.freeze([
 
 const limit = value => Math.max(0, Math.min(1, value));
 const labForHex = hex => rgbToOklab(...[1, 3, 5].map(start => Number.parseInt(hex.slice(start, start + 2), 16)));
+const MIN_LABEL_CONTRAST = 4.5;
+const ADAPTED_LABEL_CONTRAST = 5.5; // Headroom for thin, textured photo lettering.
+
+// The palette and saved Text role remain exact. Only the photographed glyphs
+// borrow the closest readable light/dark tone when Text blends into the label.
+export function resolveSerumInk(colorway) {
+  const clean = sanitizePhotoColorway(colorway);
+  if (!clean) throw new TypeError('A valid five-color serum colorway is required.');
+  const label = clean.colors[clean.assignment.tube], original = clean.colors[4];
+  const originalRatio = contrast(label, original);
+  if (originalRatio >= MIN_LABEL_CONTRAST) return { color: original, adjusted: false, ratio: originalRatio };
+  const [lightness, a, b] = labForHex(original);
+  const at = value => toHex([...oklabToRgb(value, a, b)]);
+  const choices = [];
+  if (contrast(label, at(0)) >= ADAPTED_LABEL_CONTRAST) {
+    let low = 0, high = lightness;
+    for (let pass = 0; pass < 18; pass++) {
+      const middle = (low + high) / 2;
+      if (contrast(label, at(middle)) >= ADAPTED_LABEL_CONTRAST) low = middle;
+      else high = middle;
+    }
+    choices.push(at(low));
+  }
+  if (contrast(label, at(1)) >= ADAPTED_LABEL_CONTRAST) {
+    let low = lightness, high = 1;
+    for (let pass = 0; pass < 18; pass++) {
+      const middle = (low + high) / 2;
+      if (contrast(label, at(middle)) >= ADAPTED_LABEL_CONTRAST) high = middle;
+      else low = middle;
+    }
+    choices.push(at(high));
+  }
+  if (!choices.length) choices.push(...['#17171B', '#FFFFFF']);
+  const color = choices.sort((first, second) => Math.abs(labForHex(first)[0] - lightness) - Math.abs(labForHex(second)[0] - lightness))[0];
+  return { color, adjusted: color !== original, ratio: contrast(label, color) };
+}
 const sourceHex = Object.freeze([SERUM_SOURCE_COLORS[0], SERUM_SOURCE_COLORS[2], SERUM_SOURCE_COLORS[3], SERUM_SOURCE_COLORS[1], SERUM_SOURCE_COLORS[4]]);
 const references = Object.freeze(sourceHex.map(hex => Object.freeze(Array.from(labForHex(hex)))));
 const models = new WeakSet();
@@ -138,7 +175,8 @@ export function renderSerumColorway(model, colorway, out) {
   const pixels = out ?? new Uint8ClampedArray(model.source.length);
   pixels.set(model.source);
   // Existing four assignment keys are retained. Text always uses slot 4.
-  const hexes = SERUM_SURFACES.map(name => clean.colors[name === 'ink' ? 4 : clean.assignment[name]]), targets = hexes.map(labForHex);
+  const ink = resolveSerumInk(clean).color;
+  const hexes = SERUM_SURFACES.map(name => name === 'ink' ? ink : clean.colors[clean.assignment[name]]), targets = hexes.map(labForHex);
   const changed = hexes.map((hex, k) => hex !== sourceHex[k]);
   if (!changed.some(Boolean)) return pixels; // Exact original pixels, no RGB roundtrip.
   const moved = new Float64Array(3), color = new Uint8ClampedArray(3), before = new Uint8ClampedArray(3);

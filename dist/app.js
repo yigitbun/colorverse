@@ -14,7 +14,7 @@ import { imagePoint, sampleImageColor } from './image-sampling.js?v=1';
 import { initCommunity } from './community-feed.js?v=1';
 import { freezeColorway } from './colorway-kit.js?v=3';
 import { mountPhotoColorway, PHOTO_COLORWAY_NOTE } from './photo-colorway.js?v=3';
-import { KATRE_SERUM_PROFILE, SERUM_SOURCE_COLORS } from './katre-serum.js?v=1';
+import { KATRE_SERUM_PROFILE, SERUM_SOURCE_COLORS, resolveSerumInk } from './katre-serum.js?v=2';
 import { paletteAlternatives, quickColorAdjustments, NEUTRAL_CHROMA } from './color-alternatives.js?v=4';
 import { reportPreview } from './report-preview.js?v=3';
 import { withWorkspace, workspaceFromColors, roleColors, roleOfMember, memberLabel, previewColorLabel, isCompact, isShort, isSupportRole, SUPPORT_ROLE, setMember, assignRole, swapRoles, insertMember, removeMember, EXTRACT_MAX_MEMBERS, MAX_MEMBERS } from './studio-members.js?v=5';
@@ -937,6 +937,10 @@ function syncPhotoPreview(previewColors = current.colors) {
     photoPreview.update(colorway);
     photoPreview.setBaseline(baseline);
   }
+  const currentAdjusted = resolveSerumInk(colorway).adjusted;
+  const baselineAdjusted = baseline && resolveSerumInk(baseline).adjusted;
+  const caption = photoPreview.element.querySelector('.photo-colorway-note');
+  if (caption) caption.textContent = `${KATRE_SERUM_PROFILE.note}${currentAdjusted || baselineAdjusted ? ` · Label text adjusted for readability in the ${currentAdjusted && baselineAdjusted ? 'current and comparison previews' : baselineAdjusted ? 'comparison preview' : 'current preview'}. Your palette colors are unchanged.` : ''}`;
   syncPhotoControls();
 }
 
