@@ -151,26 +151,29 @@ test('commitWorkspace clears the shuffle snapshot for every other writer, and th
   assert.equal(afterOtherEdit, null, 'any other commit clears the one-step shuffle undo');
 });
 
-test('markup: a labelled Shuffle button sits after the title/count and before the member rail', () => {
+test('markup: a compact icon-only Shuffle sits right-aligned on the palette name row, not in its own block', () => {
   const inspector = studio.slice(studio.indexOf('<aside class="palette-inspector"'), studio.indexOf('</aside>'));
-  const countIndex = inspector.indexOf('id="paletteCount"');
+  const nameRowIndex = inspector.indexOf('class="palette-name-row"');
+  const nameIndex = inspector.indexOf('id="paletteName"');
   const shuffleIndex = inspector.indexOf('id="paletteShuffle"');
+  const undoIndex = inspector.indexOf('id="paletteShuffleUndo"');
+  const countIndex = inspector.indexOf('id="paletteCount"');
   const railIndex = inspector.indexOf('id="paletteRoles"');
-  assert.ok(countIndex > -1 && shuffleIndex > -1 && railIndex > -1, 'all three markers are present');
-  assert.ok(countIndex < shuffleIndex && shuffleIndex < railIndex, 'Shuffle sits between the count and the member rail');
-  assert.match(inspector, /id="paletteShuffle"[^>]*title="Mix order · keep colors"/, 'a concise explanatory tooltip is present');
-  assert.match(inspector, /<button class="palette-shuffle" id="paletteShuffle"[^>]*><svg[^>]*>.*?<\/svg><span>Shuffle<\/span><\/button>/, 'icon plus a real visible label, not decorative-only');
-  assert.ok(inspector.indexOf('id="paletteShuffleUndo"') > shuffleIndex, 'the undo affordance sits with the shuffle control, not detached elsewhere');
-  assert.ok(inspector.indexOf('id="paletteAddToggle"') > railIndex, 'Add color stays below the rail, not reused for Shuffle');
+  assert.ok([nameRowIndex, nameIndex, shuffleIndex, undoIndex, countIndex, railIndex].every(index => index > -1), 'all markers are present');
+  assert.ok(nameRowIndex < nameIndex && nameIndex < shuffleIndex && shuffleIndex < undoIndex, 'name, then Shuffle, then Undo, all on the same row');
+  assert.ok(undoIndex < countIndex && countIndex < railIndex, 'the name row is above the count and the member rail, not between them');
+  assert.doesNotMatch(inspector, /class="palette-shuffle-row"/, 'the old full-width Shuffle block is removed');
+  assert.match(inspector, /<button class="palette-icon-action" id="paletteShuffle"[^>]*aria-label="[^"]*"[^>]*title="[^"]*mix[^"]*"[^>]*><svg/i, 'icon-only button with an aria-label and a tooltip that plainly says it mixes order');
+  assert.doesNotMatch(inspector, /id="paletteShuffle"[^>]*><svg[^>]*>.*?<\/svg><span>/, 'no visible text label; icon-only');
+  assert.match(inspector, /<button class="palette-icon-action palette-shuffle-undo" id="paletteShuffleUndo"[^>]*aria-label="[^"]*"[^>]*><svg/, 'Undo is an equally compact icon-only peer, not a text button');
 });
 
-test('markup: Shuffle is visually distinct from the add-color control, and never a hidden-only decoration', () => {
-  assert.doesNotMatch(studioStyles, /\.palette-shuffle\{[^}]*border:1px dashed/, 'Shuffle does not reuse the dashed add-color treatment');
-  assert.match(studioStyles, /\.palette-add-toggle\{[^}]*border:1px dashed/, 'sanity: add-color really is the dashed control being differentiated from');
-  // Collapsed rail keeps Shuffle as a real, accessible icon control (label stays
-  // in the accessibility tree via the visually-hidden technique, not display:none).
-  assert.match(studioStyles, /\.is-palette-collapsed \.palette-shuffle span\{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect\(0 0 0 0\)/);
-  assert.doesNotMatch(studioStyles, /\.is-palette-collapsed \.palette-shuffle\{[^}]*display:none/, 'Shuffle itself is never hidden while collapsed');
+test('markup: Shuffle/Undo add no extra row and stay hidden together while the rail is collapsed', () => {
+  assert.doesNotMatch(studioStyles, /\.palette-shuffle-row/, 'the removed block has no leftover styling');
+  assert.match(studioStyles, /\.palette-add-toggle\{[^}]*border:1px dashed/, 'sanity: add-color keeps its dashed treatment, untouched');
+  // The whole name row (Shuffle + Undo included) hides with the palette name while
+  // collapsed: two icon controls do not fit the 64px collapsed rail safely.
+  assert.match(studioStyles, /\.is-palette-collapsed \.palette-inspector \.eyebrow,\.is-palette-collapsed \.palette-name-row,/, 'the name row hides as a unit while collapsed, same as the palette name did before');
 });
 
 test('wiring: clicking Shuffle calls shufflePalette; Undo restores the snapshot, self-clears, and returns focus', () => {

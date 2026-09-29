@@ -133,3 +133,62 @@ scripts/test-studio-shuffle-browser.mjs` PASS 4/4. Regression browser checks
 PASS 14/14: `scripts/test-studio-drag.mjs` (3/3), `scripts/test-studio-add-color.mjs`
 (6/6), `scripts/test-studio-card-globe.mjs` (3/3), `scripts/test-browser-smoke.mjs`
 (2/2). Real-device touch and hosted/Supabase-connected smoke: NOT RUN.
+
+## Delivery — STU-14A correction (Claude, 2026-09-29)
+
+Status: delivered for Codex review on `codex/claude-studio-shuffle-icon-14a`,
+base `4a45f28`; not pushed or deployed. Implements the owner's plain-language
+correction above (lines 58–72); the itemized bullets and version pins directly
+under the correction heading described the prior full-block delivery being
+replaced and are superseded by this entry.
+
+- Removed the `.palette-shuffle-row` block entirely. `#paletteName` now sits
+  in a new `.palette-name-row` flex row (`justify-content:space-between`)
+  alongside a `.palette-name-actions` wrapper holding two 26px icon-only
+  buttons — `#paletteShuffle` and `#paletteShuffleUndo` (same IDs, so no
+  `app.js` wiring changed). The "Your palette" `.inspector-top` line (eyebrow
+  + collapse toggle) is untouched.
+- Shuffle and Undo are icon-only (no visible `<span>` label); `aria-label`
+  and `title` on `#paletteShuffle` both read "Shuffle palette order — mixes
+  your colors, doesn't create new ones", plainly stating it mixes order
+  without generating colors, per the correction. `#paletteShuffleUndo` gets
+  its own compact icon (a return-arrow glyph) with `aria-label`/`title`
+  "Undo shuffle"/"Undo shuffle, restore the previous order".
+- No extra vertical height: the h3's `margin` moved onto `.palette-name-row`
+  (including the two responsive breakpoints that used to set it on the h3
+  directly) so the row occupies the same space the name occupied before.
+- Collapsed rail (64px): `.palette-name-row` (name + both icons) hides as one
+  unit, extending the existing rule that used to hide `#paletteName` alone —
+  two icon controls do not fit the collapsed rail safely, which the
+  correction explicitly allows. Expanding the rail restores both.
+- `shufflePalette`/`randomPaletteOrder`/`commitWorkspace`/undo logic in
+  `dist/app.js` is unchanged (not touched at all, per the correction's "should
+  not change unless strictly necessary"); only markup/CSS moved.
+- Cache: `studio-editor.css?v=24` (content changed); `app.js?v=111` unchanged
+  (no JS edit).
+- Updated tests: the two `scripts/test-studio-shuffle.mjs` markup tests now
+  assert the icon-only row placement, the absent visible label, and that the
+  whole name row (not just Shuffle) hides while collapsed. Updated
+  `scripts/test-studio-shuffle-browser.mjs`: same-row/right-aligned
+  bounding-box checks, aria-label/title wording checks, a rewritten collapsed
+  test (Shuffle now hidden while collapsed, reappears on expand), and a
+  relaxed 390px tap-size floor (24px, matching the existing 28px
+  `.palette-rail-toggle` convention in this panel, since the correction asks
+  for compactness rather than a large dedicated touch target). Updated the
+  cache-pin assertion in `scripts/test-studio-ux.mjs` to `v=24` and the
+  `paletteCount`→`paletteRoles` adjacency regex in
+  `scripts/test-studio-members.mjs` (the shuffle row no longer sits between
+  them).
+
+Results: `npm run build` PASS (113 static files). `node --test
+scripts/test-studio-shuffle.mjs` PASS 9/9. `node --test
+scripts/test-studio-shuffle-browser.mjs` PASS 4/4. `npm run check:release`
+PASS (233 pass, 1 pre-existing unrelated skip, build revalidated). Regression
+browser checks PASS 14/14:
+`scripts/test-studio-drag.mjs` (3/3), `scripts/test-studio-add-color.mjs`
+(6/6), `scripts/test-studio-card-globe.mjs` (3/3), `scripts/test-browser-smoke.mjs`
+(2/2). Visual sanity: isolated headless-Chrome screenshots of the expanded,
+collapsed and 390px inspector, plus post-shuffle state, confirm Shuffle/Undo
+sit right-aligned on the "Citrus Muse" name row with no added block, and hide
+together while collapsed. Real-device touch and hosted/Supabase-connected
+smoke: NOT RUN.

@@ -1,8 +1,9 @@
-// Real-browser check for STU-14: a labelled Shuffle control sits above Color 1,
-// stays visible and tappable at 390px, remains an accessible icon control when
-// the rail is collapsed, mixes the visible member order on click without a page
-// reload, announces the change, offers a one-step Undo, and never disturbs card
-// click/Globe or grip-drag behavior.
+// Real-browser check for STU-14A: a compact icon-only Shuffle control sits
+// right-aligned on the palette name row (no extra row/block), stays visible
+// and tappable at 390px, hides together with the name row while the rail is
+// collapsed, mixes the visible member order on click without a page reload,
+// announces the change, offers a one-step icon-only Undo, and never disturbs
+// card click/Globe or grip-drag behavior.
 // Uses its own static server and a disposable headless Chromium profile; every
 // request leaving the local origin (Supabase, analytics, fonts) is aborted.
 //
@@ -125,17 +126,23 @@ const hexes = page => page.locator('#paletteRoles [data-select-member] code').ev
 const shuffleButton = page => page.locator('#paletteShuffle');
 const undoButton = page => page.locator('#paletteShuffleUndo');
 
-test('desktop: Shuffle sits above Color 1, mixes order without reload, announces, and offers one-step Undo', async () => {
+test('desktop: Shuffle sits on the palette name row above Color 1, mixes order without reload, announces, and offers one-step Undo', async () => {
   const colors = palette(8);
   const { context, page, errors } = await openStudio({ viewport: { width: 1280, height: 900 }, colors });
   try {
-    // Visible, above the rail, with icon + label + tooltip.
+    // Visible, on the same row as the palette name, right-aligned, above the rail.
     const shuffleBox = await shuffleButton(page).boundingBox();
+    const nameBox = await page.locator('#paletteName').boundingBox();
     const firstCardBox = await page.locator('#paletteRoles [data-select-member="0"]').boundingBox();
     assert.ok(shuffleBox, 'Shuffle button renders');
     assert.ok(shuffleBox.y < firstCardBox.y, 'Shuffle sits above Color 1');
-    assert.equal(await shuffleButton(page).innerText(), 'Shuffle');
-    assert.equal(await shuffleButton(page).getAttribute('title'), 'Mix order · keep colors');
+    assert.ok(Math.abs((shuffleBox.y + shuffleBox.height / 2) - (nameBox.y + nameBox.height / 2)) < nameBox.height, 'Shuffle sits on the same row as the palette name, not a row of its own');
+    assert.ok(shuffleBox.x > nameBox.x + nameBox.width, 'Shuffle is right-aligned, after the palette name');
+    assert.equal((await shuffleButton(page).innerText()).trim(), '', 'icon-only: no visible text label');
+    const [ariaLabel, title] = await Promise.all([shuffleButton(page).getAttribute('aria-label'), shuffleButton(page).getAttribute('title')]);
+    assert.match(ariaLabel, /mix/i, 'aria-label plainly says it mixes order');
+    assert.match(title, /mix/i, 'title plainly says it mixes order, not generating new colors');
+    assert.match(title + ariaLabel, /(create|generat)/i, 'plainly says it does not generate new colors');
     assert.ok(await shuffleButton(page).locator('svg').count() >= 1, 'has a recognizable icon');
     assert.equal(await undoButton(page).isVisible(), false, 'no undo affordance before the first shuffle');
 
@@ -194,20 +201,21 @@ test('desktop: shuffle does not disturb card click/Globe or grip drag; other edi
   } finally { await context.close(); }
 });
 
-test('collapsed rail: Shuffle stays an accessible icon control, never a squeezed or decorative-only label', async () => {
+test('collapsed rail: Shuffle hides with the palette name row (two icon controls do not fit safely at 64px) and reappears on expand', async () => {
   const colors = palette(6);
   const { context, page, errors } = await openStudio({ viewport: { width: 1280, height: 900 }, colors });
   try {
     await page.locator('#togglePaletteRail').click();
     assert.equal(await page.locator('.studio-workspace.is-palette-collapsed').count(), 1, 'rail is collapsed');
-    assert.equal(await shuffleButton(page).isVisible(), true, 'Shuffle remains visible while collapsed');
-    const accessibleName = await shuffleButton(page).evaluate(node => node.textContent.trim() || node.getAttribute('aria-label') || node.getAttribute('title'));
-    assert.ok(accessibleName, 'Shuffle keeps a real accessible name while collapsed');
-    const labelBox = await shuffleButton(page).locator('span').boundingBox();
-    assert.ok(labelBox.width <= 1 && labelBox.height <= 1, 'the visible label is clipped to nothing, not merely styled small (never squeezed/ambiguous)');
+    assert.equal(await shuffleButton(page).isVisible(), false, 'Shuffle hides together with the palette name while collapsed');
+    assert.equal(await page.locator('#paletteName').isVisible(), false, 'sanity: the palette name itself is hidden too, same as before this control existed');
+
+    await page.locator('#togglePaletteRail').click();
+    assert.equal(await page.locator('.studio-workspace.is-palette-collapsed').count(), 0, 'rail is expanded again');
+    assert.equal(await shuffleButton(page).isVisible(), true, 'Shuffle reappears once the rail is expanded');
     await shuffleButton(page).click();
     const status = await page.locator('#paletteOrderStatus').textContent();
-    assert.match(status, /^Shuffled 6 colors/, 'Shuffle still works while the rail is collapsed');
+    assert.match(status, /^Shuffled 6 colors/, 'Shuffle works once visible again');
     assert.deepEqual(errors, [], 'no uncaught page errors');
   } finally { await context.close(); }
 });
@@ -219,7 +227,9 @@ test('390px touch: Shuffle remains visible and easy to tap', async () => {
     const box = await shuffleButton(page).boundingBox();
     assert.ok(box, 'Shuffle renders at 390px');
     assert.ok(box.width > 0 && box.x >= 0 && box.x + box.width <= 390, 'Shuffle fits within the 390px viewport');
-    assert.ok(box.height >= 40, `Shuffle meets a touch-friendly minimum height (${box.height}px)`);
+    // A compact icon peer of the palette name, matching the existing collapse-toggle
+    // icon size in this same panel rather than a large dedicated touch target.
+    assert.ok(box.height >= 24, `Shuffle stays a reasonable tap size (${box.height}px)`);
     const before = await hexes(page);
     await shuffleButton(page).tap();
     assert.notDeepEqual(await hexes(page), before, 'tapping Shuffle at 390px reorders the palette');

@@ -10,25 +10,21 @@
 .studio-workspace .palette-inspector{display:block;min-width:0;padding:16px 12px;background:var(--surface)}
 .palette-inspector .inspector-top{display:flex;align-items:center;justify-content:space-between;gap:4px}
 .palette-inspector .eyebrow{font-size:9px;white-space:nowrap}
-.palette-inspector h3{font-size:17px;margin:13px 0 0;overflow-wrap:anywhere;line-height:1.2}
+.palette-inspector h3{font-size:17px;margin:0;overflow-wrap:anywhere;line-height:1.2;min-width:0}
 .palette-inspector #paletteDescription{display:none}
 .palette-rail-toggle{display:grid;place-items:center;flex:none;width:28px;height:28px;border:1px solid var(--line);border-radius:5px;background:var(--surface);color:var(--muted)}
 .palette-rail-toggle svg{width:16px;height:16px}
 .palette-rail-toggle:hover{background:var(--surface-2);color:var(--ink)}
 .palette-rail-toggle:focus-visible,.palette-member:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-/* Shuffle mixes the visible order only; kept apart from the dashed add-color slot below the rail. */
-.palette-shuffle-row{display:flex;align-items:center;gap:6px;margin:10px 0 2px}
-.palette-shuffle{display:flex;flex:1 1 auto;align-items:center;justify-content:center;gap:7px;min-height:36px;padding:6px 10px;border:1px solid var(--ink);border-radius:6px;background:var(--ink);color:var(--bg);font-size:11px;font-weight:700}
-.palette-shuffle svg{flex:none;width:15px;height:15px}
-.palette-shuffle:hover{background:var(--accent);border-color:var(--accent)}
-.palette-shuffle:active svg{transform:rotate(140deg);transition:transform .25s}
-.palette-shuffle:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.palette-shuffle-undo{flex:none;min-height:36px;padding:6px 11px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--muted);font-size:10px;font-weight:650}
-.palette-shuffle-undo:hover{border-color:var(--accent);color:var(--ink)}
-.palette-shuffle-undo:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.is-palette-collapsed .palette-shuffle{padding:6px}
-.is-palette-collapsed .palette-shuffle span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.is-palette-collapsed .palette-shuffle-undo{display:none}
+/* Shuffle mixes the visible order only; a compact icon-only peer of the palette
+   name, right-aligned on its row so no extra row/block is added. */
+.palette-name-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:13px 0 0}
+.palette-name-actions{display:flex;flex:none;align-items:center;gap:4px}
+.palette-icon-action{display:grid;place-items:center;flex:none;width:26px;height:26px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--muted)}
+.palette-icon-action svg{width:14px;height:14px}
+.palette-icon-action:hover{background:var(--surface-2);color:var(--ink)}
+.palette-icon-action:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#paletteShuffle:active svg{transform:rotate(140deg);transition:transform .25s}
 .palette-inspector .palette-roles{display:grid;grid-template-columns:minmax(0,1fr);gap:5px;margin:16px 0;align-items:start}
 .palette-inspector .palette-roles.is-scrolling{max-height:min(450px,calc(100svh - 360px));overflow-y:auto;overscroll-behavior:contain;padding:2px;scrollbar-width:thin}
 .palette-member{display:flex;cursor:pointer;align-items:center;gap:9px;min-width:0;width:100%;min-height:48px;padding:5px;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--ink);text-align:left}
@@ -70,7 +66,7 @@
 .palette-inspector .full-button{grid-column:auto;grid-row:auto;width:100%;min-height:34px;font-size:10px;margin-top:6px;padding:7px 5px;gap:7px}
 .palette-inspector .full-button svg{width:13px;height:13px}
 .is-palette-collapsed .palette-inspector{padding-inline:7px}
-.is-palette-collapsed .palette-inspector .eyebrow,.is-palette-collapsed #paletteName,.is-palette-collapsed .palette-member-label,.is-palette-collapsed .palette-inspector .full-button{display:none}
+.is-palette-collapsed .palette-inspector .eyebrow,.is-palette-collapsed .palette-name-row,.is-palette-collapsed .palette-member-label,.is-palette-collapsed .palette-inspector .full-button{display:none}
 .is-palette-collapsed .inspector-top{justify-content:center}
 .is-palette-collapsed .palette-rail-toggle svg{transform:rotate(180deg)}
 .is-palette-collapsed .palette-member{justify-content:center;padding:4px;gap:0}
@@ -200,7 +196,8 @@
   .studio-workspace.is-palette-collapsed{grid-template-columns:minmax(0,1.1fr) minmax(260px,.9fr)}
   .studio-workspace .palette-inspector{grid-column:1/-1;border-bottom:1px solid var(--line);padding:12px 14px}
   .palette-inspector .inspector-top{display:flex}
-  .palette-inspector h3{margin:5px 0;font-size:15px}
+  .palette-name-row{margin:5px 0}
+  .palette-inspector h3{font-size:15px}
   .palette-inspector .palette-roles,.palette-inspector .palette-roles.is-scrolling{display:flex;gap:5px;max-height:none;overflow-x:auto;overflow-y:hidden;margin:8px 0 0;padding:3px 1px}
   .palette-member{flex:0 0 132px;min-height:44px}
   .palette-member>i{width:27px;height:32px}
@@ -218,7 +215,8 @@
   .studio-compact-head h1{margin-top:3px;font-size:21px}
   .studio-workspace,.studio-workspace.is-palette-collapsed{grid-template-columns:minmax(0,1fr)}
   .studio-workspace .palette-inspector{padding:10px 12px;border-right:0;border-bottom:1px solid var(--line)}
-  .palette-inspector h3{margin:5px 0;font-size:14px}
+  .palette-name-row{margin:5px 0}
+  .palette-inspector h3{font-size:14px}
   .palette-inspector .palette-roles,.palette-inspector .palette-roles.is-scrolling{display:flex;gap:5px;max-height:none;overflow-x:auto;overflow-y:hidden;margin:8px 0;padding:3px 1px}
   .palette-member{flex:0 0 98px;min-height:44px;gap:6px}
   .palette-member>i{width:26px;height:32px}
@@ -250,5 +248,4 @@
   .palette-add-hex input{font-size:16px;padding:5px 0}
   .palette-add-picker{height:40px;width:44px}
   .palette-add-actions button{min-height:40px;font-size:12px}
-  .palette-shuffle,.palette-shuffle-undo{min-height:44px}
 }
