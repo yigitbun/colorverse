@@ -956,37 +956,121 @@ const colorGlobe = createColorGlobe({
   },
 });
 if (paletteRoles) {
+  // Grip drags lift an inert copy of the card that follows the pointer; the real
+  // card stays in place as an empty slot until drop, cancel, or a rerender.
   let memberDrag = null;
-  const finishMemberDrag = () => {
-    paletteRoles.querySelectorAll('.is-dragging,.is-drop-target').forEach(item => item.classList.remove('is-dragging', 'is-drop-target'));
+  const cancelOnEscape = event => {
+    if (event.key !== 'Escape' || !memberDrag) return;
+    event.preventDefault();
+    event.stopPropagation();
+    finishMemberDrag();
+  };
+  // A rerender replaces the cards mid-drag; the gesture ends with them.
+  const railChanges = new MutationObserver(() => { if (memberDrag && !memberDrag.source.isConnected) finishMemberDrag(); });
+  function finishMemberDrag() {
+    if (!memberDrag) return;
+    const { grip, pointerId, proxy, frame } = memberDrag;
     memberDrag = null;
+    cancelAnimationFrame(frame);
+    railChanges.disconnect();
+    document.removeEventListener('keydown', cancelOnEscape, true);
+    proxy?.remove();
+    paletteRoles.classList.remove('is-member-dragging');
+    paletteRoles.querySelectorAll('.is-dragging,.is-drop-target').forEach(item => item.classList.remove('is-dragging', 'is-drop-target'));
+    if (grip.isConnected && grip.hasPointerCapture?.(pointerId)) grip.releasePointerCapture(pointerId);
+  }
+  // Same markup and rail styles as the card, but hidden from assistive tech,
+  // unfocusable, and transparent to hit-testing so targets stay reachable.
+  const liftMemberCard = drag => {
+    const rect = drag.source.getBoundingClientRect();
+    const proxy = drag.source.cloneNode(true);
+    for (const name of ['data-select-member', 'aria-pressed', 'aria-label', 'title', 'type']) proxy.removeAttribute(name);
+    proxy.classList.remove('is-selected', 'is-drop-target', 'is-dragging');
+    proxy.classList.add('palette-member-proxy');
+    proxy.setAttribute('aria-hidden', 'true');
+    proxy.tabIndex = -1;
+    proxy.inert = true;
+    Object.assign(proxy.style, { width: `${rect.width}px`, height: `${rect.height}px` });
+    paletteRoles.append(proxy);
+    drag.proxy = proxy;
+    drag.offset = { x: drag.x - rect.left, y: drag.y - rect.top };
+    drag.shift = { x: 0, y: 0 };
+    drag.source.classList.add('is-dragging');
+    paletteRoles.classList.add('is-member-dragging');
+  };
+  // Keeps the proxy's grabbed point under the pointer, whatever its containing block.
+  const placeMemberProxy = drag => {
+    const box = drag.proxy.getBoundingClientRect();
+    drag.shift.x += drag.pointer.x - drag.offset.x - box.left;
+    drag.shift.y += drag.pointer.y - drag.offset.y - box.top;
+    drag.proxy.style.transform = `translate3d(${drag.shift.x}px,${drag.shift.y}px,0)`;
+  };
+  const updateMemberTarget = drag => {
+    const hit = document.elementsFromPoint(drag.pointer.x, drag.pointer.y)
+      .map(node => node.closest('#paletteRoles [data-select-member]')).find(Boolean);
+    const target = hit || drag.source;
+    if (target === drag.target) return;
+    drag.target.classList.remove('is-drop-target');
+    drag.target = target;
+    if (target !== drag.source) target.classList.add('is-drop-target');
+  };
+  // Near a scrolled rail's edge, the rail scrolls so every member is reachable.
+  const scrollMemberRail = drag => {
+    const rail = paletteRoles.getBoundingClientRect(), edge = 28, step = 8;
+    const across = paletteRoles.scrollWidth > paletteRoles.clientWidth + 1;
+    const [low, high, at] = across ? [rail.left, rail.right, drag.pointer.x] : [rail.top, rail.bottom, drag.pointer.y];
+    const inside = across ? drag.pointer.y >= rail.top - edge && drag.pointer.y <= rail.bottom + edge : drag.pointer.x >= rail.left && drag.pointer.x <= rail.right;
+    const delta = !inside ? 0 : at < low + edge ? -step : at > high - edge ? step : 0;
+    if (!delta || (!across && paletteRoles.scrollHeight <= paletteRoles.clientHeight + 1)) return false;
+    const before = across ? paletteRoles.scrollLeft : paletteRoles.scrollTop;
+    paletteRoles.scrollBy(across ? { left: delta } : { top: delta });
+    return (across ? paletteRoles.scrollLeft : paletteRoles.scrollTop) !== before;
+  };
+  const autoScrollMemberRail = () => {
+    const drag = memberDrag;
+    if (!drag) return;
+    drag.frame = 0;
+    if (!scrollMemberRail(drag)) return;
+    updateMemberTarget(drag);
+    drag.frame = requestAnimationFrame(autoScrollMemberRail);
   };
   paletteRoles.addEventListener('pointerdown', event => {
     const grip = event.target.closest('.palette-member-grip');
     const button = grip?.closest('[data-select-member]');
     if (!button || (event.pointerType === 'mouse' && event.button !== 0)) return;
-    memberDrag = { pointerId: event.pointerId, from: Number(button.dataset.selectMember), source: button, target: button, x: event.clientX, y: event.clientY, started: false };
+    finishMemberDrag();
+    memberDrag = { pointerId: event.pointerId, from: Number(button.dataset.selectMember), source: button, target: button, grip, x: event.clientX, y: event.clientY, pointer: { x: event.clientX, y: event.clientY }, started: false, frame: 0 };
     grip.setPointerCapture?.(event.pointerId);
+    railChanges.observe(paletteRoles, { childList: true });
+    document.addEventListener('keydown', cancelOnEscape, true);
     event.preventDefault();
   });
   paletteRoles.addEventListener('pointermove', event => {
     if (!memberDrag || memberDrag.pointerId !== event.pointerId) return;
+    memberDrag.pointer = { x: event.clientX, y: event.clientY };
     if (!memberDrag.started && Math.hypot(event.clientX - memberDrag.x, event.clientY - memberDrag.y) < 7) return;
-    memberDrag.started = true;
     event.preventDefault();
-    memberDrag.source.classList.add('is-dragging');
-    const hit = document.elementFromPoint(event.clientX, event.clientY)?.closest('#paletteRoles [data-select-member]');
-    paletteRoles.querySelectorAll('.is-drop-target').forEach(item => item.classList.remove('is-drop-target'));
-    memberDrag.target = hit || memberDrag.source;
-    if (memberDrag.target !== memberDrag.source) memberDrag.target.classList.add('is-drop-target');
+    if (!memberDrag.started) {
+      memberDrag.started = true;
+      liftMemberCard(memberDrag);
+    }
+    // Pointer moves already arrive once per frame, so the card is placed right away.
+    placeMemberProxy(memberDrag);
+    updateMemberTarget(memberDrag);
+    if (!memberDrag.frame) memberDrag.frame = requestAnimationFrame(autoScrollMemberRail);
   });
   paletteRoles.addEventListener('pointerup', event => {
     if (!memberDrag || memberDrag.pointerId !== event.pointerId) return;
     const drag = memberDrag;
-    if (drag.started && drag.target !== drag.source) swapPaletteMembers(drag.from, Number(drag.target.dataset.selectMember));
+    if (drag.started) {
+      drag.pointer = { x: event.clientX, y: event.clientY };
+      updateMemberTarget(drag);
+    }
     finishMemberDrag();
+    if (drag.started && drag.target !== drag.source && drag.target.isConnected) swapPaletteMembers(drag.from, Number(drag.target.dataset.selectMember));
   });
-  paletteRoles.addEventListener('pointercancel', finishMemberDrag);
+  paletteRoles.addEventListener('pointercancel', event => { if (memberDrag?.pointerId === event.pointerId) finishMemberDrag(); });
+  paletteRoles.addEventListener('lostpointercapture', event => { if (memberDrag?.pointerId === event.pointerId) finishMemberDrag(); });
   paletteRoles.addEventListener('click', event => {
     if (event.target.closest('.palette-member-grip')) return;
     const button = event.target.closest('[data-select-member]');
@@ -1013,12 +1097,6 @@ if (paletteRoles) {
     event.preventDefault();
     const target = paletteRoles.querySelector(`[data-select-member="${next}"]`);
     target?.click();
-  });
-  paletteRoles.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && memberDrag) {
-      event.preventDefault();
-      finishMemberDrag();
-    }
   });
 }
 $('#togglePaletteRail')?.addEventListener('click', event => {

@@ -1,6 +1,7 @@
 # STU-09 — dragged color card follows the pointer
 
-Owner: Claude implementation; Codex review and integration. Status: assigned.
+Owner: Claude implementation; Codex review and integration. Status: delivered
+for Codex review (not integrated).
 Branch `codex/claude-studio-drag-09`, worktree
 `.local/worktrees/claude-studio-drag-09`; base is the local main assignment
 commit supplied by Codex.
@@ -41,3 +42,35 @@ home edits in `dist/app.js`; do not copy or touch those. Do not deploy/push.
 5. Run `npm run build`, focused tests and, if feasible, `npm run check:release`.
    Report exact PASS/FAIL/NOT RUN, base/final SHA and changed files. Commit only
    assigned files on the task branch.
+
+## Delivery evidence (Claude, 2026-09-29)
+
+Base `51ae5b400e158cc8901520934693efe957991335`; final commit is reported in
+the handoff. Local checks only; no hosted writes, push, or deploy.
+
+- A grip drag past 7px lifts an inert clone (`aria-hidden`, `inert`,
+  `tabindex=-1`, no `data-select-member`/label, `pointer-events:none`) inside
+  the rail as `position:fixed`, so rail overflow/fade never clips it. It is
+  placed synchronously on each pointer move with the grabbed point kept under
+  the pointer. The source slot stays in place as a dashed, empty outline.
+- Targets use `elementsFromPoint`; swap happens only on pointerup over another
+  member. Near a scrollable rail edge the rail auto-scrolls (instant steps, no
+  animation), so 24-member and 390px rails reach every member.
+- Cleanup on drop, `pointercancel`, `lostpointercapture`, Escape (document
+  listener while dragging), release outside, and rail rerender
+  (MutationObserver on the source card). No transitions/animations are used, so
+  reduced motion needs no separate path.
+- Studio cache versions: `app.js?v=108`, `studio-editor.css?v=20` (Studio page
+  only); the two existing assertions pinning those versions were updated in
+  `scripts/test-studio-ux.mjs` and `scripts/test-studio-integration.mjs`.
+- `scripts/test-studio-drag.mjs` (real headless Chromium, disposable context,
+  all off-origin requests aborted, optional analytics declined): desktop mouse
+  travel/swap/click-select; Escape, release outside, keyboard rerender
+  mid-drag; 2 and 24 members; 390px touch via CDP with finger drift, touch
+  drop and touch cancel. Not wired into `package.json` (outside allowed files);
+  run `node --test scripts/test-studio-drag.mjs`.
+
+Results: `npm run build` PASS; `npm run check:release` PASS (231 pass,
+1 pre-existing skip); `scripts/test-studio-drag.mjs` PASS 4/4 (3 repeat runs);
+`npm run test:browser:smoke` PASS 2/2. Real-device touch and hosted smoke:
+NOT RUN.
