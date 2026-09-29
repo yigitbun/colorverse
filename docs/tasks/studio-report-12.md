@@ -1,6 +1,6 @@
 # STU-12 — richer Sales performance preview
 
-Owner: Claude implementation; Codex review/integration. Status: assigned.
+Owner: Claude implementation; Codex review/integration. Status: integrated locally; not published.
 Branch `codex/claude-studio-report-12`, worktree
 `.local/worktrees/claude-studio-report-12`; base is Codex's assignment commit.
 
@@ -47,7 +47,7 @@ Report exact PASS/FAIL/NOT RUN, base/final SHA, changed files and limitations.
 
 ## Delivery (Claude, 2026-09-29)
 
-Status: delivered on the task branch for Codex review; not integrated.
+Status: delivered on the task branch for Codex review.
 
 - Added channel mix (palette-toned ring + legend), category breakdown (share and
   change vs PY) and three takeaways; kept four KPIs, trend, region vs target,
@@ -66,3 +66,11 @@ Status: delivered on the task branch for Codex review; not integrated.
   existing decorative 8px ▲, no page errors.
 - `dist/app.js` still imports `report-preview.js?v=2`; Codex should bump that
   JS pin with the stylesheet pin at integration.
+
+## Codex integration (2026-09-29)
+
+Reviewed Claude `7fe1d51854e7e0064d46ef19436e01e6bd6b8ecf` and integrated
+as `1bd6f95`; cache pins updated in `0fbddea`. Main `npm run check:release`
+passed 234/234. Isolated local browser at 1280/390px after declining optional
+analytics showed no page/report horizontal overflow; both views visually
+reviewed. Public deployment and owner acceptance remain open.

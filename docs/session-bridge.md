@@ -11,20 +11,20 @@ eksik kalan bir karar/kanıt varsa o görevin ilgili son bölümünü oku.
 
 ## Şu anki durum
 
-- Public yayın `14d7a38`: Studio orta genişlik düzeni ve grip ile renk takası
-  canlıda. Yerel `main`: HQ-05A browser smoke `42478e1`, ardından hareketli
-  Studio drag kartı `b03c953` entegre edildi; ikisi de public'e gönderilmedi.
-  Drag browser 4/4, genel browser smoke 2/2 ve release 232/232 PASS.
-  Gerçek inbox/private save kanıtı açık.
+- Public yayın hâlâ `14d7a38`. Yerel `main`: hareketli Studio drag kartı
+  `b03c953`, renk ekleme `3812fdc`, karttan Globe açma `b8d4911`, zengin
+  Screens raporu `1bd6f95` + asset pin `0fbddea` entegre; public'e
+  gönderilmedi. Son release 234/234 PASS. Rapor 1280/390px yerel tarayıcıda
+  görsel olarak incelendi, yatay taşma yok. Gerçek inbox/private save kanıtı açık.
 - AGENTS başlangıç okuması görev bazlı hale getirildi; bu kısa sohbet devri
   akışı eklendi. Giriş ve köprü belgeleri yerel `main` checkpoint'indedir;
   public yayına gönderilmedi.
 - Yerel ana sayfa world-menu/zoom çalışması ile ilgili dosyalar dirty:
   `dist/app.js`, `dist/index.html`, `dist/world-picker.css`; ilgili backlog ve
   ürün kararlarında da yerel düzenlemeler var. Başka görevin kapsamına katma.
-- Claude HQ-05A görevini `codex/claude-browser-smoke-hq05a` dalında
-  `304de3f` ile bitirdi; Codex aynı revizyonu `42478e1` olarak entegre etti.
-  Aktif ikinci yazar yok. Worktree duruyor; yeniden atama olmadan kullanma.
+- Claude STU-10/12/13 revizyonları Codex tarafından incelenip entegre edildi;
+  aktif ikinci yazar yok. Ayrı worktree'ler duruyor; yeni kapsam vermeden
+  üzerinde çalışma başlatma.
 - REL-02 hosted dar smoke 2026-09-29: 390px, klavye, dark, reduced-motion,
   JS-kapalı fallback, CSP ve Studio gerekli asset'leri kontrol edildi.
 
@@ -42,6 +42,14 @@ eksik kalan bir karar/kanıt varsa o görevin ilgili son bölümünü oku.
   imleç/parmağı izliyor; Claude `c8c54b7` → Codex yerel main `b03c953`.
   Entegre drag browser 4/4, smoke 2/2, release 232/232 PASS. Public'e
   gönderilmedi; gerçek cihaz kabulü yok. Ana sayfa dirty home zoom korunuyor.
+- Studio Color 6+ ekleme, karttan Color Globe açma ve daha ayrıntılı Sales
+  Performance raporu yerel PASS; [STU-10/12/13](open-work.md) ayrıntıları
+  görev belgelerinde. Shuffle'ın mevcut renklerin sırasını mı değiştireceği
+  yoksa yeni renkler mi üreteceği owner seçimi bekliyor.
+- HOME-03: Mini Studio Hue/Lightness özel HEX'e geçince dünya seçimi filtresi
+  globe marker'ını temizliyor; `focusPoint` çağrılmıyor. Önceki reverse coupling
+  geri alınmıştı. Slider değişince globe'un yaklaşık renge dönmesi/işaretlemesi
+  için owner tercihi bekleniyor; mevcut davranış gizlice değiştirilmesin.
 - Onaylı renk corpus'u hâlâ yok; araştırma notları import veya içerik onayı
   değildir. Campaigns yönü ve ilk Library paletleri owner kararı bekler.
 

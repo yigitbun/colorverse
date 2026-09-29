@@ -1,6 +1,6 @@
 # STU-13 — click a Studio color to open Color Globe
 
-Owner: Claude implementation; Codex review/integration. Status: assigned.
+Owner: Claude implementation; Codex review/integration. Status: integrated locally; not published.
 Branch `codex/claude-studio-card-globe-13`, worktree
 `.local/worktrees/claude-studio-card-globe-13`; base is Codex's assignment
 commit. Independent from STU-12's report files; one writer per file.
@@ -49,7 +49,7 @@ report exact PASS/FAIL/NOT RUN, SHA and files.
 ## Delivery (Claude, 2026-09-29)
 
 Status: delivered for Codex review on the task branch (base `29dbfbc`); not
-integrated, pushed or deployed.
+pushed or deployed.
 
 - Card click/tap/Enter/Space selects the member and calls
   `colorGlobe.open(index)`; Arrow/Home/End call the shared selection only.
@@ -68,3 +68,9 @@ integrated, pushed or deployed.
 - PASS: `npm run build`; `npm run check:release` (231 pass, 1 pre-existing
   skip); browser `test-studio-card-globe`, `test-studio-drag`,
   `test-studio-add-color`, `test-browser-smoke`. Hosted: NOT RUN.
+
+## Codex integration (2026-09-29)
+
+Reviewed Claude `dbcbb90` and integrated as `b8d4911`. Main browser checks:
+card-globe 3/3, add 5/5, drag 4/4, smoke 2/2; `npm run check:release` 232/232
+PASS. Public deployment and owner acceptance remain open.
