@@ -18,7 +18,7 @@ const pathText = {
 
 function visual(id) {
   if (id === 'globe') return '<span class="journey-visual journey-visual-globe" aria-hidden="true"><img src="/assets/studies/color-globe-editor-reference.png" alt="" loading="lazy"></span>';
-  if (id === 'extract') return '<span class="journey-visual journey-visual-read" aria-hidden="true"><img src="/assets/studies/lorien.jpg" alt="" loading="lazy"><span class="journey-read-picker is-navy"></span><span class="journey-read-picker is-green"></span><span class="journey-read-picker is-burgundy"></span><span class="journey-read-swatches"><i style="background:#E9DFCF"></i><i style="background:#958373"></i><i style="background:#203147"></i><i style="background:#74322F"></i><i style="background:#283D31"></i></span><small>AI CONCEPT</small></span>';
+  if (id === 'extract') return '<span class="journey-visual journey-visual-read" aria-hidden="true"><span class="journey-read-toolbar"><b>Image to palette</b><i></i><i></i></span><span class="journey-read-layout"><span class="journey-read-source"><img src="/assets/studies/lorien.jpg" alt="" loading="lazy"><i class="journey-read-point is-ivory">1</i><i class="journey-read-point is-navy">3</i><i class="journey-read-point is-green">5</i><small>AI CONCEPT</small></span><span class="journey-read-results"><i style="background:#E9DFCF">1</i><i style="background:#958373">2</i><i class="is-dark" style="background:#203147">3</i><i class="is-dark" style="background:#74322F">4</i><i class="is-dark" style="background:#283D31">5</i></span></span></span>';
   return '<span class="journey-visual journey-visual-apply" aria-hidden="true"><img src="/assets/studies/katre-serum-v3.png" alt="" loading="lazy"><i>KATRE · CONCEPT</i></span>';
 }
 

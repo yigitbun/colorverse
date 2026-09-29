@@ -37,9 +37,10 @@ test('the footer tells a distinct explore → read → apply story with product 
   assert.equal(html.match(/class="journey-step"/g).length, 3);
   assert.equal(html.match(/class="journey-step-link"/g).length, 3);
   assert.match(html, /journey-visual-globe[^<]*<img src="\/assets\/studies\/color-globe-editor-reference\.png"/);
-  assert.match(html, /journey-visual-read[^<]*<img src="\/assets\/studies\/lorien\.jpg"/);
-  assert.equal(html.match(/class="journey-read-picker is-/g)?.length, 3, 'three clear image sampling rings');
-  assert.match(html, /journey-read-swatches/);
+  assert.match(html, /journey-read-source"><img src="\/assets\/studies\/lorien\.jpg"/);
+  assert.equal(html.match(/class="journey-read-point is-/g)?.length, 3, 'three numbered image sampling rings');
+  assert.match(html, /journey-read-results/);
+  assert.equal(html.match(/class="is-dark" style="background:/g)?.length, 3, 'palette result bands');
   assert.match(html, /AI CONCEPT/);
   assert.match(html, /assets\/studies\/katre-serum-v3\.png/);
   for (const image of ['color-globe-editor-reference.png', 'lorien.jpg', 'katre-serum-v3.png']) {
@@ -64,8 +65,8 @@ test('primary routes mount one shelf immediately before the footer', async () =>
   for (const [route, { current, tone }] of Object.entries(ROUTES)) {
     const html = await read(route);
     assert.equal(html.match(/data-tool-catalog/g)?.length, 1, `${route} has one shelf`);
-    assert.match(html, /<link rel="stylesheet" href="\/tool-catalog\.css\?v=8">/, `${route} loads the stylesheet`);
-    assert.match(html, /<script type="module" src="\/tool-catalog\.js\?v=4"><\/script>/, `${route} loads the module`);
+    assert.match(html, /<link rel="stylesheet" href="\/tool-catalog\.css\?v=10">/, `${route} loads the stylesheet`);
+    assert.match(html, /<script type="module" src="\/tool-catalog\.js\?v=5"><\/script>/, `${route} loads the module`);
     const shelf = html.match(/<section class="tool-catalog section-wrap" data-tool-catalog([^>]*)><\/section>\n\s*<footer class="footer/);
     assert.ok(shelf, `${route} shelf sits directly before the footer`);
     assert.equal(shelf[1].match(/data-current="([a-z]+)"/)?.[1], current, `${route} current tool`);
