@@ -18,7 +18,7 @@
 .journey-visual-globe img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 53%}
 .journey-visual-read{display:flex;flex-direction:column;border:1px solid #dcdedc;background:#f8f8f7}
 .journey-read-toolbar{display:flex;align-items:center;gap:3px;height:15px;flex:none;padding:0 4px;border-bottom:1px solid #e2e3e1;background:#fff;color:#303739}
-.journey-read-toolbar b{margin-right:auto;padding-left:18px;font:600 .4rem var(--sans);white-space:nowrap}
+.journey-read-toolbar b{margin-right:auto;padding-left:27px;font:600 .4rem var(--sans);white-space:nowrap}
 .journey-read-toolbar i{width:3px;height:3px;border-radius:50%;background:#b9bfbd}
 .journey-read-layout{display:grid;grid-template-columns:62% 38%;flex:1;min-height:0}
 .journey-read-source{position:relative;min-width:0;overflow:hidden;background:#c5bdad}

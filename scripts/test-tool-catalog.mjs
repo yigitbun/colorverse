@@ -65,7 +65,7 @@ test('primary routes mount one shelf immediately before the footer', async () =>
   for (const [route, { current, tone }] of Object.entries(ROUTES)) {
     const html = await read(route);
     assert.equal(html.match(/data-tool-catalog/g)?.length, 1, `${route} has one shelf`);
-    assert.match(html, /<link rel="stylesheet" href="\/tool-catalog\.css\?v=10">/, `${route} loads the stylesheet`);
+    assert.match(html, /<link rel="stylesheet" href="\/tool-catalog\.css\?v=11">/, `${route} loads the stylesheet`);
     assert.match(html, /<script type="module" src="\/tool-catalog\.js\?v=5"><\/script>/, `${route} loads the module`);
     const shelf = html.match(/<section class="tool-catalog section-wrap" data-tool-catalog([^>]*)><\/section>\n\s*<footer class="footer/);
     assert.ok(shelf, `${route} shelf sits directly before the footer`);
