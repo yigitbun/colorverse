@@ -198,7 +198,7 @@ test('Selected color tells the truth about actual usage; no product assignment p
 test('Studio assets are cache-busted', () => {
   assert.match(studio, /\/app\.js\?v=110/);
   assert.match(studio, /\/studio-editor\.css\?v=22/);
-  assert.match(studio, /\/report-preview\.css\?v=4/);
+  assert.match(studio, /\/report-preview\.css\?v=5/);
   assert.match(app, /'\.\/color-alternatives\.js\?v=4'/);
 });
 
