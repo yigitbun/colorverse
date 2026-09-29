@@ -17,9 +17,9 @@ import { mountPhotoColorway, PHOTO_COLORWAY_NOTE } from './photo-colorway.js?v=3
 import { KATRE_SERUM_PROFILE, SERUM_SOURCE_COLORS } from './katre-serum.js?v=1';
 import { paletteAlternatives, quickColorAdjustments, NEUTRAL_CHROMA } from './color-alternatives.js?v=4';
 import { reportPreview } from './report-preview.js?v=2';
-import { withWorkspace, workspaceFromColors, roleColors, roleOfMember, memberLabel, previewColorLabel, isCompact, isShort, isSupportRole, SUPPORT_ROLE, setMember, assignRole, swapRoles, insertMember, removeMember, EXTRACT_MAX_MEMBERS } from './studio-members.js?v=5';
+import { withWorkspace, workspaceFromColors, roleColors, roleOfMember, memberLabel, previewColorLabel, isCompact, isShort, isSupportRole, SUPPORT_ROLE, setMember, assignRole, swapRoles, insertMember, removeMember, EXTRACT_MAX_MEMBERS, MAX_MEMBERS } from './studio-members.js?v=5';
 import { initAccountNavigation } from './account-client.js?v=4';
-import { DRAFT_KEY, STUDIO_HANDOFF_KEY, readDraft, sanitizeDraft } from './member-palette.js?v=2';
+import { DRAFT_KEY, STUDIO_HANDOFF_KEY, readDraft, sanitizeDraft, normalizeHex } from './member-palette.js?v=2';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -425,7 +425,99 @@ function renderPaletteRoles() {
   support.hidden = !note;
   support.title = note ? paletteSupportText(workspace) : '';
   support.innerHTML = note;
+  renderPaletteAdd();
   updatePaletteOverflow();
+}
+
+// The plus below the rail names the member it will create and says when the palette is full.
+function renderPaletteAdd() {
+  const toggle = $('#paletteAddToggle');
+  if (!toggle) return;
+  const { workspace } = current, full = workspace.members.length >= MAX_MEMBERS;
+  const label = memberLabel(workspace, workspace.members.length);
+  toggle.setAttribute('aria-disabled', String(full));
+  toggle.querySelector('span').textContent = full ? 'Palette full' : `Add ${label}`;
+  toggle.title = full ? `${MAX_MEMBERS} colors is the maximum` : `Add ${label} to your palette`;
+  const limit = $('#paletteAddLimit');
+  limit.hidden = !full;
+  limit.textContent = full ? `${MAX_MEMBERS} of ${MAX_MEMBERS} colors — a palette holds at most ${MAX_MEMBERS}.` : '';
+  $('#paletteAddConfirm').textContent = `Add ${label}`;
+  if (full) closePaletteAdd();
+}
+
+// A starting suggestion only: a hue turn from the last member, kept apart from every member.
+function suggestedMemberColor() {
+  const { members } = current.workspace;
+  const { lightness, chroma, hue } = colorCoordinates(members.at(-1));
+  const candidates = [137.5, 222.5, 90, 270, 45, 315, 180].map(turn => oklch(clamp(lightness, .38, .82), clamp(chroma, .05, .13), hue + turn));
+  return normalizeHex(candidates.find(value => members.every(member => oklabDistance(value, member) > .08)) || candidates[0]) || '#7A8FA6';
+}
+
+// The HEX field is the source of truth; the native picker and its swatch follow a valid value.
+function syncPaletteAddColor(value, { fromPicker = false } = {}) {
+  const hex = normalizeHex(value), field = $('#paletteAddHex'), hint = $('#paletteAddHint');
+  if (fromPicker) field.value = hex;
+  if (hex) $('#paletteAddPicker').value = hex.toLowerCase();
+  field.setAttribute('aria-invalid', String(!hex));
+  $('#paletteAddConfirm').disabled = !hex;
+  const same = hex ? current.workspace.members.indexOf(hex) : -1;
+  hint.classList.toggle('is-error', !hex);
+  hint.textContent = !hex ? 'Enter six HEX digits, like #3A7BD5.' : same >= 0 ? `Same as ${memberLabel(current.workspace, same)}.` : '';
+  return hex;
+}
+
+function openPaletteAdd() {
+  const toggle = $('#paletteAddToggle'), form = $('#paletteAddForm');
+  if (current.workspace.members.length >= MAX_MEMBERS) {
+    const status = $('#paletteOrderStatus');
+    if (status) status.textContent = `Your palette already has ${MAX_MEMBERS} colors, the maximum.`;
+    return;
+  }
+  // A collapsed rail opens first, so the form never appears squeezed into it.
+  if ($('.studio-workspace')?.classList.contains('is-palette-collapsed')) $('#togglePaletteRail')?.click();
+  syncPaletteAddColor(suggestedMemberColor(), { fromPicker: true });
+  form.hidden = false;
+  toggle.setAttribute('aria-expanded', 'true');
+  const field = $('#paletteAddHex');
+  field.focus({ preventScroll: true });
+  field.select();
+  form.scrollIntoView?.({ block: 'nearest' });
+}
+
+function closePaletteAdd({ focus = false } = {}) {
+  const toggle = $('#paletteAddToggle'), form = $('#paletteAddForm');
+  if (!toggle || form.hidden) return;
+  form.hidden = true;
+  toggle.setAttribute('aria-expanded', 'false');
+  if (focus) toggle.focus({ preventScroll: true });
+}
+
+// Appends a real member. Preview roles keep their members; a 2–4 color palette's
+// new member takes the next support slot, and a fifth completes the historic
+// five-slot order (see insertMember), so its selection follows that slot.
+function addPaletteMember(color) {
+  const { workspace } = current, count = workspace.members.length;
+  const next = insertMember(workspace, count, color);
+  if (!next) return false;
+  if (isShort(workspace) && next.members.length === 5) {
+    const open = workspace.roleIndex.indexOf(SUPPORT_ROLE);
+    shadeSourceColors = workspace.roleIndex.map(index => index === SUPPORT_ROLE ? next.members[open] : shadeSourceColors[index] || workspace.members[index]);
+    activeColorIndex = open;
+  } else {
+    shadeSourceColors[count] = next.members[count];
+    activeColorIndex = count;
+  }
+  closePaletteAdd();
+  commitWorkspace(next);
+  const label = memberLabel(next, activeColorIndex);
+  const status = $('#paletteOrderStatus');
+  if (status) status.textContent = `${label} added: ${next.members[activeColorIndex]}. ${next.members.length} colors.`;
+  toast(`${label} added to your palette.`);
+  track('color_edit', { method: 'add-member' });
+  const added = $(`#paletteRoles [data-select-member="${activeColorIndex}"]`);
+  added?.focus({ preventScroll: true });
+  added?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+  return true;
 }
 
 const paletteSupportText = workspace => {
@@ -1105,7 +1197,31 @@ $('#togglePaletteRail')?.addEventListener('click', event => {
   button.setAttribute('aria-expanded', String(!collapsed));
   button.setAttribute('aria-label', collapsed ? 'Expand palette' : 'Collapse palette');
   button.title = collapsed ? 'Expand palette' : 'Collapse palette';
+  if (collapsed) closePaletteAdd();
   updatePaletteOverflow();
+});
+$('#paletteAddToggle')?.addEventListener('click', () => {
+  if ($('#paletteAddForm').hidden) openPaletteAdd();
+  else closePaletteAdd({ focus: true });
+});
+$('#paletteAddPicker')?.addEventListener('input', event => syncPaletteAddColor(event.target.value, { fromPicker: true }));
+$('#paletteAddHex')?.addEventListener('input', event => syncPaletteAddColor(event.target.value));
+$('#paletteAddHex')?.addEventListener('change', event => {
+  const hex = normalizeHex(event.target.value);
+  if (hex) event.target.value = hex;
+});
+$('#paletteAddCancel')?.addEventListener('click', () => closePaletteAdd({ focus: true }));
+$('#paletteAddForm')?.addEventListener('keydown', event => {
+  if (event.key !== 'Escape') return;
+  event.preventDefault();
+  event.stopPropagation();
+  closePaletteAdd({ focus: true });
+});
+$('#paletteAddForm')?.addEventListener('submit', event => {
+  event.preventDefault();
+  const hex = syncPaletteAddColor($('#paletteAddHex').value);
+  if (!hex) { $('#paletteAddHex').focus(); return; }
+  addPaletteMember(hex);
 });
 $('#paletteRoles')?.addEventListener('scroll', updatePaletteOverflow, { passive: true });
 if (page === 'studio') window.addEventListener('resize', updatePaletteOverflow);

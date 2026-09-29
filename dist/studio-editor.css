@@ -71,6 +71,43 @@
 .is-palette-collapsed .palette-count b{margin:0}
 .is-palette-collapsed .palette-support{justify-content:center;padding:0}
 .is-palette-collapsed .palette-support-text{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* Add color: a quiet dashed slot right below the rail; its small form opens inline. */
+.palette-add{margin:-8px 0 14px}
+.palette-support:not([hidden])+.palette-add{margin-top:0}
+.palette-add-toggle{display:flex;align-items:center;gap:8px;width:100%;min-height:38px;padding:5px 9px 5px 5px;border:1px dashed color-mix(in srgb,var(--muted) 55%,transparent);border-radius:6px;background:transparent;color:var(--muted);font-size:11px;font-weight:650;text-align:left;transition:border-color .2s,color .2s,background .2s}
+.palette-add-toggle svg{flex:none;width:26px;height:26px;padding:5px;border-radius:50%;background:var(--surface-2);color:var(--ink);stroke-width:1.9;transition:background .2s,color .2s,transform .2s}
+.palette-add-toggle:hover,.palette-add-toggle[aria-expanded="true"]{border-color:var(--accent);color:var(--ink);background:color-mix(in srgb,var(--accent) 4%,transparent)}
+.palette-add-toggle:hover svg,.palette-add-toggle[aria-expanded="true"] svg{background:var(--ink);color:var(--bg)}
+.palette-add-toggle[aria-expanded="true"]{border-style:solid}
+.palette-add-toggle[aria-expanded="true"] svg{transform:rotate(45deg)}
+.palette-add-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.palette-add-toggle[aria-disabled="true"],.palette-add-toggle[aria-disabled="true"]:hover{border-color:var(--line);background:transparent;color:var(--muted);cursor:not-allowed}
+.palette-add-toggle[aria-disabled="true"] svg{background:var(--surface-2);color:var(--muted);opacity:.6}
+.palette-add-limit{margin:5px 2px 0;font-size:9px;line-height:1.35;color:var(--muted)}
+.palette-add-form{margin-top:6px;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2)}
+.palette-add-fields{display:flex;align-items:stretch;gap:6px}
+.palette-add-picker{flex:none;width:38px;height:34px;padding:0;border:1px solid var(--line);border-radius:5px;background:var(--surface);cursor:pointer}
+.palette-add-picker::-webkit-color-swatch-wrapper{padding:3px}
+.palette-add-picker::-webkit-color-swatch{border:0;border-radius:3px;box-shadow:inset 0 0 0 1px #00000014}
+.palette-add-picker::-moz-color-swatch{border:0;border-radius:3px}
+.palette-add-picker:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.palette-add-hex{display:flex;align-items:center;flex:1;min-width:0;gap:5px;padding:0 7px;border:1px solid var(--line);border-radius:5px;background:var(--surface);cursor:text}
+.palette-add-hex span{font:9px var(--mono);color:var(--muted)}
+.palette-add-hex input{width:100%;min-width:0;padding:7px 0;border:0;background:none;color:var(--ink);font:12px var(--mono);text-transform:uppercase}
+.palette-add-hex input:focus-visible{outline:0}
+.palette-add-hex:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 22%,transparent)}
+.palette-add-hex:has([aria-invalid="true"]){border-color:var(--accent)}
+.palette-add-hint{margin:5px 1px 0;font-size:9px;line-height:1.35;color:var(--muted)}
+.palette-add-hint:empty{display:none}
+.palette-add-hint.is-error{color:var(--accent);font-weight:650}
+.palette-add-actions{display:flex;gap:5px;margin-top:7px}
+.palette-add-actions button{flex:1 1 auto;min-height:32px;padding:5px 6px;white-space:nowrap;border:1px solid var(--line);border-radius:5px;background:var(--surface);color:var(--ink);font-size:10px;font-weight:650}
+.palette-add-actions .palette-add-confirm{border-color:var(--ink);background:var(--ink);color:var(--bg)}
+.palette-add-actions button:hover:not(:disabled){border-color:var(--accent)}
+.palette-add-actions button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.is-palette-collapsed .palette-add-toggle{justify-content:center;padding:5px}
+.is-palette-collapsed .palette-add-toggle span,.is-palette-collapsed .palette-add-limit{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.is-palette-collapsed .palette-add-form{display:none}
 /* Both side panels start on the same baseline; the result gets the remaining width. */
 #colorLab{display:block;min-width:0;padding:16px;border-left:1px solid var(--line);background:var(--surface)}
 .shade-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:28px}
@@ -156,6 +193,8 @@
   .palette-member>i{width:27px;height:32px}
   .palette-member-label{font-size:10px}
   .palette-member code{font-size:8px}
+  .palette-add{margin:8px 0 2px;max-width:340px}
+  .palette-add-toggle{display:inline-flex;width:auto;min-height:36px}
   .studio-workspace .context-area{grid-column:1;min-width:0}
   #colorLab{grid-column:2;grid-row:2;border-left:1px solid var(--line);border-top:0;display:block}
   .tray-section{margin-top:16px;padding-top:12px;border-top:1px solid var(--line);border-left:0}
@@ -179,6 +218,7 @@
   .is-palette-collapsed .palette-member{flex-basis:44px}
   .is-palette-collapsed .palette-member>i{width:32px;height:32px}
   .palette-member-grip{width:16px}
+  .palette-add{margin:0 0 8px;max-width:none}
   .studio-workspace .context-area{grid-column:1}
   #colorLab{grid-column:1;grid-row:auto;display:block;padding:16px}
   .tray-section{margin-top:16px;padding:12px 0 0;border-left:0;border-top:1px solid var(--line)}
@@ -194,4 +234,7 @@
   .color-shade-grid{max-height:354px;padding:2px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin}
   .color-shade-grid button{height:28px}
   .color-shade-grid button::after{font-size:10px;opacity:.75}
+  .palette-add-hex input{font-size:16px;padding:5px 0}
+  .palette-add-picker{height:40px;width:44px}
+  .palette-add-actions button{min-height:40px;font-size:12px}
 }

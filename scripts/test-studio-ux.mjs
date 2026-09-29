@@ -35,7 +35,7 @@ function renderRail(workspace) {
   fakeElement(registry, 'paletteCount');
   const { renderPaletteRoles } = studioFunctions(['renderPaletteRoles', 'paletteSupportNote'], {
     $: selector => registry[selector] || null, document: { createElement: () => fakeElement(registry) },
-    current: { workspace }, activeColorIndex: 0, textOn: () => '#000000', updatePaletteOverflow() {},
+    current: { workspace }, activeColorIndex: 0, textOn: () => '#000000', updatePaletteOverflow() {}, renderPaletteAdd() {},
   });
   renderPaletteRoles();
   return { rail: registry['#paletteRoles'], support: registry['#paletteSupport'] };
@@ -189,8 +189,8 @@ test('Selected color tells the truth about actual usage; no product assignment p
 });
 
 test('Studio assets are cache-busted', () => {
-  assert.match(studio, /\/app\.js\?v=108/);
-  assert.match(studio, /\/studio-editor\.css\?v=20/);
+  assert.match(studio, /\/app\.js\?v=109/);
+  assert.match(studio, /\/studio-editor\.css\?v=21/);
   assert.match(studio, /\/report-preview\.css\?v=4/);
   assert.match(app, /'\.\/color-alternatives\.js\?v=4'/);
 });
