@@ -53,6 +53,13 @@ Start a new session with [the handoff](handoff.md) and [open work](open-work.md)
   The same five colors appear on label/body/cap/accent/print; the scene backdrop
   and clear glass base stay separate. Preserve saved assignment indices and
   original palette HEX/order; this is not corpus editorial approval.
+- Skincare label readability (2026-09-29) supersedes exact Text-color rendering
+  **only for preview lettering when it blends into the assigned label color**.
+  Derive a readable tone from the Text color for Katre's printed glyphs; keep
+  authored HEX/order, assignments, other surfaces and project data exact. Show
+  a small plain-language note only when a preview is adjusted. The owner may
+  ask to revert after seeing it; this is not a physical print or whole-product
+  accessibility guarantee.
 - Studio UX-05A's earlier left-inline-shades preference is superseded by
   FOCUS-07 above. Retain selected-color alternatives, contrast and the color tray.
 

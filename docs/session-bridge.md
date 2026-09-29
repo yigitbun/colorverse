@@ -50,6 +50,9 @@ eksik kalan bir karar/kanıt varsa o görevin ilgili son bölümünü oku.
   ayrı aday/karşılaştırma akışı olarak önerildi; ürün kararı açık (STU-15).
   Owner düzeltmesi STU-14A: tam genişlikli Shuffle bloğu kaldırıldı; ikon
   palet adıyla aynı satırın sağında (`efa8125`), 1280/390px kontrol edildi.
+- STU-16: Skincare Katre etiket harfleri düşük kontrastta yalnız preview'da
+  uyarlanıyor (`54e66bc`); kaynak/palet korunuyor. Release 235/235,
+  açık-koyu yerel görsel ve frozen comparison kontrolü PASS. Public değil.
 - HOME-03: Mini Studio Hue/Lightness özel HEX'e geçince dünya seçimi filtresi
   globe marker'ını temizliyor; `focusPoint` çağrılmıyor. Önceki reverse coupling
   geri alınmıştı. Slider değişince globe'un yaklaşık renge dönmesi/işaretlemesi
