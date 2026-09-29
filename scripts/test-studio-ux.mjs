@@ -119,10 +119,10 @@ test('Screens shows a native report with illustrative, internally consistent dat
   const html = reportPreview();
   assert.match(html, /^<div class="mockup context-kit bi-report">/);
   assert.match(html, /<h4>Sales performance<\/h4>/);
-  assert.equal([...html.matchAll(/<li>(FY 2026|All regions|All channels)<\/li>/g)].length, 3);
+  assert.equal([...html.matchAll(/<li>(FY 2026 · Jan–Dec|All regions|All channels)<\/li>/g)].length, 3);
   assert.equal([...html.matchAll(/<article>/g)].length, 4);
   assert.match(html, /<svg class="bi-trend"[^>]*role="img"/);
-  assert.equal([...html.matchAll(/class="bi-bar-label"/g)].length, 5);
+  assert.equal([...html.matchAll(/class="bi-bar-label"/g)].length, 9, 'five regions and four categories');
   assert.match(html, /Illustrative data · not a live report or Power BI connection/);
   assert.doesNotMatch(html, /<img|<script|<iframe|https?:|Northstar|#[0-9a-f]{3,6}\b/i);
   const sum = values => values.reduce((total, value) => total + value, 0);

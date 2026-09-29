@@ -44,3 +44,25 @@ external account/analytics. No push or publication.
 
 Run `npm run build`, focused tests, and `npm run check:release` if feasible.
 Report exact PASS/FAIL/NOT RUN, base/final SHA, changed files and limitations.
+
+## Delivery (Claude, 2026-09-29)
+
+Status: delivered on the task branch for Codex review; not integrated.
+
+- Added channel mix (palette-toned ring + legend), category breakdown (share and
+  change vs PY) and three takeaways; kept four KPIs, trend, region vs target,
+  neutral canvas, swatches and one-shot entry motion. Scope is a labelled,
+  fixed chip row with no controls; footer keeps the illustrative disclaimer.
+- KPI strings, shares and takeaways are derived from base figures. Channels,
+  regions and categories each total €4.82M; shares total 100% (largest
+  remainder). Prior-data inconsistency fixed: AOV now reads ▲2.4% (revenue
+  +6.4% over orders +3.9%), replacing ▼0.8%.
+- Panels are size containers; trend axis labels step up as a panel narrows.
+  New slices, category bars and takeaways animate once and stop under reduced
+  motion. Trend month labels are now Feb…Dec (even spacing, no clash at 390px).
+- Local QA: isolated headless Chromium, temporary profile, all off-origin
+  requests blocked (none attempted). Studio Screens at 1440/1024/800/390px:
+  no document or report overflow, smallest visible text ≥9px apart from the
+  existing decorative 8px ▲, no page errors.
+- `dist/app.js` still imports `report-preview.js?v=2`; Codex should bump that
+  JS pin with the stylesheet pin at integration.

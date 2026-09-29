@@ -1,14 +1,18 @@
 /* Screens: a restrained report page. The report owns a calm neutral canvas and ink, so a
    saturated, black or pale palette member never becomes the whole page; palette colors
    appear as chart fills, accents and honest swatches. */
-.bi-report{--bi-ink:oklch(26% .025 265);--bi-muted:oklch(49% .025 265);--bi-line:oklch(26% .025 265 / .1);--bi-soft:oklch(26% .025 265 / .42);--bi-canvas:color-mix(in srgb,var(--p-bg) 4%,oklch(97.3% .003 265));--bi-card:white;--bi-edge:color-mix(in srgb,var(--p-primary) 62%,var(--bi-ink));display:flex;flex-direction:column;gap:12px;padding:18px 20px 14px;background:var(--bi-canvas);color:var(--bi-ink)}
+.bi-report{--bi-ink:oklch(26% .025 265);--bi-muted:oklch(49% .025 265);--bi-line:oklch(26% .025 265 / .1);--bi-soft:oklch(26% .025 265 / .42);--bi-canvas:color-mix(in srgb,var(--p-bg) 4%,oklch(97.3% .003 265));--bi-card:white;--bi-edge:color-mix(in srgb,var(--p-primary) 62%,var(--bi-ink));--bi-c1:var(--p-primary);--bi-c2:var(--p-accent);--bi-c3:color-mix(in srgb,var(--p-primary) 40%,var(--bi-card));--bi-c4:color-mix(in srgb,var(--bi-ink) 22%,var(--bi-card));display:flex;flex-direction:column;gap:12px;padding:18px 20px 14px;background:var(--bi-canvas);color:var(--bi-ink)}
 .mockup-stage:has(.bi-report){align-items:flex-start}
 .context-kit.bi-report{border-color:var(--bi-line);color-scheme:light}
 .bi-report ul{margin:0;padding:0;list-style:none}
 .bi-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;padding-bottom:12px;border-bottom:1px solid var(--bi-line)}
 .bi-head .kit-kicker{color:var(--bi-muted)}
 .bi-head h4{margin:5px 0 0;font-size:22px;line-height:1.05;letter-spacing:-.035em}
+.bi-sub{margin:5px 0 0;color:var(--bi-muted);font-size:11px;line-height:1.35}
 .bi-head-side{display:flex;flex-direction:column;align-items:flex-end;gap:7px;min-width:0}
+/* Scope is stated, not offered: plain chips without chevrons or controls. */
+.bi-scope{display:flex;align-items:center;gap:6px}
+.bi-scope>span{color:var(--bi-muted);font:9.5px var(--mono);text-transform:uppercase;letter-spacing:.06em}
 .bi-filters{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:5px}
 .bi-filters li{padding:4px 8px;border:1px solid var(--bi-line);border-radius:4px;background:var(--bi-card);font-size:10px;line-height:1.2}
 /* Actual palette colors in role order, outlined so pale and near-canvas members stay visible. */
@@ -26,7 +30,8 @@
 .bi-kpis small{display:block;color:var(--bi-muted);font-size:9.5px;line-height:1.3}
 .bi-kpis small b{font-size:8px;color:var(--bi-ink)}
 .bi-charts{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:8px}
-.bi-panel{min-width:0;padding:11px 12px;border:1px solid var(--bi-line);border-radius:4px;background:var(--bi-card)}
+/* Each panel is a size container, so its contents adapt to the panel's own width. */
+.bi-panel{container:bi-panel/inline-size;min-width:0;padding:11px 12px;border:1px solid var(--bi-line);border-radius:4px;background:var(--bi-card)}
 .bi-panel>header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 10px;margin-bottom:6px}
 .bi-panel h5{margin:0;font-size:12px;line-height:1.2;letter-spacing:-.01em}
 .bi-legend{display:flex;gap:10px;margin:0;color:var(--bi-muted);font-size:9.5px}
@@ -52,6 +57,39 @@
 .bi-bar{position:absolute;inset:0 auto 0 0;border-radius:2px;background:var(--p-primary);box-shadow:inset 0 0 0 1px var(--bi-edge);transform-origin:left center}
 .bi-target{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--bi-ink)}
 .bi-bar-value{text-align:right;font-variant-numeric:tabular-nums}
+.bi-categories li{grid-template-columns:66px minmax(0,1fr) 76px 40px}
+.bi-bar-value small{color:var(--bi-muted);font-size:9.5px}
+.bi-growth{color:var(--bi-muted);text-align:right;font-variant-numeric:tabular-nums}
+/* Channel mix: a ring of four palette-derived tones with a readable legend beside it. */
+.bi-mix{display:flex;align-items:center;gap:14px;padding-top:2px}
+.bi-donut{position:relative;flex:0 0 84px;width:84px;height:84px}
+.bi-donut svg{display:block;width:100%;height:100%;stroke:none}
+.bi-donut-case{fill:none;stroke:oklch(26% .025 265 / .16);stroke-width:5.6}
+.bi-slice{fill:none;stroke-width:5}
+.bi-slice:nth-of-type(2){stroke:var(--bi-c1)}
+.bi-slice:nth-of-type(3){stroke:var(--bi-c2)}
+.bi-slice:nth-of-type(4){stroke:var(--bi-c3)}
+.bi-slice:nth-of-type(5){stroke:var(--bi-c4)}
+.bi-donut p{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0;text-align:center}
+.bi-donut strong{font-size:12px;line-height:1.1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.bi-donut span{color:var(--bi-muted);font-size:9px}
+.bi-mix-list{display:grid;flex:1;gap:6px;min-width:0}
+.bi-mix-list li{display:grid;grid-template-columns:9px minmax(0,1fr) auto;align-items:center;column-gap:6px;font-size:10px;line-height:1.25}
+.bi-mix-list i{grid-row:span 2;align-self:start;width:9px;height:9px;margin-top:2px;border-radius:2px;box-shadow:inset 0 0 0 1px oklch(26% .025 265 / .2)}
+.bi-mix-list li:nth-child(1) i{background:var(--bi-c1)}
+.bi-mix-list li:nth-child(2) i{background:var(--bi-c2)}
+.bi-mix-list li:nth-child(3) i{background:var(--bi-c3)}
+.bi-mix-list li:nth-child(4) i{background:var(--bi-c4)}
+.bi-mix-list span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bi-mix-list b{grid-row:span 2;font-size:11px;font-variant-numeric:tabular-nums}
+.bi-mix-list small{grid-column:2;color:var(--bi-muted);font-size:9.5px;font-variant-numeric:tabular-nums}
+/* Takeaways restate only what the panels above show. */
+.bi-takeaways{padding:10px 12px 11px;border:1px solid var(--bi-line);border-radius:4px;background:var(--bi-card)}
+.bi-takeaways h5{margin:0 0 8px;font-size:12px;line-height:1.2;letter-spacing:-.01em}
+.bi-takeaways ul{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 14px}
+.bi-takeaways li{min-width:0;padding-left:9px;border-left:2px solid color-mix(in srgb,var(--p-accent) 60%,var(--bi-ink))}
+.bi-takeaways strong{display:block;font-size:11px;line-height:1.3}
+.bi-takeaways span{display:block;margin-top:2px;color:var(--bi-muted);font-size:10px;line-height:1.4}
 .bi-foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 10px;padding-top:9px;border-top:1px solid var(--bi-line);color:var(--bi-muted);font:9.5px var(--mono)}
 /* One-shot entry motion, only while .bi-enter is on a freshly mounted report. Keyframes
    hold their start state during delays (backwards) and then release to the static styles. */
@@ -61,11 +99,13 @@
 .bi-enter .bi-point{animation:bi-fade .3s ease-out .95s backwards}
 .bi-enter .bi-bar{animation:bi-grow .7s cubic-bezier(.2,.7,.2,1) calc(.12s + var(--i,0) * 60ms) backwards}
 .bi-enter .bi-target{animation:bi-fade .3s ease-out calc(.55s + var(--i,0) * 60ms) backwards}
+.bi-enter .bi-slice{animation:bi-fade .45s ease-out calc(.25s + var(--i,0) * 90ms) backwards}
+.bi-enter .bi-takeaways li{animation:bi-fade .5s ease-out calc(.8s + var(--i,0) * 90ms) backwards}
 @keyframes bi-draw{from{stroke-dasharray:1 1;stroke-dashoffset:1}to{stroke-dasharray:1 1;stroke-dashoffset:0}}
 @keyframes bi-grow{from{transform:scaleX(0)}}
 @keyframes bi-fade{from{opacity:0}}
 @media (prefers-reduced-motion:reduce){
-  .bi-enter .bi-line-case,.bi-enter .bi-line-current,.bi-enter .bi-line-previous,.bi-enter .bi-area,.bi-enter .bi-point,.bi-enter .bi-bar,.bi-enter .bi-target{animation:none}
+  .bi-enter .bi-line-case,.bi-enter .bi-line-current,.bi-enter .bi-line-previous,.bi-enter .bi-area,.bi-enter .bi-point,.bi-enter .bi-bar,.bi-enter .bi-target,.bi-enter .bi-slice,.bi-enter .bi-takeaways li{animation:none}
 }
 @container (max-width:560px){
   .bi-report{padding:13px 12px 11px;gap:9px}
@@ -75,4 +115,11 @@
   .bi-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
   .bi-kpis strong{font-size:18px}
   .bi-charts{grid-template-columns:1fr}
+  .bi-takeaways ul{grid-template-columns:1fr}
 }
+/* Panel widths: the trend's axis labels scale with its viewBox, so they step up as the
+   panel narrows to stay near 9px on screen; tight panels stack the channel ring. */
+@container bi-panel (max-width:420px){.bi-axis{font-size:11px}}
+@container bi-panel (max-width:340px){.bi-axis{font-size:13px}}
+@container bi-panel (max-width:280px){.bi-axis{font-size:15px}.bi-categories li{grid-template-columns:62px minmax(0,1fr) 70px 38px;gap:6px}}
+@container bi-panel (max-width:205px){.bi-mix{flex-direction:column;align-items:stretch}.bi-donut{align-self:center}}
