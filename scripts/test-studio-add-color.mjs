@@ -232,7 +232,10 @@ test('desktop: adding to a 7-color palette keeps order and role map through expo
   const { context, page, errors } = await openStudio({ viewport: { width: 1280, height: 900 }, colors, roleIndex });
   try {
     const roleColors = roleIndex.map(index => colors[index]);
+    // A card click opens Color Globe; closing it unchanged keeps the selection.
     await page.locator('#paletteRoles [data-select-member="3"]').click();
+    await page.keyboard.press('Escape');
+    assert.deepEqual((await state(page)).pressed, [3]);
     await toggle(page).click();
     await page.locator('#paletteAddPicker').fill('#c04a7e');
     assert.equal(await hexField(page).inputValue(), '#C04A7E', 'native picker writes the HEX field');

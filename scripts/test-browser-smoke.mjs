@@ -147,6 +147,7 @@ async function assertKeyboardSelection(page, expected) {
   const rail = await members(page);
   assert.deepEqual(rail.filter(member => member.pressed).map(member => member.index), [1], 'exactly one member is selected');
   assert.equal(await second.evaluate(node => node === document.activeElement), true, 'focus follows the newly selected member');
+  assert.equal(await page.locator('#colorGlobe').evaluate(node => node.open), false, 'arrow selection does not open Color Globe');
   assert.equal((await page.locator('#selectedColorHex').textContent()).trim().toUpperCase(), expected.colors[1], 'selected-color panel shows the new member hex');
   assert.match(await page.locator('#selectedColorLabel').textContent(), /\S/, 'selected-color panel has a label');
   await page.keyboard.press('End');

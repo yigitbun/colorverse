@@ -404,10 +404,10 @@ function renderPaletteRoles() {
   // Larger palettes use a compact two-column rail with a visible count, so 8–10 colors fit without scrolling.
   container.classList.toggle('is-scrolling', workspace.members.length > 5);
   container.classList.toggle('is-compact-grid', workspace.members.length > 5);
-  container.setAttribute('aria-label', `${workspace.members.length} palette colors${isShort(workspace) ? ', plus neutral preview support that is not part of the palette' : ''}. Select a color to edit it on the right.`);
+  container.setAttribute('aria-label', `${workspace.members.length} palette colors${isShort(workspace) ? ', plus neutral preview support that is not part of the palette' : ''}. Select a color to open it in Color Globe; arrow keys move the selection.`);
   container.innerHTML = workspace.members.map((color, index) => {
     const label = memberLabel(workspace, index), assigned = roleOfMember(workspace, index) >= 0;
-    return `<button class="palette-member${activeColorIndex === index ? ' is-selected' : ''}${assigned ? '' : ' is-unassigned'}" type="button" data-select-member="${index}" style="--swatch:${color};--on:${textOn(color)}" aria-pressed="${activeColorIndex === index}" aria-label="Select ${label}, ${color}${assigned ? '' : ', not in preview'}. Drag its handle onto another color to swap positions." title="${label} · ${color}${assigned ? '' : ' · not in preview'}"><i aria-hidden="true"></i><span class="palette-member-label">${label}<code>${color}</code></span><span class="palette-member-grip" aria-hidden="true"><svg viewBox="0 0 16 20"><circle cx="5" cy="4" r="1.35"/><circle cx="11" cy="4" r="1.35"/><circle cx="5" cy="10" r="1.35"/><circle cx="11" cy="10" r="1.35"/><circle cx="5" cy="16" r="1.35"/><circle cx="11" cy="16" r="1.35"/></svg></span></button>`;
+    return `<button class="palette-member${activeColorIndex === index ? ' is-selected' : ''}${assigned ? '' : ' is-unassigned'}" type="button" data-select-member="${index}" style="--swatch:${color};--on:${textOn(color)}" aria-pressed="${activeColorIndex === index}" aria-haspopup="dialog" aria-controls="colorGlobe" aria-label="Edit ${label}, ${color}${assigned ? '' : ', not in preview'}, in Color Globe. Drag its handle onto another color to swap positions." title="Edit ${label} · ${color}${assigned ? '' : ' · not in preview'} in Color Globe"><i aria-hidden="true"></i><span class="palette-member-label">${label}<code>${color}</code></span><span class="palette-member-grip" aria-hidden="true"><svg viewBox="0 0 16 20"><circle cx="5" cy="4" r="1.35"/><circle cx="11" cy="4" r="1.35"/><circle cx="5" cy="10" r="1.35"/><circle cx="11" cy="10" r="1.35"/><circle cx="5" cy="16" r="1.35"/><circle cx="11" cy="16" r="1.35"/></svg></span></button>`;
   }).join('');
   const count = $('#paletteCount');
   if (count) {
@@ -1025,6 +1025,8 @@ if (copyPalette) copyPalette.addEventListener('click', () => {
   copy(members.join(', '), `All ${members.length} colors copied.`);
 });
 const paletteRoles = $('#paletteRoles');
+// Where focus returns when the Globe closes: the member card that opened it, else the right-side button.
+let globeOpener = 'button';
 // The Globe edits one palette member; labels keep its neutral palette identity.
 const colorGlobe = createColorGlobe({
   getPalette: () => ({ ...current, members: current.workspace.members, labels: current.workspace.members.map((_, index) => memberLabel(current.workspace, index)) }),
@@ -1044,13 +1046,20 @@ const colorGlobe = createColorGlobe({
   onApply(index, color) { const label = memberLabel(current.workspace, index); replacePaletteColor(index, color); track('color_edit', { method: 'globe' }); toast(`${label} updated to ${color}.`); },
   onClose(index) {
     renderMockup();
-    $('#openSelectedGlobe')?.focus({ preventScroll: true });
+    const card = globeOpener === 'card' && paletteRoles?.querySelector(`[data-select-member="${index}"]`);
+    globeOpener = 'button';
+    // The close event runs a task after the dialog closes; keep focus the user has already moved.
+    const focused = document.activeElement;
+    if (focused && focused !== document.body && !$('#colorGlobe')?.contains(focused)) return;
+    (card || $('#openSelectedGlobe'))?.focus({ preventScroll: true });
   },
 });
 if (paletteRoles) {
   // Grip drags lift an inert copy of the card that follows the pointer; the real
   // card stays in place as an empty slot until drop, cancel, or a rerender.
   let memberDrag = null;
+  // A finished grip drag must not also count as a card click.
+  let dragJustEnded = false;
   const cancelOnEscape = event => {
     if (event.key !== 'Escape' || !memberDrag) return;
     event.preventDefault();
@@ -1159,15 +1168,17 @@ if (paletteRoles) {
       updateMemberTarget(drag);
     }
     finishMemberDrag();
+    if (drag.started) {
+      dragJustEnded = true;
+      setTimeout(() => { dragJustEnded = false; });
+    }
     if (drag.started && drag.target !== drag.source && drag.target.isConnected) swapPaletteMembers(drag.from, Number(drag.target.dataset.selectMember));
   });
   paletteRoles.addEventListener('pointercancel', event => { if (memberDrag?.pointerId === event.pointerId) finishMemberDrag(); });
   paletteRoles.addEventListener('lostpointercapture', event => { if (memberDrag?.pointerId === event.pointerId) finishMemberDrag(); });
-  paletteRoles.addEventListener('click', event => {
-    if (event.target.closest('.palette-member-grip')) return;
-    const button = event.target.closest('[data-select-member]');
-    if (!button) return;
-    activeColorIndex = Number(button.dataset.selectMember);
+  // Selection alone is not a palette edit; arrow keys use it without opening the Globe.
+  const selectPaletteMember = index => {
+    activeColorIndex = index;
     renderPaletteRoles();
     renderColorLab();
     // Material preview follows the selected member; no palette mutation/event.
@@ -1176,6 +1187,16 @@ if (paletteRoles) {
     selected?.focus({ preventScroll: true });
     // Keyboard selection in a scrolled rail keeps the chosen color in view.
     selected?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+  };
+  // Click, tap, Enter or Space on a card selects it and opens its Color Globe.
+  paletteRoles.addEventListener('click', event => {
+    if (dragJustEnded || event.target.closest('.palette-member-grip')) return;
+    const button = event.target.closest('[data-select-member]');
+    if (!button) return;
+    const index = Number(button.dataset.selectMember);
+    selectPaletteMember(index);
+    globeOpener = 'card';
+    colorGlobe.open(index);
   });
   paletteRoles.addEventListener('keydown', event => {
     const button = event.target.closest('[data-select-member]');
@@ -1187,8 +1208,7 @@ if (paletteRoles) {
     const next = { ArrowUp: Math.max(0, index - columns), ArrowLeft: Math.max(0, index - 1), ArrowDown: Math.min(last, index + columns), ArrowRight: Math.min(last, index + 1), Home: 0, End: last }[event.key];
     if (next === undefined) return;
     event.preventDefault();
-    const target = paletteRoles.querySelector(`[data-select-member="${next}"]`);
-    target?.click();
+    selectPaletteMember(next);
   });
 }
 $('#togglePaletteRail')?.addEventListener('click', event => {
@@ -1225,7 +1245,10 @@ $('#paletteAddForm')?.addEventListener('submit', event => {
 });
 $('#paletteRoles')?.addEventListener('scroll', updatePaletteOverflow, { passive: true });
 if (page === 'studio') window.addEventListener('resize', updatePaletteOverflow);
-$('#openSelectedGlobe')?.addEventListener('click', () => colorGlobe.open(activeColorIndex));
+$('#openSelectedGlobe')?.addEventListener('click', () => {
+  globeOpener = 'button';
+  colorGlobe.open(activeColorIndex);
+});
 
 $('#colorLab')?.addEventListener('click', event => {
   const slot = event.target.closest('[data-assign-slot]');

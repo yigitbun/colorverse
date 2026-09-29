@@ -45,3 +45,26 @@ that member; Escape/cancel leaves colors unchanged and restores focus; grip
 drag still swaps without opening. Check 390px and >5 members. Run build,
 focused browser checks, existing drag/smoke and release check if feasible;
 report exact PASS/FAIL/NOT RUN, SHA and files.
+
+## Delivery (Claude, 2026-09-29)
+
+Status: delivered for Codex review on the task branch (base `29dbfbc`); not
+integrated, pushed or deployed.
+
+- Card click/tap/Enter/Space selects the member and calls
+  `colorGlobe.open(index)`; Arrow/Home/End call the shared selection only.
+  Grip presses/drags never open it (a just-finished drag suppresses the
+  trailing click). Cards carry `aria-haspopup="dialog"`, an "Edit … in Color
+  Globe" label/title and a pointer cursor; the rail label names the action.
+- Closing restores focus to the opening card (or `#openSelectedGlobe`) only
+  when focus was lost; the async dialog `close` event no longer steals focus
+  the user already moved (found by the new test, ~30% of fast runs).
+- Cache: Studio `app.js?v=110`, `studio-editor.css?v=22`.
+- New `scripts/test-studio-card-globe.mjs` (isolated Chromium, off-origin
+  requests aborted): 8 members desktop click/Enter/Space/arrows/Cancel/
+  Escape/close/Apply (only Color 4 and role map intact)/right button; grip
+  click, drag swap, drag onto itself, plus; 390px touch tap, Cancel, touch
+  grip swap. Passed 12/12 repeated runs.
+- PASS: `npm run build`; `npm run check:release` (231 pass, 1 pre-existing
+  skip); browser `test-studio-card-globe`, `test-studio-drag`,
+  `test-studio-add-color`, `test-browser-smoke`. Hosted: NOT RUN.

@@ -72,10 +72,17 @@ test('palette members select without editing; shades and Globe are explicit righ
   assert.match(palette, /data-select-member="\$\{index\}"/);
   assert.match(palette, /aria-pressed="\$\{activeColorIndex === index\}"/);
   assert.doesNotMatch(app, /shadeOverlay|InlineShade|openShadeIndex|data-inline-role-shade/);
-  const selection = app.slice(app.indexOf("paletteRoles.addEventListener('click'"), app.indexOf("paletteRoles.addEventListener('keydown'"));
-  assert.match(selection, /activeColorIndex = Number/);
+  const selection = app.slice(app.indexOf('const selectPaletteMember = index =>'), app.indexOf("paletteRoles.addEventListener('click'"));
+  assert.match(selection, /activeColorIndex = index/);
   assert.match(selection, /renderColorLab\(\)/);
   assert.doesNotMatch(selection, /replacePaletteColor|commitWorkspace|persistPalette|studiochange|colorGlobe\.open/);
+  // A card click opens that member's Globe; arrow keys only select.
+  const cardClick = app.slice(app.indexOf("paletteRoles.addEventListener('click'"), app.indexOf("paletteRoles.addEventListener('keydown'"));
+  assert.match(cardClick, /selectPaletteMember\(index\);[\s\S]*colorGlobe\.open\(index\)/);
+  assert.doesNotMatch(cardClick, /replacePaletteColor|commitWorkspace|persistPalette|studiochange/);
+  const arrows = app.slice(app.indexOf("paletteRoles.addEventListener('keydown'"), app.indexOf("$('#togglePaletteRail')?.addEventListener"));
+  assert.match(arrows, /selectPaletteMember\(next\)/);
+  assert.doesNotMatch(arrows, /colorGlobe\.open|\.click\(\)/);
   assert.match(studio, /id="openSelectedGlobe"[^>]*aria-controls="colorGlobe"/);
   assert.match(app, /colorGlobe\.open\(activeColorIndex\)/);
 });
@@ -189,8 +196,8 @@ test('Selected color tells the truth about actual usage; no product assignment p
 });
 
 test('Studio assets are cache-busted', () => {
-  assert.match(studio, /\/app\.js\?v=109/);
-  assert.match(studio, /\/studio-editor\.css\?v=21/);
+  assert.match(studio, /\/app\.js\?v=110/);
+  assert.match(studio, /\/studio-editor\.css\?v=22/);
   assert.match(studio, /\/report-preview\.css\?v=4/);
   assert.match(app, /'\.\/color-alternatives\.js\?v=4'/);
 });
@@ -214,7 +221,7 @@ test('the rail shows exactly the authored 2/3/4/5/8 colors; 2–4 add a muted su
     const workspace = workspaceOf(count);
     const { rail, support } = renderRail(workspace);
     assert.equal([...rail.innerHTML.matchAll(/data-select-member="/g)].length, count, `${count} member buttons`);
-    assert.deepEqual([...rail.innerHTML.matchAll(/data-select-member="\d+"[^>]*aria-label="Select Color \d+, (#[0-9A-F]{6})/g)].map(match => match[1]), PALETTE.slice(0, count));
+    assert.deepEqual([...rail.innerHTML.matchAll(/data-select-member="\d+"[^>]*aria-label="Edit Color \d+, (#[0-9A-F]{6})/g)].map(match => match[1]), PALETTE.slice(0, count));
     for (const neutral of members.SUPPORT_COLORS) assert.doesNotMatch(rail.innerHTML, new RegExp(neutral), `${count}: no support swatch in the rail`);
     if (count < 5) {
       const neutrals = 5 - count;
@@ -229,7 +236,7 @@ test('the rail shows exactly the authored 2/3/4/5/8 colors; 2–4 add a muted su
     } else {
       assert.equal(support.hidden, true, `${count}: no support note`);
       assert.equal(support.innerHTML, '');
-      assert.equal(rail.attributes['aria-label'], `${count} palette colors. Select a color to edit it on the right.`);
+      assert.equal(rail.attributes['aria-label'], `${count} palette colors. Select a color to open it in Color Globe; arrow keys move the selection.`);
     }
   }
   // Collapsed keeps the swatch-first column; the note keeps its chips and a clipped, still-readable label.

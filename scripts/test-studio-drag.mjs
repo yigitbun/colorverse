@@ -210,8 +210,11 @@ test('desktop: lifted card follows the mouse, drop swaps, clicks still select', 
     assert.deepEqual(after.pressed, [2], 'the moved color stays selected at its new position');
     assert.match(await page.locator('#paletteOrderStatus').textContent(), /Swapped Color 1 and Color 3/);
 
+    assert.equal(await page.locator('#colorGlobe').evaluate(node => node.open), false, 'a grip drag never opens Color Globe');
     await card(page, 4).locator('code').click();
     assert.deepEqual((await dragState(page)).pressed, [4], 'a plain click still selects a color');
+    assert.equal(await page.locator('#colorGlobe').evaluate(node => node.open), true, 'a plain click opens its Color Globe');
+    await page.keyboard.press('Escape');
     assert.deepEqual(await hexes(page), swapped, 'a plain click does not reorder');
     assert.deepEqual(errors, [], 'no uncaught page errors');
   } finally { await context.close(); }
