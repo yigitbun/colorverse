@@ -12,10 +12,10 @@ eksik kalan bir karar/kanıt varsa o görevin ilgili son bölümünü oku.
 ## Şu anki durum
 
 - Public yayın `14d7a38`: Studio orta genişlik düzeni ve grip ile renk takası
-  canlıda. Yerel `main`: kod entegrasyonu `42478e1` ve güncel durum kaydı var.
-  Claude'un ayrı worktree'de yaptığı HQ-05A browser smoke Codex incelemesiyle entegre edildi; public'e
-  gönderilmedi. `npm run test:browser:smoke` 2/2 ve `npm run check:release`
-  232/232 PASS. Gerçek inbox/private save kanıtı açık.
+  canlıda. Yerel `main`: HQ-05A browser smoke `42478e1`, ardından hareketli
+  Studio drag kartı `b03c953` entegre edildi; ikisi de public'e gönderilmedi.
+  Drag browser 4/4, genel browser smoke 2/2 ve release 232/232 PASS.
+  Gerçek inbox/private save kanıtı açık.
 - AGENTS başlangıç okuması görev bazlı hale getirildi; bu kısa sohbet devri
   akışı eklendi. Giriş ve köprü belgeleri yerel `main` checkpoint'indedir;
   public yayına gönderilmedi.
@@ -38,6 +38,10 @@ eksik kalan bir karar/kanıt varsa o görevin ilgili son bölümünü oku.
   PNG denemeleri ayrıca kanıt ister (`AUTH-01/02/03`, `STU-02`).
 - HQ-05'in kalan browser smoke kapsamı Extract→Studio ve hesap form durumları;
   hiçbir test gerçek mail veya canlı hesap oluşturmaz.
+- STU-09: Owner'ın isteğiyle Studio renk kartı artık grip-drag sırasında
+  imleç/parmağı izliyor; Claude `c8c54b7` → Codex yerel main `b03c953`.
+  Entegre drag browser 4/4, smoke 2/2, release 232/232 PASS. Public'e
+  gönderilmedi; gerçek cihaz kabulü yok. Ana sayfa dirty home zoom korunuyor.
 - Onaylı renk corpus'u hâlâ yok; araştırma notları import veya içerik onayı
   değildir. Campaigns yönü ve ilk Library paletleri owner kararı bekler.
 

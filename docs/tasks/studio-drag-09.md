@@ -1,7 +1,7 @@
 # STU-09 — dragged color card follows the pointer
 
-Owner: Claude implementation; Codex review and integration. Status: delivered
-for Codex review (not integrated).
+Owner: Claude implementation; Codex review and integration. Status: locally
+integrated by Codex (`b03c953`), not published.
 Branch `codex/claude-studio-drag-09`, worktree
 `.local/worktrees/claude-studio-drag-09`; base is the local main assignment
 commit supplied by Codex.
@@ -45,8 +45,9 @@ home edits in `dist/app.js`; do not copy or touch those. Do not deploy/push.
 
 ## Delivery evidence (Claude, 2026-09-29)
 
-Base `51ae5b400e158cc8901520934693efe957991335`; final commit is reported in
-the handoff. Local checks only; no hosted writes, push, or deploy.
+Base `51ae5b400e158cc8901520934693efe957991335`; Claude final
+`c8c54b7a8622d7d70d5db19253a2fa8622fa8157`, Codex integration
+`b03c953`. Local checks only; no hosted writes, push, or deploy.
 
 - A grip drag past 7px lifts an inert clone (`aria-hidden`, `inert`,
   `tabindex=-1`, no `data-select-member`/label, `pointer-events:none`) inside
@@ -74,3 +75,7 @@ Results: `npm run build` PASS; `npm run check:release` PASS (231 pass,
 1 pre-existing skip); `scripts/test-studio-drag.mjs` PASS 4/4 (3 repeat runs);
 `npm run test:browser:smoke` PASS 2/2. Real-device touch and hosted smoke:
 NOT RUN.
+
+Codex re-ran on integrated main with the owner's unrelated home zoom diff
+restored: drag browser 4/4 PASS, browser smoke 2/2 PASS, release build 113
+static and 232/232 tests PASS. The existing dirty home files remain uncommitted.
