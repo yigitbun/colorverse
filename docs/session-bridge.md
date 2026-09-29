@@ -11,17 +11,22 @@ eksik kalan bir karar/kanıt varsa o görevin ilgili son bölümünü oku.
 
 ## Şu anki durum
 
-- `main` başı `14d7a38`: Studio orta genişlik düzeni ve grip ile renk takası
-  yayımlandı. Yerel release check 232/232 PASS, canlı release adayı kontrolü
-  PASS. Beş üyede renkler preview slotlarıyla birlikte takas olur; 6+ üyede
-  preview rolü aynı renge bağlı kalır. Gerçek inbox/private save kanıtı açık.
+- Public yayın `14d7a38`: Studio orta genişlik düzeni ve grip ile renk takası
+  canlıda. Yerel `main`: kod entegrasyonu `42478e1` ve güncel durum kaydı var.
+  Claude'un ayrı worktree'de yaptığı HQ-05A browser smoke Codex incelemesiyle entegre edildi; public'e
+  gönderilmedi. `npm run test:browser:smoke` 2/2 ve `npm run check:release`
+  232/232 PASS. Gerçek inbox/private save kanıtı açık.
 - AGENTS başlangıç okuması görev bazlı hale getirildi; bu kısa sohbet devri
   akışı eklendi. Giriş ve köprü belgeleri yerel `main` checkpoint'indedir;
   public yayına gönderilmedi.
 - Yerel ana sayfa world-menu/zoom çalışması ile ilgili dosyalar dirty:
   `dist/app.js`, `dist/index.html`, `dist/world-picker.css`; ilgili backlog ve
   ürün kararlarında da yerel düzenlemeler var. Başka görevin kapsamına katma.
-- Aktif atanmış ikinci yazar veya yürüyen Claude işi kaydedilmiş değil.
+- Claude HQ-05A görevini `codex/claude-browser-smoke-hq05a` dalında
+  `304de3f` ile bitirdi; Codex aynı revizyonu `42478e1` olarak entegre etti.
+  Aktif ikinci yazar yok. Worktree duruyor; yeniden atama olmadan kullanma.
+- REL-02 hosted dar smoke 2026-09-29: 390px, klavye, dark, reduced-motion,
+  JS-kapalı fallback, CSP ve Studio gerekli asset'leri kontrol edildi.
 
 ## Açık sınırlar ve kararlar
 
@@ -31,6 +36,8 @@ eksik kalan bir karar/kanıt varsa o görevin ilgili son bölümünü oku.
   menu/zoom değişiklikleri Studio yayınına girmedi.
 - Gerçek sekiz haneli e-posta kodu, authenticated project save/resume ve cihaz
   PNG denemeleri ayrıca kanıt ister (`AUTH-01/02/03`, `STU-02`).
+- HQ-05'in kalan browser smoke kapsamı Extract→Studio ve hesap form durumları;
+  hiçbir test gerçek mail veya canlı hesap oluşturmaz.
 - Onaylı renk corpus'u hâlâ yok; araştırma notları import veya içerik onayı
   değildir. Campaigns yönü ve ilk Library paletleri owner kararı bekler.
 

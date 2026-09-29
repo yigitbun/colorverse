@@ -1,9 +1,10 @@
 # HQ-05A — local browser smoke foundation
 
-Owner: Claude implementation; Codex review and integration. Status: assigned,
-not yet started. Branch/worktree: `codex/claude-browser-smoke-hq05a` at
-`.local/worktrees/claude-browser-smoke-hq05a`. Base: the local `main` commit
-that records this assignment; Codex supplies its exact SHA before work starts.
+Owner: Claude implementation; Codex review and integration. Status: delivered
+and locally integrated 2026-09-29. Branch/worktree:
+`codex/claude-browser-smoke-hq05a` at
+`.local/worktrees/claude-browser-smoke-hq05a`. Base `6ef9756`, Claude revision
+`304de3f`, reviewed main integration `42478e1`; no push or publication.
 
 ## Outcome
 
@@ -37,3 +38,16 @@ Avoid the owner’s local dirty home page files entirely.
 5. Existing `npm run build` and focused tests still pass. Report exact checks,
    PASS/FAIL/NOT RUN, dependency/browser requirements, and remaining HQ-05
    coverage. Commit only assigned files on the task branch.
+
+## Delivery evidence
+
+- `npm run test:browser:smoke`: PASS 2/2 in Claude worktree and after main
+  integration. Fresh local server/browser, off-origin request guard, Explore
+  handoff, 390px scroll and keyboard assertions passed.
+- `npm run check:release`: PASS on integrated main; 113 static files and
+  232/232 tests. `npm ci` installed pinned `playwright-core` locally first.
+- Browser: cached Playwright headless shell or system Chrome/Chromium; on a
+  clean machine use `npx playwright-core install chromium-headless-shell` or
+  set `CHROME_PATH`.
+- NOT RUN: intentional mutation test, Extract→Studio, account form states.
+  These remain HQ-05 follow-ups; no real mail or account creation is allowed.
