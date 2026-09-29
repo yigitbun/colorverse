@@ -5,7 +5,7 @@
 .studio-compact-head>div{display:flex;align-items:baseline;gap:13px}
 .studio-compact-head .eyebrow{font-size:9px;white-space:nowrap}
 .studio-compact-head h1{margin:0;font-size:25px;line-height:1;letter-spacing:-.04em}
-.studio-workspace{grid-template-columns:184px minmax(0,1fr) 280px;margin-top:0;align-items:stretch}
+.studio-workspace{grid-template-columns:184px minmax(0,1fr) 280px;margin-top:0;align-items:stretch;container-type:inline-size}
 .studio-workspace.is-palette-collapsed{grid-template-columns:64px minmax(0,1fr) 280px}
 .studio-workspace .palette-inspector{display:block;min-width:0;padding:16px 12px;background:var(--surface)}
 .palette-inspector .inspector-top{display:flex;align-items:center;justify-content:space-between;gap:4px}
@@ -25,6 +25,12 @@
 .palette-member:hover{background:var(--surface-2)}
 .palette-member.is-selected{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 5%,var(--surface))}
 .palette-member.is-unassigned>i{outline:1px dashed var(--muted);outline-offset:2px}
+.palette-member-grip{display:grid;place-items:center;flex:none;width:18px;height:30px;margin-left:auto;color:var(--muted);cursor:grab;touch-action:none;border-radius:3px}
+.palette-member-grip svg{width:12px;height:16px;fill:currentColor}
+.palette-member-grip:hover{color:var(--ink);background:var(--surface-2)}
+.palette-member-grip:active,.palette-member.is-dragging .palette-member-grip{cursor:grabbing}
+.palette-member.is-dragging{opacity:.58}
+.palette-member.is-drop-target{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--surface));box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 24%,transparent)}
 /* 6–24 colors: visible count, two compact columns (8–10 fit unscrolled), fade + cue when more remain. */
 .palette-count{display:flex;align-items:baseline;gap:0;margin:10px 0 -8px;font-size:10px;line-height:1.3;color:var(--muted)}
 .palette-count[hidden]{display:none}
@@ -134,15 +140,19 @@
 .product-context-picker button[aria-selected="true"]{border-color:var(--line);background:var(--surface);color:var(--ink)}
 .product-context-picker button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 @media(max-width:1100px){
-  .studio-workspace{grid-template-columns:160px minmax(0,1fr) 260px}
-  .studio-workspace.is-palette-collapsed{grid-template-columns:64px minmax(0,1fr) 260px}
-}
-@media(max-width:900px){
-  .studio-workspace{grid-template-columns:160px minmax(0,1fr)}
-  .studio-workspace.is-palette-collapsed{grid-template-columns:64px minmax(0,1fr)}
-  #colorLab{grid-column:1/-1;border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 24px}
-  .shade-panel-head,.shade-panel-intro,.color-globe-open,.shade-panel-body{grid-column:1}
-  .tray-section{grid-column:2;grid-row:1/5;margin:0;padding:0 0 0 20px;border-top:0;border-left:1px solid var(--line)}
+  .studio-workspace{grid-template-columns:minmax(0,1.1fr) minmax(260px,.9fr)}
+  .studio-workspace.is-palette-collapsed{grid-template-columns:minmax(0,1.1fr) minmax(260px,.9fr)}
+  .studio-workspace .palette-inspector{grid-column:1/-1;border-bottom:1px solid var(--line);padding:12px 14px}
+  .palette-inspector .inspector-top{display:flex}
+  .palette-inspector h3{margin:5px 0;font-size:15px}
+  .palette-inspector .palette-roles,.palette-inspector .palette-roles.is-scrolling{display:flex;gap:5px;max-height:none;overflow-x:auto;overflow-y:hidden;margin:8px 0 0;padding:3px 1px}
+  .palette-member{flex:0 0 132px;min-height:44px}
+  .palette-member>i{width:27px;height:32px}
+  .palette-member-label{font-size:10px}
+  .palette-member code{font-size:8px}
+  .studio-workspace .context-area{grid-column:1;min-width:0}
+  #colorLab{grid-column:2;grid-row:2;border-left:1px solid var(--line);border-top:0;display:block}
+  .tray-section{margin-top:16px;padding-top:12px;border-top:1px solid var(--line);border-left:0}
 }
 @media(max-width:580px){
   .studio-compact-head{align-items:center;padding:12px 0 7px}
@@ -162,7 +172,9 @@
   .is-palette-collapsed .inspector-top{justify-content:flex-end}
   .is-palette-collapsed .palette-member{flex-basis:44px}
   .is-palette-collapsed .palette-member>i{width:32px;height:32px}
-  #colorLab{display:block;padding:16px}
+  .palette-member-grip{width:16px}
+  .studio-workspace .context-area{grid-column:1}
+  #colorLab{grid-column:1;grid-row:auto;display:block;padding:16px}
   .tray-section{margin-top:16px;padding:12px 0 0;border-left:0;border-top:1px solid var(--line)}
   .mockup-stage.has-product-rail{padding:10px;gap:6px}
   .product-context-picker button{min-height:34px}

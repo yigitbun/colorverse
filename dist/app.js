@@ -242,6 +242,31 @@ function swapPaletteColors(from, to) {
   track('color_edit', { method: 'swap' });
 }
 
+// Palette members can be reordered from their visible rail. Five-member palettes
+// are the historic five preview slots; larger sets keep role assignments attached
+// to the same colors while their member positions are exchanged.
+function swapPaletteMembers(from, to) {
+  const workspace = current.workspace;
+  if (from === to || from < 0 || to < 0 || from >= workspace.members.length || to >= workspace.members.length) return;
+  [shadeSourceColors[from], shadeSourceColors[to]] = [shadeSourceColors[to], shadeSourceColors[from]];
+  activeColorIndex = to;
+  const members = [...workspace.members];
+  [members[from], members[to]] = [members[to], members[from]];
+  let next = { ...workspace, members };
+  if (workspace.members.length === 5) {
+    // Five authored members are also the five preview slots, so the preview
+    // moves with the visible member order.
+  } else {
+    const roleIndex = workspace.roleIndex.map(index => index === from ? to : index === to ? from : index);
+    // Larger palettes keep each assigned preview role attached to its color.
+    next.roleIndex = roleIndex;
+  }
+  commitWorkspace(next);
+  const status = $('#paletteOrderStatus');
+  if (status) status.textContent = `Swapped Color ${from + 1} and Color ${to + 1}.`;
+  track('color_edit', { method: 'palette-member-swap' });
+}
+
 // `index` is a palette member; the preview changes only if that member holds a role.
 function replacePaletteColor(index, color, { keepShadeSource = false } = {}) {
   if (index < 0 || index >= current.workspace.members.length || !/^#[0-9a-f]{6}$/i.test(color)) return;
@@ -382,7 +407,7 @@ function renderPaletteRoles() {
   container.setAttribute('aria-label', `${workspace.members.length} palette colors${isShort(workspace) ? ', plus neutral preview support that is not part of the palette' : ''}. Select a color to edit it on the right.`);
   container.innerHTML = workspace.members.map((color, index) => {
     const label = memberLabel(workspace, index), assigned = roleOfMember(workspace, index) >= 0;
-    return `<button class="palette-member${activeColorIndex === index ? ' is-selected' : ''}${assigned ? '' : ' is-unassigned'}" type="button" data-select-member="${index}" style="--swatch:${color};--on:${textOn(color)}" aria-pressed="${activeColorIndex === index}" aria-label="Select ${label}, ${color}${assigned ? '' : ', not in preview'}" title="${label} · ${color}${assigned ? '' : ' · not in preview'}"><i aria-hidden="true"></i><span class="palette-member-label">${label}<code>${color}</code></span></button>`;
+    return `<button class="palette-member${activeColorIndex === index ? ' is-selected' : ''}${assigned ? '' : ' is-unassigned'}" type="button" data-select-member="${index}" style="--swatch:${color};--on:${textOn(color)}" aria-pressed="${activeColorIndex === index}" aria-label="Select ${label}, ${color}${assigned ? '' : ', not in preview'}. Drag its handle onto another color to swap positions." title="${label} · ${color}${assigned ? '' : ' · not in preview'}"><i aria-hidden="true"></i><span class="palette-member-label">${label}<code>${color}</code></span><span class="palette-member-grip" aria-hidden="true"><svg viewBox="0 0 16 20"><circle cx="5" cy="4" r="1.35"/><circle cx="11" cy="4" r="1.35"/><circle cx="5" cy="10" r="1.35"/><circle cx="11" cy="10" r="1.35"/><circle cx="5" cy="16" r="1.35"/><circle cx="11" cy="16" r="1.35"/></svg></span></button>`;
   }).join('');
   const count = $('#paletteCount');
   if (count) {
@@ -931,7 +956,39 @@ const colorGlobe = createColorGlobe({
   },
 });
 if (paletteRoles) {
+  let memberDrag = null;
+  const finishMemberDrag = () => {
+    paletteRoles.querySelectorAll('.is-dragging,.is-drop-target').forEach(item => item.classList.remove('is-dragging', 'is-drop-target'));
+    memberDrag = null;
+  };
+  paletteRoles.addEventListener('pointerdown', event => {
+    const grip = event.target.closest('.palette-member-grip');
+    const button = grip?.closest('[data-select-member]');
+    if (!button || (event.pointerType === 'mouse' && event.button !== 0)) return;
+    memberDrag = { pointerId: event.pointerId, from: Number(button.dataset.selectMember), source: button, target: button, x: event.clientX, y: event.clientY, started: false };
+    grip.setPointerCapture?.(event.pointerId);
+    event.preventDefault();
+  });
+  paletteRoles.addEventListener('pointermove', event => {
+    if (!memberDrag || memberDrag.pointerId !== event.pointerId) return;
+    if (!memberDrag.started && Math.hypot(event.clientX - memberDrag.x, event.clientY - memberDrag.y) < 7) return;
+    memberDrag.started = true;
+    event.preventDefault();
+    memberDrag.source.classList.add('is-dragging');
+    const hit = document.elementFromPoint(event.clientX, event.clientY)?.closest('#paletteRoles [data-select-member]');
+    paletteRoles.querySelectorAll('.is-drop-target').forEach(item => item.classList.remove('is-drop-target'));
+    memberDrag.target = hit || memberDrag.source;
+    if (memberDrag.target !== memberDrag.source) memberDrag.target.classList.add('is-drop-target');
+  });
+  paletteRoles.addEventListener('pointerup', event => {
+    if (!memberDrag || memberDrag.pointerId !== event.pointerId) return;
+    const drag = memberDrag;
+    if (drag.started && drag.target !== drag.source) swapPaletteMembers(drag.from, Number(drag.target.dataset.selectMember));
+    finishMemberDrag();
+  });
+  paletteRoles.addEventListener('pointercancel', finishMemberDrag);
   paletteRoles.addEventListener('click', event => {
+    if (event.target.closest('.palette-member-grip')) return;
     const button = event.target.closest('[data-select-member]');
     if (!button) return;
     activeColorIndex = Number(button.dataset.selectMember);
@@ -956,6 +1013,12 @@ if (paletteRoles) {
     event.preventDefault();
     const target = paletteRoles.querySelector(`[data-select-member="${next}"]`);
     target?.click();
+  });
+  paletteRoles.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && memberDrag) {
+      event.preventDefault();
+      finishMemberDrag();
+    }
   });
 }
 $('#togglePaletteRail')?.addEventListener('click', event => {
