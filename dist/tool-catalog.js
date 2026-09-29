@@ -18,7 +18,7 @@ const pathText = {
 
 function visual(id) {
   if (id === 'globe') return '<span class="journey-visual journey-visual-globe" aria-hidden="true"><img src="/assets/studies/color-globe-editor-reference.png" alt="" loading="lazy"></span>';
-  if (id === 'extract') return '<span class="journey-visual journey-visual-read" aria-hidden="true"><img src="/assets/studies/piera.jpg" alt="" loading="lazy"><span class="journey-read-picker"></span><span class="journey-read-swatches"><i style="background:#C8D8A7"></i><i style="background:#BBA2D1"></i><i style="background:#E9947B"></i><i style="background:#EAC843"></i><i style="background:#253B25"></i></span><small>AI CONCEPT</small></span>';
+  if (id === 'extract') return '<span class="journey-visual journey-visual-read" aria-hidden="true"><img src="/assets/studies/lorien.jpg" alt="" loading="lazy"><span class="journey-read-picker is-navy"></span><span class="journey-read-picker is-green"></span><span class="journey-read-picker is-burgundy"></span><span class="journey-read-swatches"><i style="background:#E9DFCF"></i><i style="background:#958373"></i><i style="background:#203147"></i><i style="background:#74322F"></i><i style="background:#283D31"></i></span><small>AI CONCEPT</small></span>';
   return '<span class="journey-visual journey-visual-apply" aria-hidden="true"><img src="/assets/studies/katre-serum-v3.png" alt="" loading="lazy"><i>KATRE · CONCEPT</i></span>';
 }
 
