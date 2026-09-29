@@ -110,6 +110,9 @@ async function handOffFromLibrary(page) {
   await page.goto(`${origin}/`);
   assert.equal((await page.locator('[data-tool-catalog] h2').textContent()).trim(), 'Color is a decision, not a swatch.');
   assert.equal(await page.locator('#homeExploreGrid').count(), 0, 'homepage no longer repeats Library examples');
+  const shelf = await page.locator('.journey-step').evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().height));
+  assert.equal(shelf.length, 3, 'three journey steps are visible');
+  assert.ok(shelf.every(height => height <= 132), `journey stays a compact strip (${shelf.join(', ')}px)`);
   await Promise.all([page.waitForURL(url => url.pathname === '/explore/'), page.locator('.hero-actions a[href="/explore/"]').click()]);
   const card = page.locator('[data-study-shelf="library"] .study-card').first();
   await card.waitFor({ state: 'visible' });

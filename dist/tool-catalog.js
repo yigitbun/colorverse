@@ -1,8 +1,8 @@
-// A shared ColorVerse journey: find a direction, read a reference, then see
+// A shared ColorVerse journey: explore a color, read a reference, then see
 // whether the colors work in an actual design. Pages opt in at the footer.
 
 export const TOOLS = [
-  { id: 'globe', href: '/', title: 'Explore the globe', action: 'Find a direction' },
+  { id: 'globe', href: '/', title: 'Explore the globe', action: 'Explore a color' },
   { id: 'extract', href: '/extract/', title: 'Image to palette', action: 'Read an image' },
   { id: 'studio', href: '/studio/', title: 'Palette Studio', action: 'Try it in a design' },
   { id: 'inspiration', href: '/inspiration/', title: 'Inspiration', action: 'See applied studies' },
@@ -11,14 +11,14 @@ export const TOOLS = [
 
 const PATHS = TOOLS.slice(0, 3);
 const pathText = {
-  globe: { note: 'Begin with a hue', description: 'Move through colour until a direction feels right.' },
+  globe: { note: 'Color Globe', description: 'Choose a color, then tune its hue, intensity and lightness.' },
   extract: { note: 'Begin with a reference', description: 'Read the colors in an image, then shape the set.' },
   studio: { note: 'Begin with a design', description: 'Put the palette on a product or screen and see what holds.' },
 };
 
 function visual(id) {
-  if (id === 'globe') return '<span class="journey-visual journey-visual-globe" aria-hidden="true"><i></i><b></b></span>';
-  if (id === 'extract') return '<span class="journey-visual journey-visual-read" aria-hidden="true"><i></i><b></b><em></em><small></small></span>';
+  if (id === 'globe') return '<span class="journey-visual journey-visual-globe" aria-hidden="true"><img src="/assets/studies/color-globe-editor-reference.png" alt="" loading="lazy"></span>';
+  if (id === 'extract') return '<span class="journey-visual journey-visual-read" aria-hidden="true"><img src="/assets/studies/piera.jpg" alt="" loading="lazy"><span class="journey-read-picker"></span><span class="journey-read-swatches"><i style="background:#C8D8A7"></i><i style="background:#BBA2D1"></i><i style="background:#E9947B"></i><i style="background:#EAC843"></i><i style="background:#253B25"></i></span><small>AI CONCEPT</small></span>';
   return '<span class="journey-visual journey-visual-apply" aria-hidden="true"><img src="/assets/studies/katre-serum-v3.png" alt="" loading="lazy"><i>KATRE · CONCEPT</i></span>';
 }
 
@@ -36,7 +36,7 @@ function referenceLink(tool, current) {
 
 export function catalogMarkup(current = '') {
   const resourceLinks = TOOLS.slice(3).map(tool => referenceLink(tool, current)).join('');
-  return `<div class="journey-intro"><span class="eyebrow">From color to context</span><h2 id="toolCatalogTitle">Color is a decision, not a swatch.</h2><p>Find a direction. Read a reference. See how the whole palette works in a design.</p></div>`
+  return `<div class="journey-intro"><span class="eyebrow">From color to context</span><h2 id="toolCatalogTitle">Color is a decision, not a swatch.</h2><p>Explore a color. Read an image. See the palette in a design.</p></div>`
     + `<ol class="color-journey" aria-label="From a color direction to a finished design">${PATHS.map(tool => pathCard(tool, current)).join('')}</ol>`
     + `<div class="journey-more"><span>Want examples or a starting palette?</span><nav aria-label="Explore ColorVerse palettes and studies">${resourceLinks}</nav></div>`;
 }
