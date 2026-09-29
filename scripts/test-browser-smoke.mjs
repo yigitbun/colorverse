@@ -1,7 +1,7 @@
 // Local browser smoke for the static app in dist/ (HQ-05A).
 // Starts its own static server and a disposable headless Chromium profile,
 // blocks every request that leaves the local origin (Supabase, analytics,
-// fonts), and drives Explore → Studio, 390px overflow, and keyboard selection
+// fonts), and drives Explore → Library → Studio, 390px overflow, and keyboard selection
 // of Studio palette members. Nothing here touches hosted data or accounts.
 //
 // Browser: set CHROME_PATH, or use Playwright's bundled Chromium, a cached
@@ -105,19 +105,22 @@ async function openContext(viewport) {
   return { context, page, errors };
 }
 
-// Follow a real, visible Explore card link and return what it promised.
-async function handOffFromExplore(page) {
+// Follow a real Library concept card after the homepage points to Library.
+async function handOffFromLibrary(page) {
   await page.goto(`${origin}/`);
-  const card = page.locator('#homeExploreGrid article:has(a[data-select])').first();
+  assert.equal((await page.locator('[data-tool-catalog] h2').textContent()).trim(), 'Color is a decision, not a swatch.');
+  assert.equal(await page.locator('#homeExploreGrid').count(), 0, 'homepage no longer repeats Library examples');
+  await Promise.all([page.waitForURL(url => url.pathname === '/explore/'), page.locator('.hero-actions a[href="/explore/"]').click()]);
+  const card = page.locator('[data-study-shelf="library"] .study-card').first();
   await card.scrollIntoViewIfNeeded();
-  const link = card.locator('a[data-select]:visible').last();
-  await assert.doesNotReject(link.waitFor({ state: 'visible' }), 'Explore shows a palette entry with a visible Studio link');
-  const id = await link.getAttribute('data-select');
-  const colors = await card.locator('.home-explore-colors [data-copy]').evaluateAll(nodes => nodes.map(node => node.dataset.copy.toUpperCase()));
-  assert.ok(id, 'palette link carries an id');
-  assert.equal(colors.length, 5, 'Explore card shows five palette colors');
+  const link = card.locator('a[href^="/studio/?p="]');
+  await assert.doesNotReject(link.waitFor({ state: 'visible' }), 'Library shows a concept study with a visible Studio link');
+  const id = await card.getAttribute('data-study-id');
+  const colors = await card.locator('.study-palette i').evaluateAll(nodes => nodes.map(node => node.title.toUpperCase()));
+  assert.ok(id, 'concept card carries an id');
+  assert.equal(colors.length, 5, 'Library concept card shows five palette colors');
   await Promise.all([page.waitForURL(url => url.pathname === '/studio/'), link.click()]);
-  assert.equal(new URL(page.url()).searchParams.get('p'), id, 'Studio opened with the chosen palette id');
+  assert.equal(new URL(page.url()).searchParams.get('p'), id, 'Studio opened with the chosen Library concept id');
   await page.locator('#paletteRoles [data-select-member]').first().waitFor();
   return { id, colors };
 }
@@ -155,7 +158,7 @@ async function assertKeyboardSelection(page, expected) {
   assert.equal((await page.locator('#selectedColorHex').textContent()).trim().toUpperCase(), expected.colors.at(-1), 'selected-color panel follows End');
 }
 
-test('Explore → Studio handoff and keyboard member selection (desktop)', async t => {
+test('Library → Studio handoff and keyboard member selection (desktop)', async t => {
   const { context, page, errors } = await openContext({ width: 1280, height: 900 });
   try {
     await page.goto(`${origin}/`);
@@ -163,7 +166,7 @@ test('Explore → Studio handoff and keyboard member selection (desktop)', async
     const guarded = await page.evaluate(() => fetch('https://guard-check.invalid/').then(() => 'sent', () => 'blocked'));
     assert.equal(guarded, 'blocked', 'off-origin requests are aborted');
     assert.ok(blocked.has('https://guard-check.invalid'), 'route guard saw the off-origin request');
-    const expected = await handOffFromExplore(page);
+    const expected = await handOffFromLibrary(page);
     t.diagnostic(`palette ${expected.id}: ${expected.colors.join(' ')}`);
     await assertStudioShows(page, expected);
     await assertKeyboardSelection(page, expected);
@@ -179,9 +182,8 @@ test('390px: no page overflow, Studio rail scrolls in place, keyboard selection'
   };
   try {
     await page.goto(`${origin}/`);
-    await page.locator('#homeExploreGrid article').first().waitFor();
     await noPageOverflow('Explore');
-    const expected = await handOffFromExplore(page);
+    const expected = await handOffFromLibrary(page);
     await assertStudioShows(page, expected);
     await noPageOverflow('Studio');
 

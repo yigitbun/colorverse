@@ -66,6 +66,15 @@ test('primary routes mount one shelf immediately before the footer', async () =>
   }
 });
 
+test('home leads from the globe hero directly to the product journey; examples stay in Library', async () => {
+  const home = await read('index.html');
+  const library = await read('explore/index.html');
+  assert.match(home, /<a class="text-link" href="\/explore\/">Browse palettes/);
+  assert.doesNotMatch(home, /id="homeExploreGrid"|id="discover-filters"/);
+  assert.match(home, /<\/section>\s*<\/main>\s*<section class="tool-catalog section-wrap" data-tool-catalog data-current="globe"/);
+  assert.match(library, /data-study-shelf="library"/);
+});
+
 test('stylesheet keeps mobile readable and account/legal quiet', async () => {
   const css = await read('tool-catalog.css');
   assert.match(css, /grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
