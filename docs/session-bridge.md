@@ -48,6 +48,8 @@ eksik kalan bir karar/kanıt varsa o görevin ilgili son bölümünü oku.
   raporu ve mevcut renkleri karıştıran Shuffle yerel PASS;
   [STU-10/12/13/14](open-work.md) ayrıntıları görev belgelerinde. Generate
   ayrı aday/karşılaştırma akışı olarak önerildi; ürün kararı açık (STU-15).
+  Owner düzeltmesi STU-14A: tam genişlikli Shuffle bloğu kaldırıldı; ikon
+  palet adıyla aynı satırın sağında (`efa8125`), 1280/390px kontrol edildi.
 - HOME-03: Mini Studio Hue/Lightness özel HEX'e geçince dünya seçimi filtresi
   globe marker'ını temizliyor; `focusPoint` çağrılmıyor. Önceki reverse coupling
   geri alınmıştı. Slider değişince globe'un yaklaşık renge dönmesi/işaretlemesi
